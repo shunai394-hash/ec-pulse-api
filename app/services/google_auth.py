@@ -25,6 +25,11 @@ def _callback_url() -> str:
     return f"{base}/auth/callback"
 
 
+def _secure_cookie() -> bool:
+    base = os.getenv("APP_BASE_URL", "").strip().lower()
+    return base.startswith("https://")
+
+
 def _code_verifier() -> str:
     return secrets.token_urlsafe(64)
 
@@ -52,7 +57,7 @@ async def google_login() -> RedirectResponse:
         verifier,
         max_age=600,
         httponly=True,
-        secure=os.getenv("APP_ENV", "development") == "production",
+        secure=_secure_cookie(),
         samesite="lax",
         path="/auth",
     )

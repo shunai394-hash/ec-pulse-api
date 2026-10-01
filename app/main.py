@@ -368,6 +368,7 @@ def billing_portal(api_key: str = Depends(get_api_key)):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 @app.post("/api/stripe/webhook")
+@app.post("/api/webhooks/stripe")
 async def stripe_webhook(request: Request, stripe_signature: str | None = Header(default=None, alias="Stripe-Signature")):
     if not stripe_signature:
         raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
