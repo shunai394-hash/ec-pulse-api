@@ -86,7 +86,9 @@ async def exchange_callback(request: Request, code: str) -> RedirectResponse:
 
     redirect = RedirectResponse("/", status_code=302)
     redirect.delete_cookie("ecp_oauth_verifier", path="/auth")
-    secure = os.getenv("APP_ENV", "development") == "production"
+    # Session tokens must never travel over plain HTTP in production, even if
+    # APP_ENV is missing: an https APP_BASE_URL also forces the Secure flag.
+    secure = _secure_cookie() or os.getenv("APP_ENV", "development") == "production"
     redirect.set_cookie(
         "ecp_access_token",
         access_token,
@@ -128,6 +130,7 @@ async def current_user(request: Request) -> dict:
 
 def logout() -> RedirectResponse:
     response = RedirectResponse("/", status_code=302)
-    response.delete_cookie("ecp_access_token", path="/")
-    response.delete_cookie("ecp_refresh_token", path="/")
+    secure = _secure_cookie() or os.getenv("APP_ENV", "development") == "production"
+    response.delete_cookie("ecp_access_token", path="/", secure=secure, httponly=True, samesite="lax")
+    response.delete_cookie("ecp_refresh_token", path="/", secure=secure, httponly=True, samesite="lax")
     return response

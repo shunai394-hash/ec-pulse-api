@@ -27,7 +27,7 @@ def _admin_key(api_key: str | None = Depends(_admin_header)) -> str:
 
 
 def register_key_routes(app: FastAPI) -> None:
-    @app.post("/v1/admin/keys")
+    @app.post("/v1/admin/keys", include_in_schema=False)
     def create_key(request: CreateKeyRequest, _: str = Depends(_admin_key)):
         try:
             return create_api_key(request.plan, request.credits)
@@ -36,14 +36,14 @@ def register_key_routes(app: FastAPI) -> None:
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    @app.get("/v1/admin/keys")
+    @app.get("/v1/admin/keys", include_in_schema=False)
     def keys(_: str = Depends(_admin_key)):
         try:
             return {"keys": list_api_keys()}
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    @app.post("/v1/admin/keys/revoke")
+    @app.post("/v1/admin/keys/revoke", include_in_schema=False)
     def revoke(request: RevokeKeyRequest, _: str = Depends(_admin_key)):
         try:
             revoked = revoke_api_key(request.api_key)

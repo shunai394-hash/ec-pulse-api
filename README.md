@@ -21,8 +21,12 @@ EC Pulse turns Japanese marketplace product pages and search results into normal
 | Plan | Credits | Rate limit |
 |---|---:|---:|
 | Free | 100 | 30 req/min |
-| Pro | configurable | 300 req/min |
-| Business | configurable | 3000 req/min |
+| Pro | `EC_PULSE_PRO_MONTHLY_CREDITS` | 300 req/min |
+| Business | `EC_PULSE_BUSINESS_MONTHLY_CREDITS` | 3000 req/min |
+
+When Stripe reports a paid invoice (`invoice.paid` / `invoice.payment_succeeded`, or `checkout.session.completed` for the first invoice) for an active Pro/Business subscription, the account balance is topped up to that plan's monthly credit quota. The balance is never reduced by a grant, and each Stripe invoice is granted at most once (`credit_grants` table). If the quota variable is not set, no credits are granted.
+
+Credits charged for work that fails upstream (product fetch/search failure, failed URLs in compare/research) are refunded and recorded in the usage ledger as `<endpoint> (refund)`.
 
 Plan limits, Stripe checkout, subscription synchronization, credit accounting, usage tracking, Google login, and self-service customer API-key provisioning are implemented. A customer can authenticate, issue a free API key, use the API, and start a Pro/Business Stripe checkout without administrator intervention.
 
@@ -44,7 +48,24 @@ Plan limits, Stripe checkout, subscription synchronization, credit accounting, u
 - `POST /v1/billing/checkout`
 - `POST /v1/billing/portal`
 - `POST /v1/billing/cancel`
-- `POST /api/stripe/webhook`
+- `POST /v1/research/batch`
+- `GET /v1/pricing`
+
+## Customer (Google session cookie) endpoints
+
+- `GET /auth/google`, `GET /auth/callback`, `GET /auth/me`, `POST /auth/logout`
+- `POST /v1/customer/key` (issue or `{"rotate": true}`)
+- `GET /v1/customer/keys`
+- `POST /v1/customer/keys/revoke?key_prefix=...`
+- `GET /v1/customer/account`
+- `GET /v1/customer/usage?days=30`
+- `GET /v1/customer/usage/alerts`
+
+## Operator endpoints
+
+- `POST /api/stripe/webhook` and `POST /api/webhooks/stripe` (Stripe-signed; same handler)
+- `GET /api/cron/check-monitors`, `GET /api/cron/patrol`, `GET /api/cron/patrol/latest` (`Authorization: Bearer $CRON_SECRET`)
+- `/v1/admin/keys` (admin key; hidden from `/docs`)
 
 ## Customer onboarding
 

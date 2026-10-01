@@ -2,16 +2,18 @@ import asyncio
 import hashlib
 import os
 import secrets
+import uuid
 import httpx
 import psycopg
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
 
 from app.services.billing import cancel_subscription, create_checkout, create_customer_portal, process_webhook
-from app.services.monitor_store import consume_credit, create_monitor, create_monitor_with_credit, ensure_api_account, get_account_usage, get_price_history, get_price_opportunity, list_monitors, run_due_monitors, validate_api_key, save_research_run, get_research_opportunity, list_research_runs, provision_customer_api_key, list_customer_api_keys, revoke_customer_api_key, get_customer_usage, get_customer_usage_alert
+from app.services.monitor_store import consume_credit, refund_credit, create_monitor, create_monitor_with_credit, ensure_api_account, get_account_usage, get_price_history, get_price_opportunity, list_monitors, run_due_monitors, validate_api_key, save_research_run, get_research_opportunity, list_research_runs, provision_customer_api_key, list_customer_api_keys, revoke_customer_api_key, get_customer_usage, get_customer_usage_alert
 from app.services.product_cache import fetch_product_cached
 from app.services.product_search import search_products
 from app.services.patrol import run_patrol
@@ -32,13 +34,40 @@ app = FastAPI(
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 MAX_STRIPE_WEBHOOK_BYTES = 2 * 1024 * 1024
 
+_DOC_PATHS = {"/docs", "/docs/oauth2-redirect", "/redoc"}
+
+
+def _request_id(value: str | None) -> str:
+    if value and len(value) <= 128 and all(c.isalnum() or c in "-_." for c in value):
+        return value
+    return uuid.uuid4().hex
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    request_id = _request_id(request.headers.get("X-Request-ID"))
+    request.state.request_id = request_id
     response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    if os.getenv("APP_BASE_URL", "").lower().startswith("https://"):
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    # /docs and /redoc load Swagger/ReDoc assets from a CDN; every other
+    # response is JSON (or a redirect) and needs no active content at all.
+    if request.url.path not in _DOC_PATHS:
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")):
+        response.headers["Cache-Control"] = "no-store"
     return response
+
+
+@app.exception_handler(psycopg.OperationalError)
+async def database_unavailable(request: Request, exc: psycopg.OperationalError):
+    # Neon/PostgreSQL connectivity failures are a temporary outage, not a 500.
+    # Connection details are never echoed back to the client.
+    return JSONResponse(status_code=503, content={"detail": "Database is temporarily unavailable"}, headers={"Retry-After": "5"})
 
 
 class ProductRequest(BaseModel):
@@ -107,6 +136,23 @@ def _charge(api_key: str, endpoint: str, credits: int = 1):
         if "Insufficient API credits" in message: raise HTTPException(status_code=402, detail=message) from exc
         if "Invalid or revoked API key" in message: raise HTTPException(status_code=401, detail=message) from exc
         raise HTTPException(status_code=503, detail=message) from exc
+
+def _refund(api_key: str, endpoint: str, credits: int, charge):
+    """Best-effort refund for work that failed upstream; returns the updated charge."""
+    if credits < 1:
+        return charge
+    try:
+        refund = refund_credit(api_key, endpoint, credits)
+    except Exception:
+        return charge
+    if isinstance(charge, dict):
+        return {**charge, "credits_used": charge.get("credits_used", 0) - credits, "credits_refunded": credits, "credits_remaining": refund["credits_remaining"]}
+    return charge
+
+def _set_usage_headers(response: Response, request: Request, api_key: str, charge) -> None:
+    used = charge.get("credits_used") if isinstance(charge, dict) else charge
+    for k, v in _usage_headers(request, api_key, used).items():
+        response.headers[k] = v
 
 def _consumer_insight_credit_cost(comment_count: int) -> int:
     return max(1, (comment_count + 49) // 50)
@@ -409,19 +455,23 @@ def pricing():
 
 @app.post("/v1/consumer-insights/analyze")
 def consumer_insights(request: ConsumerInsightRequest, request_http: Request, response: Response, api_key: str = Depends(get_api_key)):
-    charge = _charge(api_key, "POST /v1/consumer-insights/analyze", _consumer_insight_credit_cost(len(request.comments)))
-    for k, v in _usage_headers(request_http, api_key, charge).items():
-        response.headers[k] = v
-    result = analyze_comments(request.comments, request.source, "en-US" if request.source and any(x in request.source.lower() for x in ["amazon.com", "reddit", "youtube.com", "tiktok.com"]) else None)
+    endpoint = "POST /v1/consumer-insights/analyze"
+    cost = _consumer_insight_credit_cost(len(request.comments))
+    charge = _charge(api_key, endpoint, cost)
+    try:
+        result = analyze_comments(request.comments, request.source, "en-US" if request.source and any(x in request.source.lower() for x in ["amazon.com", "reddit", "youtube.com", "tiktok.com"]) else None)
+    except Exception as exc:
+        _refund(api_key, endpoint, cost, charge)
+        raise HTTPException(status_code=500, detail="Consumer insight analysis failed") from exc
+    _set_usage_headers(response, request_http, api_key, charge)
     result["credits"] = charge
     return result
 
 @app.post("/v1/research/ingest")
 async def research_ingest(request: ResearchUrlRequest, request_http: Request, response: Response, api_key: str = Depends(get_api_key)):
     await _validate_urls([str(url) for url in request.urls])
-    charge = _charge(api_key, "POST /v1/research/ingest", len(request.urls))
-    for k, v in _usage_headers(request_http, api_key, charge).items():
-        response.headers[k] = v
+    endpoint = "POST /v1/research/ingest"
+    charge = _charge(api_key, endpoint, len(request.urls))
     results = []
     for url in request.urls:
         try:
@@ -458,6 +508,8 @@ async def research_ingest(request: ResearchUrlRequest, request_http: Request, re
         )[:10]
         del bucket["pain_points"]
 
+    charge = _refund(api_key, endpoint, sum(1 for item in results if item.get("ok") is False), charge)
+    _set_usage_headers(response, request_http, api_key, charge)
     return {"count": len(results), "credits": charge, "market_summary": market_summary, "results": results}
 
 @app.get("/v1/research/runs")
@@ -481,21 +533,25 @@ async def research_opportunity(run_id: str, request_http: Request, response: Res
         for item in result.get("product_directions", [])[:3]:
             if item["pain"] not in queries:
                 queries.append(item["pain"])
+        endpoint = "GET /v1/research/runs/{run_id}/opportunity"
         charge = _charge(
             api_key,
-            "GET /v1/research/runs/{run_id}/opportunity",
+            endpoint,
             _research_opportunity_credit_cost(len(queries), marketplaces=3, limit=5),
         )
-        for k, v in _usage_headers(request_http, api_key, charge).items():
-            response.headers[k] = v
         candidates = []
+        failed_queries = 0
         for query in queries:
             try:
                 found = await search_products(query, ["amazon", "rakuten", "yahoo"], 5)
                 if isinstance(found, dict):
                     candidates.extend(found.get("results", found.get("items", [])))
             except Exception:
+                failed_queries += 1
                 continue
+        if failed_queries:
+            charge = _refund(api_key, endpoint, _research_opportunity_credit_cost(failed_queries, marketplaces=3, limit=5), charge)
+        _set_usage_headers(response, request_http, api_key, charge)
         result["product_candidates"] = candidates[:15]
         result["credits"] = charge
         return result
@@ -508,8 +564,12 @@ async def research_opportunity(run_id: str, request_http: Request, response: Res
 async def product_get(request:Request,response:Response,url:HttpUrl=Query(...),api_key:str=Depends(get_api_key)):
     await _validate_urls([str(url)])
     charge=_charge(api_key,"GET /v1/products")
-    for k,v in _usage_headers(request,api_key,charge).items(): response.headers[k]=v
-    result = await _fetch_product_or_http_error(str(url))
+    try:
+        result = await _fetch_product_or_http_error(str(url))
+    except HTTPException:
+        _refund(api_key,"GET /v1/products",1,charge)
+        raise
+    _set_usage_headers(response,request,api_key,charge)
     result["credits"] = charge
     return result
 
@@ -517,8 +577,12 @@ async def product_get(request:Request,response:Response,url:HttpUrl=Query(...),a
 async def product_post(request_http:Request,response:Response,request:ProductRequest,api_key:str=Depends(get_api_key)):
     await _validate_urls([str(request.url)])
     charge=_charge(api_key,"POST /v1/products")
-    for k,v in _usage_headers(request_http,api_key,charge).items(): response.headers[k]=v
-    result = await _fetch_product_or_http_error(str(request.url))
+    try:
+        result = await _fetch_product_or_http_error(str(request.url))
+    except HTTPException:
+        _refund(api_key,"POST /v1/products",1,charge)
+        raise
+    _set_usage_headers(response,request_http,api_key,charge)
     result["credits"] = charge
     return result
 
@@ -527,27 +591,30 @@ async def product_search(request_http:Request,response:Response,request:ProductS
     marketplaces=[m.lower() for m in request.marketplaces]
     if any(m not in {"amazon","rakuten","yahoo"} for m in marketplaces): raise HTTPException(status_code=400,detail="marketplaces must contain only amazon, rakuten, yahoo")
     if len(set(marketplaces)) != len(marketplaces): raise HTTPException(status_code=400,detail="marketplaces must not contain duplicates")
-    charge=_charge(api_key,"POST /v1/products/search",request.limit*len(marketplaces))
-    for k,v in _usage_headers(request_http,api_key,charge).items(): response.headers[k]=v
+    cost=request.limit*len(marketplaces)
+    charge=_charge(api_key,"POST /v1/products/search",cost)
     try:
         result = await search_products(request.query, marketplaces, request.limit)
-        result["credits"] = charge
-        return result
     except Exception as exc:
+        _refund(api_key,"POST /v1/products/search",cost,charge)
         raise HTTPException(status_code=502, detail=f"Product search failed: {type(exc).__name__}") from exc
+    _set_usage_headers(response,request_http,api_key,charge)
+    result["credits"] = charge
+    return result
 
 @app.post("/v1/products/compare")
 async def product_compare(request_http:Request,response:Response,request:ProductCompareRequest,api_key:str=Depends(get_api_key)):
     urls=[str(u) for u in request.urls]
     await _validate_urls(urls)
     charge=_charge(api_key,"POST /v1/products/compare",len(urls))
-    for k,v in _usage_headers(request_http,api_key,charge).items(): response.headers[k]=v
     results=await asyncio.gather(*(fetch_product_cached(url) for url in urls),return_exceptions=True)
     products=[]
     for url,result in zip(urls,results):
         if isinstance(result,Exception): products.append({"url":url,"ok":False,"error":type(result).__name__}); continue
         payload,cache_hit=result; products.append({"url":url,"ok":True,"cache":{"hit":cache_hit,"ttl_seconds":300},"product":payload})
     successful=[x["product"] for x in products if x["ok"]]
+    charge=_refund(api_key,"POST /v1/products/compare",len(products)-len(successful),charge)
+    _set_usage_headers(response,request_http,api_key,charge)
     ranked=sorted(successful,key=lambda x:(x.get("pricing",{}).get("price") is None,x.get("pricing",{}).get("price") or float("inf")))
     return {"count":len(products),"successful":len(successful),"credits":charge,"results":products,"price_ranking":[{"rank":i,"url":x.get("source",{}).get("url"),"title":x.get("product",{}).get("title"),"price":x.get("pricing",{}).get("price"),"currency":x.get("pricing",{}).get("currency"),"marketplace":x.get("source",{}).get("marketplace"),"product_id":x.get("source",{}).get("product_id")} for i,x in enumerate(ranked,1)]}
 

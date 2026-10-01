@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 import psycopg
 import stripe
+from psycopg.types.json import Jsonb
 
 from app.services.monitor_store import _account_hash, _db_url
 
@@ -28,7 +29,65 @@ CREATE TABLE IF NOT EXISTS billing_events (
     payload JSONB NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_billing_events_created ON billing_events (created_at DESC);
+CREATE TABLE IF NOT EXISTS credit_grants (
+    invoice_id TEXT PRIMARY KEY,
+    account_key_hash TEXT NOT NULL,
+    plan TEXT NOT NULL,
+    quota INTEGER NOT NULL,
+    balance_before INTEGER NOT NULL,
+    balance_after INTEGER NOT NULL,
+    event_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+);
 """
+
+PLAN_CREDIT_ENV = {
+    "pro": "EC_PULSE_PRO_MONTHLY_CREDITS",
+    "business": "EC_PULSE_BUSINESS_MONTHLY_CREDITS",
+}
+
+
+def _plan_credit_quota(plan: str | None) -> int | None:
+    raw = os.getenv(PLAN_CREDIT_ENV.get(plan or "", ""), "").strip()
+    return int(raw) if raw.isdigit() and int(raw) > 0 else None
+
+
+def _grant_plan_credits(conn, subscription: dict, invoice_id: str | None, event_id: str, now: datetime) -> dict:
+    """Top the account up to its plan's monthly credit quota for a paid invoice.
+
+    The balance is raised to at least the quota (never reduced), and each
+    invoice is granted at most once, so invoice.paid and
+    invoice.payment_succeeded for the same invoice do not double-grant.
+    """
+    if not invoice_id or subscription.get("status") not in {"active", "trialing"}:
+        return {"granted": False, "reason": "not_applicable"}
+    items = (subscription.get("items") or {}).get("data") or []
+    plan = _price_plan(items[0].get("price", {}).get("id") if items else None)
+    quota = _plan_credit_quota(plan)
+    if quota is None:
+        return {"granted": False, "reason": "quota_not_configured", "plan": plan}
+    row = _account_by_customer(conn, subscription.get("customer")) if subscription.get("customer") else None
+    if not row:
+        return {"granted": False, "reason": "account_not_found"}
+    balance = conn.execute(
+        "SELECT credits_balance FROM api_accounts WHERE api_key_hash = %s FOR UPDATE",
+        (row[0],),
+    ).fetchone()[0]
+    new_balance = max(balance, quota)
+    inserted = conn.execute(
+        """INSERT INTO credit_grants
+           (invoice_id, account_key_hash, plan, quota, balance_before, balance_after, event_id, created_at)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+           ON CONFLICT (invoice_id) DO NOTHING RETURNING invoice_id""",
+        (invoice_id, row[0], plan, quota, balance, new_balance, event_id, now),
+    ).fetchone()
+    if not inserted:
+        return {"granted": False, "reason": "already_granted"}
+    conn.execute(
+        "UPDATE api_accounts SET credits_balance = %s, updated_at = %s WHERE api_key_hash = %s",
+        (new_balance, now, row[0]),
+    )
+    return {"granted": True, "plan": plan, "quota": quota, "credits_balance": new_balance}
 
 
 def _init_billing(conn):
@@ -60,6 +119,54 @@ def _stripe():
 
 def _ts(value):
     return datetime.fromtimestamp(value, tz=timezone.utc) if value else None
+
+
+def _as_dict(obj) -> dict:
+    """Convert a Stripe SDK object to a plain dict.
+
+    stripe-python >= 13 removed ``StripeObject.to_dict_recursive()``; its
+    ``to_dict()`` is recursive by default. Plain dicts pass through unchanged.
+    """
+    if isinstance(obj, dict):
+        return obj
+    to_dict = getattr(obj, "to_dict", None)
+    if callable(to_dict):
+        return to_dict()
+    legacy = getattr(obj, "to_dict_recursive", None)
+    if callable(legacy):
+        return legacy()
+    raise TypeError(f"Unsupported Stripe object: {type(obj).__name__}")
+
+
+def _invoice_subscription_id(invoice: dict) -> str | None:
+    """Return the subscription id of an invoice across Stripe API versions.
+
+    API versions from 2025-03-31 (basil) moved ``invoice.subscription`` to
+    ``invoice.parent.subscription_details.subscription``.
+    """
+    value = invoice.get("subscription")
+    if not value:
+        parent = invoice.get("parent") or {}
+        value = (parent.get("subscription_details") or {}).get("subscription")
+    if isinstance(value, dict):
+        value = value.get("id")
+    return value or None
+
+
+def _subscription_period(subscription: dict) -> tuple:
+    """Return (current_period_start, current_period_end) across Stripe API versions.
+
+    API versions from 2025-03-31 (basil) moved the billing period from the
+    subscription to its items.
+    """
+    start = subscription.get("current_period_start")
+    end = subscription.get("current_period_end")
+    if start is None or end is None:
+        items = (subscription.get("items") or {}).get("data") or []
+        if items:
+            start = start if start is not None else items[0].get("current_period_start")
+            end = end if end is not None else items[0].get("current_period_end")
+    return start, end
 
 
 def _price_plan(price_id: str | None) -> str | None:
@@ -145,13 +252,14 @@ def _apply_subscription(conn, subscription, event_created: int | None = None):
     # billing configuration mistake into an unintended loss of paid state.
     if status in active_statuses and plan is None:
         raise RuntimeError("Stripe subscription uses an unrecognized price")
+    period_start, period_end = _subscription_period(subscription)
     effective_plan = plan if status in active_statuses else None
     if effective_plan:
         conn.execute("""UPDATE api_accounts SET plan=%s, stripe_subscription_id=%s, subscription_status=%s,
-            current_period_start=%s, current_period_end=%s, cancel_at_period_end=%s, stripe_subscription_created_at=%s, last_stripe_event_created=%s, last_stripe_event_id=%s, updated_at=%s WHERE api_key_hash=%s""", (effective_plan, subscription_id, status, _ts(subscription.get("current_period_start")), _ts(subscription.get("current_period_end")), bool(subscription.get("cancel_at_period_end", False)), subscription.get("created"), event_created, event_id, datetime.now(timezone.utc), row[0]))
+            current_period_start=%s, current_period_end=%s, cancel_at_period_end=%s, stripe_subscription_created_at=%s, last_stripe_event_created=%s, last_stripe_event_id=%s, updated_at=%s WHERE api_key_hash=%s""", (effective_plan, subscription_id, status, _ts(period_start), _ts(period_end), bool(subscription.get("cancel_at_period_end", False)), subscription.get("created"), event_created, event_id, datetime.now(timezone.utc), row[0]))
     else:
         conn.execute("""UPDATE api_accounts SET plan=%s, stripe_subscription_id=%s, subscription_status=%s,
-            current_period_start=%s, current_period_end=%s, cancel_at_period_end=%s, last_stripe_event_created=%s, last_stripe_event_id=%s, updated_at=%s WHERE api_key_hash=%s""", (effective_plan or "free", subscription_id, status, _ts(subscription.get("current_period_start")), _ts(subscription.get("current_period_end")), bool(subscription.get("cancel_at_period_end", False)), event_created, event_id, datetime.now(timezone.utc), row[0]))
+            current_period_start=%s, current_period_end=%s, cancel_at_period_end=%s, last_stripe_event_created=%s, last_stripe_event_id=%s, updated_at=%s WHERE api_key_hash=%s""", (effective_plan or "free", subscription_id, status, _ts(period_start), _ts(period_end), bool(subscription.get("cancel_at_period_end", False)), event_created, event_id, datetime.now(timezone.utc), row[0]))
     return True
 
 
@@ -160,8 +268,13 @@ def process_webhook(payload: bytes, signature: str) -> dict:
     if not secret:
         raise RuntimeError("STRIPE_WEBHOOK_SECRET is not configured")
     sdk = _stripe()
-    event = sdk.Webhook.construct_event(payload, signature, secret)
-    event_data = event.to_dict_recursive()
+    try:
+        event = sdk.Webhook.construct_event(payload, signature, secret)
+    except ValueError as exc:
+        raise ValueError("Invalid Stripe webhook payload") from exc
+    except stripe.SignatureVerificationError as exc:
+        raise ValueError("Invalid Stripe webhook signature") from exc
+    event_data = _as_dict(event)
     event_id = event_data["id"]
     event_type = event_data["type"]
     now = datetime.now(timezone.utc)
@@ -169,11 +282,12 @@ def process_webhook(payload: bytes, signature: str) -> dict:
         _init_billing(conn)
         inserted = conn.execute("""INSERT INTO billing_events (event_id,event_type,created_at,processed_at,payload)
             VALUES (%s,%s,%s,%s,%s) ON CONFLICT (event_id) DO NOTHING RETURNING event_id""",
-            (event_id, event_type, _ts(event_data.get("created")) or now, now, event_data)).fetchone()
+            (event_id, event_type, _ts(event_data.get("created")) or now, now, Jsonb(event_data))).fetchone()
         if not inserted:
             return {"ok": True, "duplicate": True, "event_id": event_id}
         obj = event_data.get("data", {}).get("object", {})
         handled = False
+        credit_grant = None
         subscription_event_types = {
             "customer.subscription.created",
             "customer.subscription.updated",
@@ -192,21 +306,23 @@ def process_webhook(payload: bytes, signature: str) -> dict:
             current = obj
             if subscription_id:
                 try:
-                    current = sdk.Subscription.retrieve(subscription_id).to_dict_recursive()
+                    current = _as_dict(sdk.Subscription.retrieve(subscription_id))
                 except Exception as exc:
                     if event_type != "customer.subscription.deleted":
                         raise RuntimeError("Unable to retrieve Stripe subscription") from exc
             current = {**current, "_ec_pulse_event_id": event_id}
             handled = _apply_subscription(conn, current, event_data.get("created"))
         elif event_type in invoice_sync_types:
-            subscription_id = obj.get("subscription")
+            subscription_id = _invoice_subscription_id(obj)
             if subscription_id:
                 try:
-                    current = sdk.Subscription.retrieve(subscription_id).to_dict_recursive()
+                    current = _as_dict(sdk.Subscription.retrieve(subscription_id))
                 except Exception as exc:
                     raise RuntimeError("Unable to retrieve Stripe subscription") from exc
                 current = {**current, "_ec_pulse_event_id": event_id}
                 handled = _apply_subscription(conn, current, event_data.get("created"))
+                if event_type in {"invoice.paid", "invoice.payment_succeeded"}:
+                    credit_grant = _grant_plan_credits(conn, current, obj.get("id"), event_id, now)
         elif event_type == "checkout.session.completed":
             customer_id = obj.get("customer")
             metadata = obj.get("metadata") or {}
@@ -251,13 +367,24 @@ def process_webhook(payload: bytes, signature: str) -> dict:
                         # Do not acknowledge a transient Stripe API failure.
                         # Rolling back lets Stripe retry the webhook later.
                         raise RuntimeError("Unable to retrieve Stripe subscription") from exc
+                    subscription_data = {**_as_dict(subscription), "_ec_pulse_event_id": event_id}
                     handled = _apply_subscription(
                         conn,
-                        {**subscription.to_dict_recursive(), "_ec_pulse_event_id": event_id},
+                        subscription_data,
                         event_data.get("created"),
                     ) or handled
+                    # invoice.paid can arrive before this event links the Stripe
+                    # customer; grant the first invoice here too (deduped per invoice).
+                    if obj.get("payment_status") == "paid":
+                        latest_invoice = subscription_data.get("latest_invoice")
+                        if isinstance(latest_invoice, dict):
+                            latest_invoice = latest_invoice.get("id")
+                        credit_grant = _grant_plan_credits(conn, subscription_data, latest_invoice, event_id, now)
         conn.commit()
-    return {"ok": True, "duplicate": False, "event_id": event_id, "type": event_type, "handled": handled}
+    result = {"ok": True, "duplicate": False, "event_id": event_id, "type": event_type, "handled": handled}
+    if credit_grant is not None:
+        result["credit_grant"] = credit_grant
+    return result
 
 
 def cancel_subscription(api_key: str, at_period_end: bool = True) -> dict:
@@ -314,7 +441,7 @@ def cancel_subscription(api_key: str, at_period_end: bool = True) -> dict:
         "subscription_id": subscription.get("id", subscription_id),
         "status": subscription.get("status", status),
         "cancel_at_period_end": bool(subscription.get("cancel_at_period_end", at_period_end)),
-        "current_period_end": _ts(subscription.get("current_period_end")),
+        "current_period_end": _ts(_subscription_period(_as_dict(subscription))[1]),
     }
 
 

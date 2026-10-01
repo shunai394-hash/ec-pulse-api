@@ -77,7 +77,8 @@ def _api_key() -> str:
     return value
 
 def _base_url() -> str:
-    value = os.getenv("EC_PULSE_API_BASE_URL", DEFAULT_BASE_URL).strip().rstrip("/")
+    # An unset variable can reach the process as an empty string via .mcp.json.
+    value = (os.getenv("EC_PULSE_API_BASE_URL") or "").strip().rstrip("/") or DEFAULT_BASE_URL
     parsed = urlparse(value)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise RuntimeError("EC_PULSE_API_BASE_URL must be a valid http(s) URL")

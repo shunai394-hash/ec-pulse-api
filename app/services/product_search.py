@@ -822,9 +822,9 @@ async def _search_bing_marketplace(query: str, limit: int) -> list[dict]:
             timeout=12.0,
             headers={"User-Agent": "Mozilla/5.0 (compatible; EC-Pulse/0.12)"},
         ) as client:
-            response = await client.get(search_url)
-            response.raise_for_status()
-            html = await response.aread()
+            async with client.stream("GET", search_url) as response:
+                response.raise_for_status()
+                html = await read_response_bytes(response, MAX_SEARCH_RESPONSE_BYTES)
     except Exception:
         return []
 

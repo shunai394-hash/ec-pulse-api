@@ -3,7 +3,7 @@
 ## Package
 
 - Plugin: `ec-pulse`
-- Repository: https://github.com/ec-pulse-api/ec-pulse-api
+- Repository: https://github.com/shunai394-hash/ec-pulse-api
 - Plugin path: `plugins/ec-pulse/`
 - Production API: https://ec-pulse-api.vercel.app
 - Claude Code support: local stdio MCP + commands + skills
@@ -11,7 +11,7 @@
 
 ## Current implementation
 
-- 12 MCP tools
+- 10 MCP tools
 - 3 Claude Code commands
 - 3 Agent Skills
 - MCP JSON-RPC protocol handling
@@ -25,12 +25,12 @@
 
 ## Public documentation
 
-- API repository: https://github.com/ec-pulse-api/ec-pulse-api
-- Privacy policy draft: https://github.com/ec-pulse-api/ec-pulse-api/blob/main/docs/legal/privacy-policy.md
-- Terms draft: https://github.com/ec-pulse-api/ec-pulse-api/blob/main/docs/legal/terms-of-service.md
-- Billing/cancellation draft: https://github.com/ec-pulse-api/ec-pulse-api/blob/main/docs/legal/billing-and-cancellation.md
-- Acceptable use: https://github.com/ec-pulse-api/ec-pulse-api/blob/main/docs/legal/acceptable-use.md
-- Commercial transactions draft: https://github.com/ec-pulse-api/ec-pulse-api/blob/main/docs/legal/commercial-transactions.md
+- API repository: https://github.com/shunai394-hash/ec-pulse-api
+- Privacy policy draft: https://github.com/shunai394-hash/ec-pulse-api/blob/main/docs/legal/privacy-policy.md
+- Terms draft: https://github.com/shunai394-hash/ec-pulse-api/blob/main/docs/legal/terms-of-service.md
+- Billing/cancellation draft: https://github.com/shunai394-hash/ec-pulse-api/blob/main/docs/legal/billing-and-cancellation.md
+- Acceptable use: https://github.com/shunai394-hash/ec-pulse-api/blob/main/docs/legal/acceptable-use.md
+- Commercial transactions draft: https://github.com/shunai394-hash/ec-pulse-api/blob/main/docs/legal/commercial-transactions.md
 
 ## Marketplace form data to confirm
 
@@ -54,7 +54,9 @@ The legal documents still contain `［要入力］` placeholders and therefore m
 
 Production smoke testing is NOT PASS. No production `EC_PULSE_API_KEY` is available to the test runner, so authenticated production smoke testing remains NOT RUN. Direct production HTTP verification is also NOT VERIFIED from this audit environment because external DNS resolution is unavailable.
 
-The current `main` HEAD (`e6e4a8b8b48a1150d7b2a8cf0b1dfcd1e95feb78`) has a successful GitHub Vercel deployment status (`Deployment has completed`). This confirms deployment completion, but it does not replace an authenticated production smoke test. CI workflow runs for this docs-only commit were not yet visible in the connected GitHub workflow interface at the time of audit.
+Deployment/commit-SHA verification must be recorded per audit; do not reuse a SHA from an earlier audit.
+
+The repository has no LICENSE file and `plugin.json` declares no `license`; decide the license before submission.
 
 ## Evaluation status
 

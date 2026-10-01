@@ -322,6 +322,23 @@ def consume_credit(api_key: str, endpoint: str, credits: int = 1) -> dict:
         conn.execute("INSERT INTO api_usage (api_key_hash, endpoint, credits, created_at) VALUES (%s, %s, %s, %s)", (key_hash, endpoint, credits, now)); conn.commit()
     return {"credits_used": credits, "credits_remaining": remaining}
 
+def refund_credit(api_key: str, endpoint: str, credits: int) -> dict:
+    """Return credits charged for work that failed upstream.
+
+    The refund is written to the usage ledger as a negative entry so usage
+    totals stay consistent with the balance.
+    """
+    if credits < 1: raise ValueError("credits must be positive")
+    key_hash = _account_hash(api_key); now = datetime.now(timezone.utc)
+    with psycopg.connect(_db_url()) as conn:
+        _init(conn)
+        row = conn.execute("""SELECT a.api_key_hash FROM api_accounts a JOIN api_keys k ON k.account_key_hash = a.api_key_hash
+            WHERE k.api_key_hash = %s FOR UPDATE OF a""", (key_hash,)).fetchone()
+        if not row: raise RuntimeError("Invalid or revoked API key")
+        remaining = conn.execute("UPDATE api_accounts SET credits_balance = credits_balance + %s, updated_at = %s WHERE api_key_hash = %s RETURNING credits_balance", (credits, now, row[0])).fetchone()[0]
+        conn.execute("INSERT INTO api_usage (api_key_hash, endpoint, credits, created_at) VALUES (%s, %s, %s, %s)", (key_hash, f"{endpoint} (refund)", -credits, now)); conn.commit()
+    return {"credits_refunded": credits, "credits_remaining": remaining}
+
 def get_account_usage(api_key: str) -> dict:
     key_hash = _account_hash(api_key)
     with psycopg.connect(_db_url()) as conn:
@@ -393,7 +410,7 @@ def get_customer_usage(user_id: str, days: int = 30) -> dict:
         rows = conn.execute(
             """SELECT u.endpoint,
                       COALESCE(SUM(u.credits), 0) AS credits,
-                      COUNT(*) AS requests,
+                      COUNT(*) FILTER (WHERE u.credits >= 0) AS requests,
                       COUNT(*) FILTER (WHERE u.credits > 0) AS billable_requests
                FROM api_usage u
                JOIN api_keys k ON k.api_key_hash = u.api_key_hash
@@ -604,6 +621,27 @@ def get_price_opportunity(api_key: str, monitor_id: str, limit: int = 100) -> di
     signal = "historical_low" if current is not None and lowest is not None and current <= lowest else "below_average" if discount_vs_average and discount_vs_average > 10 else "normal"
     return {"monitor_id": monitor_id, "url": monitor[1], "current_price": current, "currency": rows[0][1] if rows else None, "metrics": {"historical_low": lowest, "historical_high": highest, "average_price": round(baseline, 2) if baseline is not None else None, "discount_vs_high_percent": discount_vs_high, "discount_vs_average_percent": discount_vs_average}, "signal": signal, "captured_at": monitor[3].isoformat() if monitor[3] else None}
 
+def _research_owners(conn, api_key: str) -> tuple[str, list[str]]:
+    """Return (account hash, owner hashes) for research rows of an active key.
+
+    Research runs are owned by the account so they survive key rotation. Rows
+    written before that change are owned by an individual key hash of the
+    same account, so reads match every key hash of the account as well.
+    """
+    key_hash = _account_hash(api_key)
+    row = conn.execute(
+        "SELECT account_key_hash FROM api_keys WHERE api_key_hash = %s AND active = TRUE",
+        (key_hash,),
+    ).fetchone()
+    if not row:
+        raise RuntimeError("Invalid or revoked API key")
+    owners = [r[0] for r in conn.execute(
+        "SELECT api_key_hash FROM api_keys WHERE account_key_hash = %s",
+        (row[0],),
+    ).fetchall()]
+    return row[0], list(dict.fromkeys([row[0], *owners]))
+
+
 def _normalize_research_text(text: str) -> str:
     return " ".join(text.lower().split())
 
@@ -612,9 +650,9 @@ def save_research_run(api_key: str, item: dict, analysis: dict) -> dict:
     run_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
     comments = [x.strip() for x in item.get("comments", []) if isinstance(x, str) and x.strip()]
-    owner = _account_hash(api_key)
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
+        owner, owners = _research_owners(conn, api_key)
         conn.execute(
             """INSERT INTO research_runs
             (id, owner_key_hash, url, source_type, market, locale, title, comments_count, created_at)
@@ -641,10 +679,10 @@ def save_research_run(api_key: str, item: dict, analysis: dict) -> dict:
             """SELECT rr.id, rr.created_at, rr.comments_count, rp.pain, rp.count, rp.share_percent
             FROM research_runs rr
             LEFT JOIN research_pain_points rp ON rp.run_id = rr.id
-            WHERE rr.url = %s AND rr.owner_key_hash = %s AND rr.id <> %s
+            WHERE rr.url = %s AND rr.owner_key_hash = ANY(%s) AND rr.id <> %s
             ORDER BY rr.created_at DESC, rr.id DESC
             LIMIT 50""",
-            (item.get("url"), owner, run_id),
+            (item.get("url"), owners, run_id),
         ).fetchall()
         conn.commit()
 
@@ -691,21 +729,21 @@ def save_research_run(api_key: str, item: dict, analysis: dict) -> dict:
 
 
 def list_research_runs(api_key: str, url: str | None = None, limit: int = 20) -> list[dict]:
-    owner = _account_hash(api_key)
     limit = max(1, min(limit, 100))
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
+        _, owners = _research_owners(conn, api_key)
         if url:
             runs = conn.execute(
                 """WITH ranked AS (
                     SELECT rr.*, LAG(rr.id) OVER (PARTITION BY rr.url ORDER BY rr.created_at ASC, rr.id ASC) AS previous_run_id,
                            LAG(rr.created_at) OVER (PARTITION BY rr.url ORDER BY rr.created_at ASC, rr.id ASC) AS previous_captured_at
                     FROM research_runs rr
-                    WHERE rr.owner_key_hash = %s AND rr.url = %s
+                    WHERE rr.owner_key_hash = ANY(%s) AND rr.url = %s
                 )
                 SELECT id, url, source_type, market, locale, title, comments_count, created_at, previous_run_id, previous_captured_at
                 FROM ranked ORDER BY created_at DESC LIMIT %s""",
-                (owner, url, limit),
+                (owners, url, limit),
             ).fetchall()
         else:
             runs = conn.execute(
@@ -713,11 +751,11 @@ def list_research_runs(api_key: str, url: str | None = None, limit: int = 20) ->
                     SELECT rr.*, LAG(rr.id) OVER (PARTITION BY rr.url ORDER BY rr.created_at ASC, rr.id ASC) AS previous_run_id,
                            LAG(rr.created_at) OVER (PARTITION BY rr.url ORDER BY rr.created_at ASC, rr.id ASC) AS previous_captured_at
                     FROM research_runs rr
-                    WHERE rr.owner_key_hash = %s
+                    WHERE rr.owner_key_hash = ANY(%s)
                 )
                 SELECT id, url, source_type, market, locale, title, comments_count, created_at, previous_run_id, previous_captured_at
                 FROM ranked ORDER BY created_at DESC LIMIT %s""",
-                (owner, limit),
+                (owners, limit),
             ).fetchall()
 
         run_ids = [r[0] for r in runs]
@@ -776,13 +814,16 @@ def list_research_runs(api_key: str, url: str | None = None, limit: int = 20) ->
 
 
 def get_research_opportunity(api_key: str, run_id: str) -> dict:
-    owner = _account_hash(api_key)
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
+        try:
+            _, owners = _research_owners(conn, api_key)
+        except RuntimeError as exc:
+            raise KeyError(run_id) from exc
         run = conn.execute(
             """SELECT id, url, source_type, market, locale, title, comments_count, created_at
-            FROM research_runs WHERE id = %s AND owner_key_hash = %s""",
-            (run_id, owner),
+            FROM research_runs WHERE id = %s AND owner_key_hash = ANY(%s)""",
+            (run_id, owners),
         ).fetchone()
         if not run:
             raise KeyError(run_id)
