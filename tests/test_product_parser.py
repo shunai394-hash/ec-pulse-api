@@ -31,8 +31,7 @@ def test_product_parser_does_not_treat_high_price_as_list_price(monkeypatch):
                 async def __aexit__(self, *args):
                     return None
                 headers = {}
-                is_redirect = False
-                is_permanent_redirect = False
+                status_code = 200
                 url = "https://example.com/item"
                 def raise_for_status(self):
                     return None
