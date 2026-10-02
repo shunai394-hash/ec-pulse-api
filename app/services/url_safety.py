@@ -90,6 +90,19 @@ def next_redirect(base_url: str, location: str) -> str:
     return urljoin(base_url, location)
 
 
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+
+
+def is_redirect_response(response) -> bool:
+    """True for redirect statuses, with or without a Location header.
+
+    httpx 0.28 has no ``Response.is_permanent_redirect``; the previous
+    ``is_redirect or is_permanent_redirect`` check raised AttributeError for
+    every non-redirect response.
+    """
+    return response.status_code in _REDIRECT_STATUSES
+
+
 def safe_async_transport():
     """
     Build an httpx transport that re-resolves the destination immediately

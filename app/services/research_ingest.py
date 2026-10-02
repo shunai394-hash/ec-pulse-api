@@ -1,7 +1,7 @@
 import re
 from urllib.parse import urlparse
 
-from app.services.url_safety import MAX_REDIRECTS, next_redirect, read_response_bytes, safe_async_client, validate_public_url
+from app.services.url_safety import MAX_REDIRECTS, next_redirect, read_response_bytes, safe_async_client, validate_public_url, is_redirect_response
 
 import httpx
 from bs4 import BeautifulSoup
@@ -95,7 +95,7 @@ async def fetch_public_comments(url: str, max_comments: int = 500) -> dict:
                 content_length = response.headers.get("Content-Length")
                 if content_length and content_length.isdigit() and int(content_length) > MAX_RESPONSE_BYTES:
                     raise ValueError("Research page response is too large")
-                if response.is_redirect or response.is_permanent_redirect:
+                if is_redirect_response(response):
                     location = response.headers.get("location")
                     if not location:
                         raise ValueError("Redirect response did not include a location")

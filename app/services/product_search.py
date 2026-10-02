@@ -8,7 +8,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.services.product_cache import fetch_product_cached
-from app.services.url_safety import MAX_REDIRECTS, next_redirect, read_response_bytes, safe_async_client, validate_public_url
+from app.services.url_safety import MAX_REDIRECTS, next_redirect, read_response_bytes, safe_async_client, validate_public_url, is_redirect_response
 
 
 SEARCH_URLS = {
@@ -320,7 +320,7 @@ async def _search_marketplace(marketplace: str, query: str, limit: int) -> list[
     ) as client:
         for _ in range(MAX_REDIRECTS + 1):
             async with client.stream("GET", current_url) as response:
-                if response.is_redirect or response.is_permanent_redirect:
+                if is_redirect_response(response):
                     location = response.headers.get("location")
                     if not location:
                         raise ValueError("Redirect response did not include a location")
