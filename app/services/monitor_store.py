@@ -361,7 +361,7 @@ def get_account_usage(api_key: str) -> dict:
             WHERE api_key_hash = %s AND active = TRUE
         )"""
         rows = conn.execute(
-            f"""SELECT u.endpoint, SUM(u.credits), COUNT(*)
+            f"""SELECT u.endpoint, SUM(u.credits), COUNT(*) FILTER (WHERE u.credits >= 0)
                 FROM api_usage u
                 JOIN api_keys k ON k.api_key_hash = u.api_key_hash
                 WHERE k.account_key_hash = {account_lookup}
@@ -369,7 +369,7 @@ def get_account_usage(api_key: str) -> dict:
             (key_hash,),
         ).fetchall()
         monthly = conn.execute(
-            f"""SELECT COALESCE(SUM(u.credits), 0), COUNT(*)
+            f"""SELECT COALESCE(SUM(u.credits), 0), COUNT(*) FILTER (WHERE u.credits >= 0)
                 FROM api_usage u
                 JOIN api_keys k ON k.api_key_hash = u.api_key_hash
                 WHERE k.account_key_hash = {account_lookup}
@@ -377,7 +377,7 @@ def get_account_usage(api_key: str) -> dict:
             (key_hash,),
         ).fetchone()
         recent = conn.execute(
-            f"""SELECT COALESCE(SUM(u.credits), 0), COUNT(*)
+            f"""SELECT COALESCE(SUM(u.credits), 0), COUNT(*) FILTER (WHERE u.credits >= 0)
                 FROM api_usage u
                 JOIN api_keys k ON k.api_key_hash = u.api_key_hash
                 WHERE k.account_key_hash = {account_lookup}

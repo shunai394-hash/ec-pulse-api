@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import logging
 import os
 import secrets
 import uuid
@@ -31,6 +32,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+logger = logging.getLogger(__name__)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 MAX_STRIPE_WEBHOOK_BYTES = 2 * 1024 * 1024
 
@@ -143,7 +145,11 @@ def _refund(api_key: str, endpoint: str, credits: int, charge):
         return charge
     try:
         refund = refund_credit(api_key, endpoint, credits)
-    except Exception:
+    except Exception as exc:
+        # The customer was charged for failed work and nothing will retry
+        # this refund: it must be visible to operators.
+        logger.error("credit refund failed key_hash=%s endpoint=%s credits=%s error=%s",
+                     _key_hash(api_key)[:12], endpoint, credits, type(exc).__name__)
         return charge
     if isinstance(charge, dict):
         return {**charge, "credits_used": charge.get("credits_used", 0) - credits, "credits_refunded": credits, "credits_remaining": refund["credits_remaining"]}
