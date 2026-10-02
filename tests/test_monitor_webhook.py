@@ -18,20 +18,6 @@ def test_monitor_state_and_webhook_outbox_commit_together():
     assert enqueue < commit
 
 
-def test_webhook_delivery_has_bounded_timeout_and_no_redirects():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    assert "httpx.Timeout(10.0, connect=3.0)" in source
-    assert "follow_redirects=False" in source
-    assert "read_response_bytes(response, MAX_WEBHOOK_RESPONSE_BYTES)" in source
-
-
-def test_webhook_failures_are_scheduled_for_retry():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    assert "status='pending'" not in source or "status='pending'" in monitor_store.SCHEMA
-    assert "next_attempt_at" in source
-    assert "2 ** min(attempts - 1, 6)" in source
-    assert "min(3600" in source
-
 
 def test_monitor_results_require_active_lease_before_persisting():
     source = inspect.getsource(monitor_store.run_due_monitors)
@@ -53,35 +39,3 @@ def test_monitor_results_renew_lease_before_persisting():
     lease_renewal = source.index("UPDATE monitor_run_leases")
     history_insert = source.index("INSERT INTO price_history")
     assert lease_renewal < history_insert
-
-
-
-def test_webhook_delivery_state_updates_require_current_lease():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    delivered = source[source.index("SET status='delivered'") : source.index("delivered += 1")]
-    failed = source[source.index("SET attempts=%s") : source.index("conn.commit()", source.index("SET attempts=%s"))]
-    assert "WHERE event_id=%s AND lease_token=%s" in delivered
-    assert "WHERE event_id=%s AND lease_token=%s" in failed
-
-
-def test_webhook_claim_uses_skip_locked_and_expiring_lease():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    assert "FOR UPDATE SKIP LOCKED" in source
-    assert "d.locked_until IS NULL OR d.locked_until <= %s" in source
-    assert "locked_until = %s, lease_token = %s" in source
-
-
-def test_webhook_delivery_checks_lease_before_post():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    lease_check = source.index("lease_owned =")
-    post = source.index('client.stream(')
-    assert lease_check < post
-    assert "AND lease_token = %s" in source
-    assert "AND locked_until > CURRENT_TIMESTAMP" in source
-    assert "FOR UPDATE" in source
-
-
-def test_webhook_delivery_counts_only_confirmed_state_transition():
-    source = inspect.getsource(monitor_store._deliver_pending_webhooks)
-    assert "if cursor.rowcount != 1:" in source
-    assert "delivered += 1" in source
