@@ -276,3 +276,81 @@ def test_search_with_one_marketplace_up_keeps_the_charge(api, monkeypatch):
     assert response.status_code == 200
     assert response.json()["count"] == 1
     assert_consistent(response, key, 4)
+
+
+def _all_marketplaces_down(monkeypatch):
+    from app.services import product_search
+
+    async def down(*args, **kwargs):
+        raise RuntimeError("marketplace down")
+
+    async def nothing(*args, **kwargs):
+        return []
+
+    for name in ["_search_marketplace", "_search_amazon_official", "_search_yahoo_official", "_search_rakuten_official"]:
+        monkeypatch.setattr(product_search, name, down)
+    monkeypatch.setattr(product_search, "_search_bing_marketplace", nothing)
+
+
+def test_account_usage_aggregates_charges_and_refunds_from_real_ledger(api, monkeypatch, pg_store):
+    client, key = api
+    user_id = pg_query("SELECT a.customer_user_id FROM api_accounts a WHERE a.api_key_hash = %s", (key_hash(key),))[0][0]
+    h = {"X-API-Key": key}
+
+    async def fetch(url):
+        if "broken" in url:
+            raise RuntimeError("upstream down")
+        return product(url), False
+
+    monkeypatch.setattr(main, "fetch_product_cached", fetch)
+    _all_marketplaces_down(monkeypatch)
+
+    assert client.get("/v1/products", params={"url": "https://a.example.com/ok"}, headers=h).status_code == 200      # +1
+    assert client.get("/v1/products", params={"url": "https://a.example.com/broken"}, headers=h).status_code == 502  # +1 -1
+    assert client.post("/v1/products/compare", headers=h, json={"urls": [
+        "https://a.example.com/1", "https://b.example.com/broken", "https://c.example.com/3"]}).status_code == 200  # +3 -1
+    assert client.post("/v1/products/search", headers=h,
+                       json={"query": "q", "marketplaces": ["yahoo"], "limit": 1}).status_code == 200            # +1 -1
+
+    account = client.get("/v1/account", headers=h).json()
+    assert account["credits_balance"] == balance(key) == 97
+    assert account["total_credits_used"] == 3 == sum(c for _, c in ledger(key))
+    by_endpoint = {u["endpoint"]: (u["credits"], u["requests"]) for u in account["usage"]}
+    assert by_endpoint == {
+        "GET /v1/products": (2, 2),
+        "GET /v1/products (refund)": (-1, 0),
+        "POST /v1/products/compare": (3, 1),
+        "POST /v1/products/compare (refund)": (-1, 0),
+        "POST /v1/products/search": (1, 1),
+        "POST /v1/products/search (refund)": (-1, 0),
+    }
+    # "requests" counts charged requests, including ones later refunded in full.
+    assert account["period_usage"]["last_24_hours"] == {"credits": 3, "requests": 4}
+    assert account["period_usage"]["month_to_date"] == {"credits": 3, "requests": 4}
+
+    customer = pg_store.get_customer_usage(user_id)
+    assert customer["credits_balance"] == 97
+    assert customer["total_credits_used"] == 3
+    assert customer["total_requests"] == 4
+    assert {e["endpoint"]: e["billable_requests"] for e in customer["by_endpoint"]}["GET /v1/products"] == 2
+
+
+def test_search_refund_db_failure_leaves_a_consistent_charged_state(api, monkeypatch, caplog):
+    client, key = api
+    _all_marketplaces_down(monkeypatch)
+
+    def broken_refund(*args, **kwargs):
+        raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(main, "refund_credit", broken_refund)
+    with caplog.at_level("ERROR"):
+        response = client.post("/v1/products/search", headers={"X-API-Key": key},
+                               json={"query": "q", "marketplaces": ["amazon", "yahoo"], "limit": 2})
+
+    assert response.status_code == 200
+    # The refund was lost, but body, headers, balance and ledger all agree
+    # that 4 credits were charged; nothing claims a refund that did not happen.
+    assert response.json()["credits"] == {"credits_used": 4, "credits_remaining": 96}
+    assert ledger(key) == [("POST /v1/products/search", 4)]
+    assert_consistent(response, key, 4)
+    assert any("credit refund failed" in r.getMessage() for r in caplog.records)

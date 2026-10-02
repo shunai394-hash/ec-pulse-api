@@ -222,3 +222,47 @@ def test_schema_setup_does_not_take_table_locks_on_every_call(account):
     finally:
         holder.rollback()
         holder.close()
+
+
+def test_concurrent_first_calls_run_schema_setup_once_and_failure_is_retried(account, monkeypatch):
+    real_create = billing._create_billing_schema
+    calls = []
+
+    def counting_create(conn):
+        calls.append(1)
+        real_create(conn)
+
+    monkeypatch.setattr(billing, "_BILLING_SCHEMA_READY", False)
+    monkeypatch.setattr(billing, "_create_billing_schema", counting_create)
+    errors = []
+    barrier = threading.Barrier(4)
+
+    def first_request():
+        barrier.wait()
+        try:
+            with psycopg.connect(TEST_DB) as conn:
+                billing._init_billing(conn)
+        except Exception as exc:  # pragma: no cover - surfaced below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=first_request) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == [] and len(calls) == 1
+
+    # A failed setup (e.g. DB outage) must not mark the schema ready.
+    def failing_create(conn):
+        raise psycopg.OperationalError("connection lost")
+
+    monkeypatch.setattr(billing, "_BILLING_SCHEMA_READY", False)
+    monkeypatch.setattr(billing, "_create_billing_schema", failing_create)
+    with pytest.raises(psycopg.OperationalError), psycopg.connect(TEST_DB) as conn:
+        billing._init_billing(conn)
+    assert billing._BILLING_SCHEMA_READY is False
+
+    monkeypatch.setattr(billing, "_create_billing_schema", counting_create)
+    with psycopg.connect(TEST_DB) as conn:
+        billing._init_billing(conn)
+    assert billing._BILLING_SCHEMA_READY is True and len(calls) == 2

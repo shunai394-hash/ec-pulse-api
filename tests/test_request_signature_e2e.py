@@ -133,3 +133,20 @@ def test_missing_headers_and_wrong_key(api, pg_store):
     response = client.get("/v1/research/runs", headers=signed(key, "GET", "/v1/research/runs", signing_key=other))
     assert response.status_code == 401
     assert client.get("/v1/research/runs", headers=signed("ecp_live_unknown", "GET", "/v1/research/runs")).status_code == 401
+
+
+def test_repeated_query_parameters_are_bound_in_order(api):
+    client, key = api
+    target = "/v1/research/runs?limit=5&limit=6"
+    assert client.get(target, headers=signed(key, "GET", target)).status_code == 200
+    for tampered in ["/v1/research/runs?limit=6&limit=5", "/v1/research/runs?limit=5", "/v1/research/runs?limit=5&limit=6&limit=7"]:
+        assert client.get(tampered, headers=signed(key, "GET", target)).status_code == 401, tampered
+
+
+def test_same_timestamp_does_not_let_one_signature_cover_another_request(api):
+    client, key = api
+    first = signed(key, "GET", "/v1/research/runs?limit=1")
+    second = signed(key, "GET", "/v1/research/runs?limit=2")
+    assert first["X-EC-Timestamp"] == second["X-EC-Timestamp"]
+    assert first["X-EC-Signature"] != second["X-EC-Signature"]
+    assert client.get("/v1/research/runs?limit=2", headers=first).status_code == 401
