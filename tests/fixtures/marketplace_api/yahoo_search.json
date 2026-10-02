@@ -1,0 +1,5 @@
+{"totalResultsAvailable": 3, "hits": [
+  {"name": "ケトル X", "price": 2480, "code": "store_x_1", "janCode": "4901234567894", "url": "https://store.shopping.yahoo.co.jp/x/1.html", "inStock": true, "seller": {"name": "Store X"}, "review": {"rate": 4.2, "count": 31}, "image": {"medium": "https://example.com/x.jpg"}},
+  {"name": "ケトル Y", "price": 1780, "code": "store_y_2", "url": "https://store.shopping.yahoo.co.jp/y/2.html", "inStock": false},
+  {"name": "ケトル Z", "price": 3180, "code": "store_z_3", "url": "https://store.shopping.yahoo.co.jp/z/3.html"}
+]}

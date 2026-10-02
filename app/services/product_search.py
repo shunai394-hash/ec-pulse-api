@@ -261,6 +261,9 @@ async def _search_yahoo_official(query: str, limit: int) -> list[dict]:
             await asyncio.sleep(wait)
         async with safe_async_client(timeout=15.0) as client:
             async def request():
+                # Without this, the assignment below creates a local and the
+                # spacing between Yahoo requests never took effect.
+                global _yahoo_last_request_at
                 async with client.stream(
                     "GET",
                     YAHOO_API_URL,

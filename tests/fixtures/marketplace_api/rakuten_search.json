@@ -1,0 +1,5 @@
+{"count": 3, "page": 1, "items": [
+  {"itemName": "電気ケトル A", "itemPrice": 2980, "itemCode": "shop-a:10001", "itemUrl": "https://item.rakuten.co.jp/shop-a/10001/", "shopName": "Shop A", "availability": 1, "reviewAverage": 4.4, "reviewCount": 120},
+  {"itemName": "電気ケトル B", "itemPrice": 1980, "itemCode": "shop-b:20002", "itemUrl": "https://item.rakuten.co.jp/shop-b/20002/", "shopName": "Shop B", "availability": 0, "reviewAverage": 3.9, "reviewCount": 8},
+  {"itemName": "電気ケトル C", "itemPrice": 3480, "itemCode": "shop-c:30003", "itemUrl": "https://item.rakuten.co.jp/shop-c/30003/", "shopName": "Shop C"}
+]}
