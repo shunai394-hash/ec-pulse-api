@@ -330,7 +330,7 @@ def test_stale_checkout_completion_cannot_clear_new_pending_checkout(monkeypatch
     import app.services.billing as billing
 
     class Event:
-        def to_dict_recursive(self):
+        def to_dict(self):
             return {
                 "id": "evt_checkout_old",
                 "type": "checkout.session.completed",
@@ -384,7 +384,7 @@ def test_stale_checkout_completion_cannot_claim_account_while_new_checkout_is_pe
     from datetime import datetime, timezone, timedelta
 
     class Event:
-        def to_dict_recursive(self):
+        def to_dict(self):
             return {
                 "id": "evt_checkout_stale_first_customer",
                 "type": "checkout.session.completed",
@@ -436,7 +436,7 @@ def test_expired_checkout_completion_still_links_customer_and_subscription(monke
     import app.services.billing as billing
 
     class Event:
-        def to_dict_recursive(self):
+        def to_dict(self):
             return {
                 "id": "evt_checkout_expired",
                 "type": "checkout.session.completed",
@@ -457,7 +457,7 @@ def test_expired_checkout_completion_still_links_customer_and_subscription(monke
         @staticmethod
         def retrieve(subscription_id):
             return type("SubscriptionObject", (), {
-                "to_dict_recursive": lambda self: {
+                "to_dict": lambda self: {
                     "id": subscription_id,
                     "customer": "cus_old",
                     "created": 390,
@@ -508,7 +508,7 @@ def test_invoice_payment_failed_reconciles_latest_subscription(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
 
     class Event:
-        def to_dict_recursive(self):
+        def to_dict(self):
             return {
                 "id": "evt_invoice_failed",
                 "type": "invoice.payment_failed",
@@ -526,7 +526,7 @@ def test_invoice_payment_failed_reconciles_latest_subscription(monkeypatch):
         def retrieve(subscription_id):
             assert subscription_id == "sub_123"
             return type("SubscriptionObject", (), {
-                "to_dict_recursive": lambda self: {
+                "to_dict": lambda self: {
                     "id": "sub_123",
                     "customer": "cus_123",
                     "created": 500,
@@ -572,7 +572,7 @@ def test_invoice_paid_reconciles_latest_subscription(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
 
     class Event:
-        def to_dict_recursive(self):
+        def to_dict(self):
             return {
                 "id": "evt_invoice_paid",
                 "type": "invoice.paid",
@@ -589,7 +589,7 @@ def test_invoice_paid_reconciles_latest_subscription(monkeypatch):
         @staticmethod
         def retrieve(subscription_id):
             return type("SubscriptionObject", (), {
-                "to_dict_recursive": lambda self: {
+                "to_dict": lambda self: {
                     "id": subscription_id,
                     "customer": "cus_123",
                     "created": 500,
