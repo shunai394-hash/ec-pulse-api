@@ -155,3 +155,78 @@ def test_fastapi_request_signature_binds_query_encoding_and_order(monkeypatch):
         headers=headers,
     )
     assert reencoded.status_code == 401
+
+def test_request_signature_rejects_missing_headers():
+    key = "ecp_live_test_secret"
+
+    for timestamp, signature in ((None, "sha256=test"), ("1760000000", None)):
+        try:
+            verify_request_signature(
+                key,
+                timestamp,
+                signature,
+                "GET",
+                "/v1/account",
+                b"",
+                now=1760000000,
+            )
+        except ValueError as exc:
+            assert str(exc) == "Missing request signature headers"
+        else:
+            raise AssertionError("missing signature headers must be rejected")
+
+
+def test_request_signature_rejects_invalid_timestamp():
+    key = "ecp_live_test_secret"
+
+    try:
+        verify_request_signature(
+            key,
+            "not-a-timestamp",
+            "sha256=test",
+            "GET",
+            "/v1/account",
+            b"",
+            now=1760000000,
+        )
+    except ValueError as exc:
+        assert str(exc) == "Invalid request signature timestamp"
+    else:
+        raise AssertionError("invalid timestamp must be rejected")
+
+
+def test_request_signature_binds_http_method():
+    key = "ecp_live_test_secret"
+    timestamp = "1760000000"
+    signature = sign_request(key, timestamp, "GET", "/v1/account", b"")
+
+    try:
+        verify_request_signature(
+            key,
+            timestamp,
+            signature,
+            "POST",
+            "/v1/account",
+            b"",
+            now=1760000000,
+        )
+    except ValueError as exc:
+        assert str(exc) == "Invalid request signature"
+    else:
+        raise AssertionError("method tampering must be rejected")
+
+
+def test_request_signature_accepts_clock_skew_boundary():
+    key = "ecp_live_test_secret"
+    timestamp = "1760000000"
+    signature = sign_request(key, timestamp, "GET", "/v1/account", b"")
+
+    verify_request_signature(
+        key,
+        timestamp,
+        signature,
+        "GET",
+        "/v1/account",
+        b"",
+        now=1760000000 + 300,
+    )
