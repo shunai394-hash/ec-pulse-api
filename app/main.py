@@ -115,7 +115,7 @@ async def get_api_key(request: Request, api_key: str | None = Depends(api_key_he
                     timestamp,
                     signature,
                     request.method,
-                    request.url.path + (f"?{request.url.query}" if request.url.query else ""),
+                    _signed_request_target(request),
                     body,
                 )
             except ValueError as exc:
@@ -130,6 +130,14 @@ async def get_api_key(request: Request, api_key: str | None = Depends(api_key_he
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return api_key
+
+def _signed_request_target(request: Request) -> str:
+    """The request target exactly as the client sent it: raw (still
+    percent-encoded) path plus the raw query string, if any."""
+    raw_path = request.scope.get("raw_path")
+    path = raw_path.decode("latin-1") if raw_path else request.url.path
+    query = request.scope.get("query_string", b"").decode("latin-1")
+    return f"{path}?{query}" if query else path
 
 def _charge(api_key: str, endpoint: str, credits: int = 1):
     try: return consume_credit(api_key, endpoint, credits)

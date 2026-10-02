@@ -18,6 +18,12 @@ timestamp.METHOD.path.sha256(body)
 
 The API key is the HMAC secret. The server accepts signatures only when the timestamp is within 5 minutes of server time.
 
+Canonical form details:
+
+- `path` is the request target exactly as sent on the wire: the raw path, still percent-encoded, followed by `?` and the raw query string when there is one (for example `/v1/research/runs?limit=5&url=https%3A%2F%2Fexample.com`). Parameter order and encoding are significant; do not re-encode or sort them.
+- `timestamp` is Unix seconds as plain ASCII digits (no sign, spaces or decimals).
+- A signed request can be replayed unchanged within the 5-minute window. Do not rely on the signature alone to make non-idempotent requests safe to expose.
+
 ## Python
 
 ```python
