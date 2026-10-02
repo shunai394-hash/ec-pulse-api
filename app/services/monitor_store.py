@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import os
 import secrets
@@ -884,91 +885,130 @@ async def _enqueue_webhook(conn, monitor_id: str, event_id: str, payload: dict, 
     )
 
 
+# Webhook delivery is at-least-once: receivers must de-duplicate on the
+# X-EC-Pulse-Event-ID header. The lease below prevents two workers from
+# POSTing the same event concurrently; it cannot make a POST and the DB update
+# that records it atomic.
+WEBHOOK_LEASE_SECONDS = 60
+# Hard ceiling for one POST including the response body. Kept well below the
+# lease so a slow receiver cannot outlive the lease and let a second worker
+# claim and POST the same event while the first POST is still in flight.
+WEBHOOK_POST_DEADLINE_SECONDS = 20
+MAX_WEBHOOK_ATTEMPTS = 8
+MAX_WEBHOOK_DELIVERIES_PER_RUN = 50
+
+
+def _webhook_retry_delay_seconds(attempts: int) -> int:
+    """Backoff before the next attempt, given the attempts already made."""
+    return min(3600, 60 * (2 ** min(max(attempts, 1) - 1, 6)))
+
+
+def _webhook_error(exc: Exception) -> str:
+    # Never store str() of HTTP errors: httpx includes the full webhook URL,
+    # which may carry a receiver secret in its query string.
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"http_{exc.response.status_code}"
+    if isinstance(exc, ValueError):
+        return f"{type(exc).__name__}: {exc}"[:500]
+    return type(exc).__name__
+
+
+async def _post_webhook(client, webhook_url: str, event: dict, event_id: str) -> None:
+    async with client.stream(
+        "POST", webhook_url, json=event,
+        headers={"X-EC-Pulse-Event-ID": event_id},
+    ) as response:
+        response.raise_for_status()
+        await read_response_bytes(response, MAX_WEBHOOK_RESPONSE_BYTES)
+
+
 async def _deliver_pending_webhooks() -> int:
     import json
     delivered = 0
     timeout = httpx.Timeout(10.0, connect=3.0)
     async with safe_async_client(timeout=timeout, follow_redirects=False) as client:
-        while True:
+        # Bounded so one cron invocation cannot loop forever or starve the runner.
+        for _ in range(MAX_WEBHOOK_DELIVERIES_PER_RUN):
             claim_token = str(uuid.uuid4())
-            now = datetime.now(timezone.utc)
+            # Claim and lease in one statement on the database clock, so app
+            # servers with skewed clocks agree on when a lease has expired.
             with psycopg.connect(_db_url()) as conn:
                 _init(conn)
                 row = conn.execute(
-                    """SELECT d.event_id, d.monitor_id, d.payload, m.webhook_url, d.attempts
-                    FROM webhook_deliveries d
-                    JOIN monitors m ON m.id = d.monitor_id
-                    WHERE d.status = 'pending'
-                      AND d.next_attempt_at <= %s
-                      AND (d.locked_until IS NULL OR d.locked_until <= %s)
-                    ORDER BY d.next_attempt_at, d.created_at
-                    FOR UPDATE SKIP LOCKED
-                    LIMIT 1""",
-                    (now, now),
+                    """UPDATE webhook_deliveries d
+                    SET locked_until = CURRENT_TIMESTAMP + make_interval(secs => %s),
+                        lease_token = %s
+                    FROM monitors m
+                    WHERE m.id = d.monitor_id
+                      AND d.event_id = (
+                        SELECT event_id FROM webhook_deliveries
+                        WHERE status = 'pending'
+                          AND next_attempt_at <= CURRENT_TIMESTAMP
+                          AND (locked_until IS NULL OR locked_until <= CURRENT_TIMESTAMP)
+                        ORDER BY next_attempt_at, created_at
+                        FOR UPDATE SKIP LOCKED
+                        LIMIT 1
+                      )
+                    RETURNING d.event_id, d.monitor_id, d.payload, m.webhook_url, d.attempts""",
+                    (WEBHOOK_LEASE_SECONDS, claim_token),
                 ).fetchone()
-                if not row:
-                    break
-                conn.execute(
-                    """UPDATE webhook_deliveries
-                    SET locked_until = %s, lease_token = %s
-                    WHERE event_id = %s""",
-                    (now + timedelta(seconds=30), claim_token, row[0]),
-                )
                 conn.commit()
+            if not row:
+                break
 
             event_id, monitor_id, payload_text, webhook_url, attempts = row
             try:
                 await validate_public_url(webhook_url)
                 event = json.loads(payload_text)
+                # Re-check and extend the lease immediately before the POST so
+                # the full deadline fits inside a lease this worker still owns.
                 with psycopg.connect(_db_url()) as conn:
-                    _init(conn)
                     lease_owned = conn.execute(
-                        """SELECT 1
-                        FROM webhook_deliveries
+                        """UPDATE webhook_deliveries
+                        SET locked_until = CURRENT_TIMESTAMP + make_interval(secs => %s)
                         WHERE event_id = %s
                           AND lease_token = %s
+                          AND status = 'pending'
                           AND locked_until > CURRENT_TIMESTAMP
-                        FOR UPDATE""",
-                        (event_id, claim_token),
+                        RETURNING 1""",
+                        (WEBHOOK_LEASE_SECONDS, event_id, claim_token),
                     ).fetchone()
-                    if not lease_owned:
-                        continue
-                async with client.stream(
-                    "POST", webhook_url, json=event,
-                    headers={"X-EC-Pulse-Event-ID": event_id},
-                ) as response:
-                    response.raise_for_status()
-                    await read_response_bytes(response, MAX_WEBHOOK_RESPONSE_BYTES)
-                with psycopg.connect(_db_url()) as conn:
-                    cursor = conn.execute(
-                        """UPDATE webhook_deliveries
-                        SET status='delivered', delivered_at=%s, locked_until=NULL,
-                            lease_token=NULL, last_error=NULL
-                        WHERE event_id=%s AND lease_token=%s""",
-                        (datetime.now(timezone.utc), event_id, claim_token),
-                    )
                     conn.commit()
-                if cursor.rowcount != 1:
+                if not lease_owned:
                     continue
-                delivered += 1
+                await asyncio.wait_for(
+                    _post_webhook(client, webhook_url, event, event_id),
+                    timeout=WEBHOOK_POST_DEADLINE_SECONDS,
+                )
             except Exception as exc:
-                attempts += 1
-                delay = min(3600, 60 * (2 ** min(attempts - 1, 6)))
+                delay = _webhook_retry_delay_seconds(attempts + 1)
                 with psycopg.connect(_db_url()) as conn:
                     conn.execute(
                         """UPDATE webhook_deliveries
-                        SET attempts=%s, next_attempt_at=%s, locked_until=NULL,
-                            lease_token=NULL, last_error=%s
-                        WHERE event_id=%s AND lease_token=%s""",
-                        (
-                            attempts,
-                            datetime.now(timezone.utc) + timedelta(seconds=delay),
-                            f"{type(exc).__name__}: {exc}"[:500],
-                            event_id,
-                            claim_token,
-                        ),
+                        SET attempts = attempts + 1,
+                            status = CASE WHEN attempts + 1 >= %s THEN 'failed' ELSE 'pending' END,
+                            next_attempt_at = CURRENT_TIMESTAMP + make_interval(secs => %s),
+                            locked_until = NULL, lease_token = NULL, last_error = %s
+                        WHERE event_id = %s AND lease_token = %s AND status = 'pending'""",
+                        (MAX_WEBHOOK_ATTEMPTS, delay, _webhook_error(exc), event_id, claim_token),
                     )
                     conn.commit()
+                continue
+
+            # The receiver acknowledged the event. Record that fact even if this
+            # worker's lease was taken over meanwhile: leaving the row pending
+            # would only guarantee one more duplicate POST.
+            with psycopg.connect(_db_url()) as conn:
+                cursor = conn.execute(
+                    """UPDATE webhook_deliveries
+                    SET status = 'delivered', delivered_at = CURRENT_TIMESTAMP,
+                        locked_until = NULL, lease_token = NULL, last_error = NULL
+                    WHERE event_id = %s AND status = 'pending'""",
+                    (event_id,),
+                )
+                conn.commit()
+            if cursor.rowcount == 1:
+                delivered += 1
     return delivered
 
 
