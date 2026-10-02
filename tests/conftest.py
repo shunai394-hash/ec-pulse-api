@@ -40,3 +40,25 @@ def pg_exec(sql: str, params=()):
         cur = conn.execute(sql, params)
         conn.commit()
         return cur.rowcount
+
+
+@pytest.fixture
+def public_dns(monkeypatch):
+    """Resolve hostnames to a public address without real DNS.
+
+    IP literals still go through the production private-address checks.
+    """
+    import ipaddress
+
+    from app.services import url_safety
+
+    real_resolve = url_safety._resolve_public_addresses
+
+    def resolve(host, port):
+        try:
+            ipaddress.ip_address(host)
+        except ValueError:
+            return {"93.184.216.34"}
+        return real_resolve(host, port)
+
+    monkeypatch.setattr(url_safety, "_resolve_public_addresses", resolve)

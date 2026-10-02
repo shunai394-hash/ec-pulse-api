@@ -6,7 +6,6 @@ by an httpx ``MockTransport`` so responses still flow through httpx streaming,
 ``raise_for_status`` and ``read_response_bytes``.
 """
 import asyncio
-import ipaddress
 import json
 import threading
 import time
@@ -16,26 +15,13 @@ import httpx
 import psycopg
 import pytest
 
-from app.services import url_safety
 from tests.conftest import TEST_DB, pg_exec, pg_query
 
 HOOK = "https://hooks.example.com/ec-pulse"
 
 
 @pytest.fixture
-def store(pg_store, monkeypatch):
-    real_resolve = url_safety._resolve_public_addresses
-
-    def resolve(host, port):
-        # Hostnames resolve to a public address without real DNS; IP literals
-        # keep the production private-address checks.
-        try:
-            ipaddress.ip_address(host)
-        except ValueError:
-            return {"93.184.216.34"}
-        return real_resolve(host, port)
-
-    monkeypatch.setattr(url_safety, "_resolve_public_addresses", resolve)
+def store(pg_store, public_dns):
     return pg_store
 
 

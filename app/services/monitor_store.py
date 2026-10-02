@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import logging
 import os
 import secrets
 import uuid
@@ -10,6 +11,8 @@ import httpx
 import psycopg
 
 from app.services.url_safety import read_response_bytes, safe_async_client, validate_public_url
+
+logger = logging.getLogger(__name__)
 
 _INIT_LOCK = Lock()
 _SCHEMA_READY = False
@@ -1043,6 +1046,22 @@ async def run_due_monitors() -> dict:
             if not lease_row:
                 continue
 
+            # The due list was read before this lease existed. Another worker
+            # may have processed the monitor and released its lease since then,
+            # so re-read it now that this worker holds the lease.
+            with psycopg.connect(_db_url()) as conn:
+                current = conn.execute(
+                    """SELECT url, webhook_url, last_price, last_checked_at
+                    FROM monitors
+                    WHERE id = %s
+                      AND (last_checked_at IS NULL
+                           OR last_checked_at <= %s - (interval_minutes * INTERVAL '1 minute'))""",
+                    (monitor_id, now),
+                ).fetchone()
+            if not current:
+                continue
+            url, webhook_url, old_price, last_checked_at = current
+
             await validate_public_url(webhook_url)
             data = await fetch_product(url)
             pricing = data.get("pricing", {})
@@ -1063,12 +1082,25 @@ async def run_due_monitors() -> dict:
                     (monitor_id, lease_token),
                 ).fetchone()
                 if not lease_owned:
+                    conn.rollback()
+                    continue
+                # Compare-and-set on the state this run read: a concurrent run
+                # that already recorded this check makes this write a no-op.
+                updated = conn.execute(
+                    """UPDATE monitors SET last_price = %s, last_checked_at = %s
+                    WHERE id = %s AND last_checked_at IS NOT DISTINCT FROM %s
+                    RETURNING id""",
+                    (new_price, now, monitor_id, last_checked_at),
+                ).fetchone()
+                if not updated:
+                    conn.rollback()
                     continue
 
                 conn.execute(
                     "INSERT INTO price_history (monitor_id, price, currency, captured_at, source_url) VALUES (%s, %s, %s, %s, %s)",
                     (monitor_id, new_price, currency, data["captured_at"], source_url),
                 )
+                price_changed = False
                 if old_price is not None and new_price is not None and new_price != old_price:
                     event_id = str(uuid.uuid5(
                         uuid.NAMESPACE_URL,
@@ -1089,15 +1121,13 @@ async def run_due_monitors() -> dict:
                         "captured_at": data["captured_at"],
                     }
                     await _enqueue_webhook(conn, monitor_id, event_id, event, now)
-                    changed += 1
-                conn.execute(
-                    "UPDATE monitors SET last_price = %s, last_checked_at = %s WHERE id = %s",
-                    (new_price, now, monitor_id),
-                )
+                    price_changed = True
                 conn.commit()
             checked += 1
-        except Exception:
+            changed += int(price_changed)
+        except Exception as exc:
             failed += 1
+            logger.warning("monitor run failed monitor_id=%s error=%s", monitor_id, type(exc).__name__)
         finally:
             try:
                 with psycopg.connect(_db_url()) as lease_conn:
