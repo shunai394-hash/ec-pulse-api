@@ -2,7 +2,9 @@ import asyncio
 import hashlib
 import logging
 import os
+import re
 import secrets
+import traceback
 import uuid
 import httpx
 import psycopg
@@ -72,12 +74,36 @@ async def database_unavailable(request: Request, exc: psycopg.OperationalError):
     return JSONResponse(status_code=503, content={"detail": "Database is temporarily unavailable"}, headers={"Retry-After": "5"})
 
 
+_SECRET_ENV_VARS = (
+    "DATABASE_URL", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "CRON_SECRET", "EC_PULSE_API_KEY",
+    "AMAZON_CLIENT_SECRET", "RAKUTEN_ACCESS_KEY", "OPENAI_API_KEY", "GROQ_API_KEY", "PATROL_AI_API_KEY",
+    "GOOGLE_CLIENT_SECRET",
+)
+_SECRET_PATTERNS = (
+    (re.compile(r"([a-z][a-z0-9+.-]*://)[^\s/@:]+:[^\s/@]+@", re.I), r"\1***:***@"),
+    (re.compile(r"\b(ecp_live_|sk_live_|sk_test_|rk_live_|rk_test_|whsec_)[A-Za-z0-9_-]+"), r"\1***"),
+)
+
+
+def _redact(text: str) -> str:
+    """Strip credentials from text that is about to be logged."""
+    for name in _SECRET_ENV_VARS:
+        value = os.getenv(name, "")
+        if len(value) >= 8:
+            text = text.replace(value, f"<{name}>")
+    for pattern, replacement in _SECRET_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
+
+
 @app.exception_handler(Exception)
 async def unexpected_error(request: Request, exc: Exception):
-    # Same {"detail": ...} shape as every other error; the exception text
-    # (which may contain SQL, DSNs or upstream payloads) stays in the logs.
-    logger.error("unhandled error method=%s path=%s error=%s", request.method, request.url.path,
-                 type(exc).__name__, exc_info=exc)
+    # Same {"detail": ...} shape as every other error. The traceback is
+    # logged for debugging, but redacted: exception text can carry DSNs,
+    # API keys or provider secrets.
+    details = _redact("".join(traceback.format_exception(exc)))
+    logger.error("unhandled error method=%s path=%s error=%s\n%s", request.method, request.url.path,
+                 type(exc).__name__, details)
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 

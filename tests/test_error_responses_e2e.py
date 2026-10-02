@@ -3,6 +3,7 @@
 Every error must be JSON ``{"detail": ...}`` and must never echo database
 DSNs, API keys, provider secrets or stack traces.
 """
+import logging
 import uuid
 
 import psycopg
@@ -95,7 +96,9 @@ def test_unexpected_exception_is_json_500_and_logged(api, monkeypatch, caplog):
     client, key = api
 
     def broken(*args, **kwargs):
-        raise psycopg.errors.UndefinedTable('relation "monitors" does not exist; dsn=postgresql://admin:SuperSecretDbPassword@db')
+        raise psycopg.errors.UndefinedTable(
+            'relation "monitors" does not exist; dsn=postgresql://admin:SuperSecretDbPassword@db '
+            f'stripe=sk_live_never_echo key={key}')
 
     monkeypatch.setattr(main, "list_monitors", broken)
     with caplog.at_level("ERROR"):
@@ -104,4 +107,17 @@ def test_unexpected_exception_is_json_500_and_logged(api, monkeypatch, caplog):
     assert r.status_code == 500
     assert r.json() == {"detail": "Internal server error"}
     assert_clean(r, key)
-    assert any(rec.levelname == "ERROR" for rec in caplog.records)
+    errors = [rec for rec in caplog.records if rec.levelname == "ERROR"]
+    assert errors
+    # The log keeps the traceback for debugging but not the secrets in it.
+    logged = "\n".join(logging.Formatter().format(rec) for rec in errors)
+    assert "UndefinedTable" in logged and "Traceback" in logged
+    for secret in SECRETS + [key]:
+        assert secret not in logged
+
+
+def test_log_redaction_covers_configured_secret_values(monkeypatch):
+    monkeypatch.setenv("CRON_SECRET", "cron-secret-value-123")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-never-in-logs")
+    text = main._redact("auth=Bearer cron-secret-value-123 key=sk-proj-never-in-logs url=https://u:p4ss@h/x")
+    assert "cron-secret-value-123" not in text and "sk-proj-never-in-logs" not in text and "p4ss" not in text
