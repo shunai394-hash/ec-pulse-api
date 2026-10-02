@@ -11,6 +11,12 @@ on:
       - ".claude-plugin/**"
       - ".github/workflows/**"
       - "docs/**"
+      - "app/**"
+      - "api/**"
+      - "tests/**"
+      - "requirements.txt"
+      - "pytest.ini"
+      - "vercel.json"
 
 permissions:
   contents: write
