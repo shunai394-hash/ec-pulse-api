@@ -1,5 +1,7 @@
 import json
+import math
 import re
+import unicodedata
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -73,10 +75,21 @@ def _offers_dict(offers: Any) -> dict[str, Any]:
     return {}
 
 def _number(value: Any) -> float | None:
-    if value is None:
+    if value is None or isinstance(value, bool):
         return None
-    match = re.search(r"-?\d+(?:[.,]\d+)?", str(value).replace(",", ""))
+    if isinstance(value, (int, float)):
+        return float(value) if math.isfinite(value) else None
+    # NFKC folds full-width digits and separators ("１，９８０円" -> "1,980円");
+    # without it the full-width comma split the number and gave 1.0.
+    text = unicodedata.normalize("NFKC", str(value)).replace(",", "")
+    match = re.search(r"-?\d+(?:\.\d+)?", text)
     return float(match.group()) if match else None
+
+
+def _price(value: Any) -> float | None:
+    """A sellable price is positive; anything else is a parse failure, not a price."""
+    number = _number(value)
+    return number if number is not None and number > 0 else None
 
 def _marketplace(host: str) -> str:
     host = host.lower().split(":")[0]
@@ -151,11 +164,14 @@ async def fetch_product(url: str) -> dict[str, Any]:
             ),
             "model": product.get("model"),
             "sku": product.get("sku"),
-            "gtin": product.get("gtin13") or product.get("gtin"),
+            "gtin": (
+                product.get("gtin13") or product.get("gtin") or product.get("gtin14")
+                or product.get("gtin12") or product.get("gtin8")
+            ),
             "product_id": product_id,
         },
         "pricing": {
-            "price": _number(offers.get("price") or product.get("price")),
+            "price": _price(offers.get("price") or product.get("price")),
             # Schema.org highPrice is a range ceiling, not necessarily an MSRP/list price.
             # Do not expose it as list_price because downstream profit calculations may trust it.
             "list_price": None,

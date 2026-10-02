@@ -176,6 +176,19 @@ async def _search_amazon_official(query: str, limit: int) -> list[dict]:
         raise ValueError("Invalid Amazon Creators API response")
     return [_amazon_item(item) for item in items[:limit] if isinstance(item, dict)]
 
+def _api_price(value) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not value > 0:
+        return None
+    return float(value)
+
+
+def _stock_status(in_stock) -> str:
+    # A missing stock flag is unknown, not out of stock.
+    if in_stock is None:
+        return "Unknown"
+    return "InStock" if in_stock else "OutOfStock"
+
+
 def _yahoo_item(item: dict) -> dict:
     review = item.get("review") if isinstance(item.get("review"), dict) else {}
     seller = item.get("seller") if isinstance(item.get("seller"), dict) else {}
@@ -186,8 +199,8 @@ def _yahoo_item(item: dict) -> dict:
         "cache_hit": False,
         "product": {
             "product": {"title": item.get("name"), "brand": (item.get("brand") or {}).get("name") if isinstance(item.get("brand"), dict) else item.get("brand"), "model": None, "sku": item.get("code"), "gtin": item.get("janCode"), "product_id": item.get("code") or item.get("janCode")},
-            "pricing": {"price": float(price) if isinstance(price, (int, float)) else None, "list_price": None, "currency": "JPY"},
-            "availability": {"status": "InStock" if item.get("inStock") else "OutOfStock"},
+            "pricing": {"price": _api_price(price), "list_price": None, "currency": "JPY"},
+            "availability": {"status": _stock_status(item.get("inStock"))},
             "rating": {"score": review.get("rate"), "count": review.get("count", 0)},
             "seller": {"name": seller.get("name")},
             "source": {"site": "shopping.yahoo.co.jp", "marketplace": "yahoo", "product_id": item.get("code") or item.get("janCode"), "url": item.get("url"), "image": image.get("medium")},
@@ -204,8 +217,9 @@ def _rakuten_item(item: dict) -> dict:
         "cache_hit": False,
         "product": {
             "product": {"title": item.get("itemName"), "brand": None, "model": None, "sku": item.get("itemCode"), "gtin": None, "product_id": item.get("itemCode")},
-            "pricing": {"price": float(item.get("itemPrice")) if isinstance(item.get("itemPrice"), (int, float)) else None, "list_price": None, "currency": "JPY"},
-            "availability": {"status": "InStock"},
+            "pricing": {"price": _api_price(item.get("itemPrice")), "list_price": None, "currency": "JPY"},
+            # Rakuten reports availability as 1 (orderable) / 0 (not orderable).
+            "availability": {"status": _stock_status({1: True, 0: False}.get(item.get("availability")))},
             "rating": {"score": item.get("reviewAverage"), "count": item.get("reviewCount", 0)},
             "seller": {"name": item.get("shopName")},
             "source": {"site": "rakuten.co.jp", "marketplace": "rakuten", "product_id": item.get("itemCode"), "url": item.get("itemUrl"), "image": None},
@@ -331,7 +345,7 @@ async def _search_marketplace(marketplace: str, query: str, limit: int) -> list[
                 break
         else:
             raise ValueError("Too many redirects")
-    return _links(body.decode("utf-8"), marketplace)[:limit]
+    return _links(body.decode("utf-8", errors="replace"), marketplace)[:limit]
 
 
 
