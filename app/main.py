@@ -113,7 +113,7 @@ async def get_api_key(request: Request, api_key: str | None = Depends(api_key_he
                     timestamp,
                     signature,
                     request.method,
-                    request.url.path,
+                    request.url.path + (f"?{request.url.query}" if request.url.query else ""),
                     body,
                 )
             except ValueError as exc:
