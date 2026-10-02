@@ -337,6 +337,8 @@ def test_concurrent_workers_never_post_the_same_event_twice(store, monkeypatch):
     for t in threads:
         t.join()
 
+    # The workers really competed for the same rows: more than one delivered.
+    assert sum(1 for total in totals if total > 0) >= 2, totals
     posted = Counter(request.headers["X-EC-Pulse-Event-ID"] for request in receiver.posts)
     assert set(posted) == set(events)
     assert max(posted.values()) == 1

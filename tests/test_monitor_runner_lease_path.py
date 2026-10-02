@@ -190,29 +190,72 @@ def test_stale_due_list_does_not_double_process_after_other_worker_finished(stor
     assert pg_query("SELECT count(*) FROM webhook_deliveries")[0][0] == 1
 
 
-def test_concurrent_workers_fetch_each_monitor_once(store, monkeypatch):
+@pytest.fixture
+def update_audit():
+    """Count real UPDATEs on monitors with a temporary trigger."""
+    pg_exec("CREATE TABLE IF NOT EXISTS test_monitor_update_audit (monitor_id TEXT)")
+    pg_exec("TRUNCATE test_monitor_update_audit")
+    pg_exec("""CREATE OR REPLACE FUNCTION test_audit_monitor_update() RETURNS trigger AS $$
+               BEGIN INSERT INTO test_monitor_update_audit VALUES (NEW.id); RETURN NEW; END $$ LANGUAGE plpgsql""")
+    pg_exec("CREATE TRIGGER test_audit_monitor_update AFTER UPDATE ON monitors "
+            "FOR EACH ROW EXECUTE FUNCTION test_audit_monitor_update()")
+    try:
+        yield lambda: dict(pg_query("SELECT monitor_id, count(*) FROM test_monitor_update_audit GROUP BY 1"))
+    finally:
+        pg_exec("DROP TRIGGER IF EXISTS test_audit_monitor_update ON monitors")
+        pg_exec("DROP TABLE IF EXISTS test_monitor_update_audit")
+
+
+def test_two_free_running_workers_process_each_due_monitor_once(store, monkeypatch, update_audit):
+    """Two real runners start together on the same due monitors. The first
+    fetch is slow, so the other worker processes (and releases) the remaining
+    monitors before the slow worker reaches them with its stale due list."""
     import time
 
-    fetcher = Fetcher(before_return=lambda: time.sleep(0.1))
-    use_fetcher(monkeypatch, fetcher)
-    monitors = [make_monitor(store) for _ in range(4)]
-    results = []
-    barrier = threading.Barrier(3)
+    monitors = [make_monitor(store) for _ in range(6)]
+    use_fetcher(monkeypatch, Fetcher(price=1000.0))
+    run(store)
+    pg_exec("UPDATE monitors SET last_checked_at = last_checked_at - INTERVAL '61 minutes'")
+    pg_exec("TRUNCATE test_monitor_update_audit")
+
+    fetch_counts = {}
+    lock = threading.Lock()
+    first = threading.Event()
+
+    async def fetch(url):
+        with lock:
+            fetch_counts[threading.current_thread().name] = fetch_counts.get(threading.current_thread().name, 0) + 1
+            slow = not first.is_set()
+            first.set()
+        if slow:
+            time.sleep(0.5)
+        return {"pricing": {"price": 900.0, "currency": "JPY"},
+                "source": {"url": url, "site": "shop.example.com"},
+                "captured_at": "2026-10-02T00:00:00+00:00"}
+
+    use_fetcher(monkeypatch, fetch)
+    results = {}
+    barrier = threading.Barrier(2)
 
     def worker():
         barrier.wait()
-        results.append(run(store))
+        results[threading.current_thread().name] = run(store)
 
-    threads = [threading.Thread(target=worker) for _ in range(3)]
+    threads = [threading.Thread(target=worker, name=name) for name in ("worker-a", "worker-b")]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
 
-    assert fetcher.calls == len(monitors)
-    assert sum(r["checked"] for r in results) == len(monitors)
-    assert sum(r["failed"] for r in results) == 0
-    assert all(len(history(m)) == 1 for m in monitors)
+    # Both workers really ran concurrently and each did part of the work.
+    assert all(r["checked"] > 0 for r in results.values()), results
+    assert sum(fetch_counts.values()) == len(monitors)
+    assert sum(r["checked"] for r in results.values()) == len(monitors)
+    assert sum(r["changed"] for r in results.values()) == len(monitors)
+    assert all(len(history(m)) == 2 for m in monitors)  # initial run + exactly one more
+    assert update_audit() == {m: 1 for m in monitors}
+    assert pg_query("SELECT count(*) FROM webhook_deliveries")[0][0] == len(monitors)
+    assert len(store.webhook_posts) == len(monitors)
 
 
 def test_fetch_exception_counts_failure_and_leaves_state_untouched(store, monkeypatch):
