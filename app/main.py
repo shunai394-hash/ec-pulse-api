@@ -72,6 +72,15 @@ async def database_unavailable(request: Request, exc: psycopg.OperationalError):
     return JSONResponse(status_code=503, content={"detail": "Database is temporarily unavailable"}, headers={"Retry-After": "5"})
 
 
+@app.exception_handler(Exception)
+async def unexpected_error(request: Request, exc: Exception):
+    # Same {"detail": ...} shape as every other error; the exception text
+    # (which may contain SQL, DSNs or upstream payloads) stays in the logs.
+    logger.error("unhandled error method=%s path=%s error=%s", request.method, request.url.path,
+                 type(exc).__name__, exc_info=exc)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
 class ProductRequest(BaseModel):
     url: HttpUrl
 class ProductCompareRequest(BaseModel):
