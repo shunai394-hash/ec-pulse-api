@@ -223,3 +223,56 @@ def test_failed_refund_is_logged(api, monkeypatch, caplog):
     assert balance(key) == 99
     assert any("credit refund failed" in r.getMessage() for r in caplog.records)
     assert all(key not in r.getMessage() for r in caplog.records)
+
+
+def test_search_where_every_marketplace_failed_is_refunded(api, monkeypatch):
+    from app.services import product_search
+
+    client, key = api
+
+    async def down(*args, **kwargs):
+        raise RuntimeError("marketplace down")
+
+    async def nothing(*args, **kwargs):
+        return []
+
+    for name in ["_search_marketplace", "_search_amazon_official", "_search_yahoo_official", "_search_rakuten_official"]:
+        monkeypatch.setattr(product_search, name, down)
+    monkeypatch.setattr(product_search, "_search_bing_marketplace", nothing)
+
+    response = client.post("/v1/products/search", json={"query": "kettle", "marketplaces": ["amazon", "yahoo"], "limit": 2},
+                           headers={"X-API-Key": key})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["count"] == 0
+    assert {e["marketplace"] for e in body["marketplace_errors"]} == {"amazon", "yahoo"}
+    assert body["credits"]["credits_used"] == 0
+    assert_consistent(response, key, 0)
+
+
+def test_search_with_one_marketplace_up_keeps_the_charge(api, monkeypatch):
+    from app.services import product_search
+
+    client, key = api
+
+    async def down(*args, **kwargs):
+        raise RuntimeError("marketplace down")
+
+    async def links(marketplace, query, limit):
+        return ["https://shopping.yahoo.co.jp/item/1"]
+
+    async def fetch(url):
+        return product(url), False
+
+    monkeypatch.setattr(product_search, "_search_marketplace", lambda m, q, l: down() if m == "amazon" else links(m, q, l))
+    monkeypatch.setattr(product_search, "fetch_product_cached", fetch)
+    for name in ["AMAZON_CLIENT_ID", "YAHOO_SHOPPING_APP_ID", "RAKUTEN_APPLICATION_ID"]:
+        monkeypatch.delenv(name, raising=False)
+
+    response = client.post("/v1/products/search", json={"query": "kettle", "marketplaces": ["amazon", "yahoo"], "limit": 2},
+                           headers={"X-API-Key": key})
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert_consistent(response, key, 4)

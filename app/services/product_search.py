@@ -521,6 +521,11 @@ async def search_products(query: str, marketplaces: list[str], limit: int) -> di
         "marketplaces": marketplaces,
         "count": len(flat),
         "results": flat,
+        "marketplace_errors": [
+            {"marketplace": group["marketplace"], "error": group["error"]}
+            for group in candidates
+            if not group["ok"]
+        ],
         "price_ranking": [
             {
                 "rank": i,

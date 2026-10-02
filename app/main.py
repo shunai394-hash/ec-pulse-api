@@ -621,6 +621,10 @@ async def product_search(request_http:Request,response:Response,request:ProductS
     except Exception as exc:
         _refund(api_key,"POST /v1/products/search",cost,charge)
         raise HTTPException(status_code=502, detail=f"Product search failed: {type(exc).__name__}") from exc
+    failed = {e.get("marketplace") for e in result.get("marketplace_errors", [])}
+    if not result.get("count") and failed >= set(marketplaces):
+        # Every marketplace failed and nothing was returned: nothing was delivered.
+        charge = _refund(api_key, "POST /v1/products/search", cost, charge)
     _set_usage_headers(response,request_http,api_key,charge)
     result["credits"] = charge
     return result
