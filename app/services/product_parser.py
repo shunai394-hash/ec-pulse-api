@@ -156,9 +156,9 @@ async def fetch_product(url: str) -> dict[str, Any]:
         },
         "pricing": {
             "price": _number(offers.get("price") or product.get("price")),
-            "list_price": _number(
-                offers.get("highPrice") if offers.get("highPrice") else None
-            ),
+            # Schema.org highPrice is a range ceiling, not necessarily an MSRP/list price.
+            # Do not expose it as list_price because downstream profit calculations may trust it.
+            "list_price": None,
             "currency": offers.get("priceCurrency"),
         },
         "availability": {
