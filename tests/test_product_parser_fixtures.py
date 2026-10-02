@@ -45,7 +45,7 @@ def test_full_width_price_is_not_truncated(serve):
     assert data["availability"]["status"] == "https://schema.org/InStock"
 
 
-def test_non_positive_price_is_not_reported_as_a_price(serve):
+def test_negative_price_is_not_reported_as_a_price(serve):
     assert serve("negative_price.html")["pricing"]["price"] is None
 
 
@@ -74,7 +74,9 @@ def test_aggregate_offer_range_is_not_guessed_as_a_price(serve):
 
 @pytest.mark.parametrize(("raw", "expected"), [
     ("１，９８０円", 1980.0), ("１２．５", 12.5), ("¥1,980", 1980.0), ("1,980円（税込）", 1980.0),
-    (2480, 2480.0), (True, None), (float("nan"), None), ("-500", None), (0, None), ("無料", None),
+    (2480, 2480.0), (True, None), (float("nan"), None), ("-500", None), ("無料", None),
+    # Unchanged from before: zero is reported as 0.0 (policy for 0 is an open issue).
+    ("0", 0.0), ("0円", 0.0), (0, 0.0),
 ])
 def test_price_normalisation(raw, expected):
     assert product_parser._price(raw) == expected

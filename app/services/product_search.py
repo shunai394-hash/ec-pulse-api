@@ -177,7 +177,7 @@ async def _search_amazon_official(query: str, limit: int) -> list[dict]:
     return [_amazon_item(item) for item in items[:limit] if isinstance(item, dict)]
 
 def _api_price(value) -> float | None:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not value > 0:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not value >= 0:
         return None
     return float(value)
 

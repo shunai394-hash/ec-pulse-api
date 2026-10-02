@@ -87,9 +87,10 @@ def _number(value: Any) -> float | None:
 
 
 def _price(value: Any) -> float | None:
-    """A sellable price is positive; anything else is a parse failure, not a price."""
+    """A negative number is a parse failure, not a price. Zero is passed
+    through unchanged (how to treat 0 is an open product decision)."""
     number = _number(value)
-    return number if number is not None and number > 0 else None
+    return number if number is not None and number >= 0 else None
 
 def _marketplace(host: str) -> str:
     host = host.lower().split(":")[0]
