@@ -1,4 +1,5 @@
 import os
+import threading
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -90,7 +91,26 @@ def _grant_plan_credits(conn, subscription: dict, invoice_id: str | None, event_
     return {"granted": True, "plan": plan, "quota": quota, "credits_balance": new_balance}
 
 
+_BILLING_SCHEMA_LOCK = threading.Lock()
+_BILLING_SCHEMA_READY = False
+
+
 def _init_billing(conn):
+    # ALTER TABLE takes an ACCESS EXCLUSIVE lock on api_accounts even when the
+    # column already exists. Running it on every billing call made each call
+    # queue behind any open row lock (e.g. a cancellation waiting on Stripe)
+    # and every credit charge for every customer queue behind it. Run once.
+    global _BILLING_SCHEMA_READY
+    if _BILLING_SCHEMA_READY:
+        return
+    with _BILLING_SCHEMA_LOCK:
+        if _BILLING_SCHEMA_READY:
+            return
+        _create_billing_schema(conn)
+        _BILLING_SCHEMA_READY = True
+
+
+def _create_billing_schema(conn):
     conn.execute(SCHEMA)
     conn.execute("ALTER TABLE api_accounts ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT")
     conn.execute("ALTER TABLE api_accounts ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT")
@@ -323,6 +343,21 @@ def process_webhook(payload: bytes, signature: str) -> dict:
                 handled = _apply_subscription(conn, current, event_data.get("created"))
                 if event_type in {"invoice.paid", "invoice.payment_succeeded"}:
                     credit_grant = _grant_plan_credits(conn, current, obj.get("id"), event_id, now)
+        elif event_type == "checkout.session.expired":
+            metadata = obj.get("metadata") or {}
+            api_key_hash = metadata.get("api_key_hash")
+            checkout_key = metadata.get("checkout_pending_key")
+            if api_key_hash and checkout_key:
+                # Release the pending checkout only if it is still this session's,
+                # so the customer can start a new one without waiting it out.
+                cleared = conn.execute(
+                    """UPDATE api_accounts
+                       SET checkout_pending_key=NULL, checkout_pending_until=NULL,
+                           checkout_session_id=NULL, updated_at=%s
+                       WHERE api_key_hash=%s AND checkout_pending_key=%s""",
+                    (now, api_key_hash, checkout_key),
+                )
+                handled = cleared.rowcount == 1
         elif event_type == "checkout.session.completed":
             customer_id = obj.get("customer")
             metadata = obj.get("metadata") or {}
