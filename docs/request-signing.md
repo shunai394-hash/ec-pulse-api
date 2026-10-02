@@ -10,7 +10,7 @@ X-EC-Timestamp: 1760000000
 X-EC-Signature: sha256=<hex digest>
 ```
 
-The signature covers the timestamp, HTTP method, request path, and SHA-256 hash of the exact request body:
+The signature covers the timestamp, HTTP method, exact request target (path plus raw query string when present), and SHA-256 hash of the exact request body:
 
 ```text
 timestamp.METHOD.path.sha256(body)
