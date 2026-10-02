@@ -23,7 +23,7 @@ async def test_patrol_persists_final_delivery_failure_state(monkeypatch):
 
     stored = []
 
-    async def capture_store(report):
+    def capture_store(report):
         stored.append(report.copy())
 
     monkeypatch.setattr(patrol, "run_due_monitors", monitors)
