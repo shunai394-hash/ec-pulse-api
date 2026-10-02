@@ -114,13 +114,9 @@ async def run_patrol() -> dict:
         "failures": failures,
         "summary": "巡回正常。修復不要。" if not failures and not repairs else "巡回完了。自己修復を実施または要監視状態を報告。",
     }
-    try:
-        _store_report(report)
-    except Exception as exc:
-        report["ok"] = False
-        report["repairs"].append({"type": "report-persistence-failure", "action": "escalate", "error": type(exc).__name__})
-        report["failures"].append({"name": "report-persistence", "ok": False, "error": type(exc).__name__})
-
+    # Finalize delivery state before persistence so the stored report matches
+    # the report returned to the caller. Persistence failures are reported
+    # in-memory because the failed persistence cannot itself be persisted.
     delivered = await _send_report(report)
     report["report_delivery"] = {
         "webhook_configured": bool(os.getenv("PATROL_REPORT_WEBHOOK_URL")),
@@ -130,4 +126,11 @@ async def run_patrol() -> dict:
         report["ok"] = False
         report["repairs"].append({"type": "report-delivery-failure", "action": "escalate", "error": "webhook_delivery_failed"})
         report["failures"].append({"name": "report-delivery", "ok": False, "error": "webhook_delivery_failed"})
+
+    try:
+        _store_report(report)
+    except Exception as exc:
+        report["ok"] = False
+        report["repairs"].append({"type": "report-persistence-failure", "action": "escalate", "error": type(exc).__name__})
+        report["failures"].append({"name": "report-persistence", "ok": False, "error": type(exc).__name__})
     return report
