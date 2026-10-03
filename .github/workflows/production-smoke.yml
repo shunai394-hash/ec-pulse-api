@@ -69,11 +69,17 @@ jobs:
           done
           echo "=== All deployment environments on this repo ==="
           gh api "repos/${GITHUB_REPOSITORY}/environments" --jq '.environments[].name' || true
-          echo "=== Commit statuses on main HEAD ==="
-          gh api "repos/${GITHUB_REPOSITORY}/commits/main/statuses" --jq '.[] | [.context, .state, .description, (.target_url // "-")] | @tsv' | sort -u
+          echo "=== Vercel status of the last 15 main commits (no row = Vercel created no deployment) ==="
+          gh api "repos/${GITHUB_REPOSITORY}/commits?sha=main&per_page=15" --jq '.[] | [.sha, .commit.committer.date] | @tsv' |
+          while IFS=$'\t' read -r sha date; do
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${sha}/statuses" \
+              --jq ".[] | select(.context | startswith(\"Vercel\")) | [\"${sha:0:7}\", \"${date}\", .context, .state, .description] | @tsv" | sort -u
+          done
 
   http-smoke:
     needs: vercel-deployments
+    # PR runs report the live state without blocking the PR: Production only changes after merge.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -99,6 +105,8 @@ jobs:
 
   browser-smoke:
     needs: vercel-deployments
+    # PR runs report the live state without blocking the PR: Production only changes after merge.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

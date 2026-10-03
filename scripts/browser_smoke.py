@@ -77,8 +77,12 @@ async def check_account_cta(browser):
     """Anonymous visitors on /account must get a working Google login button."""
     context = await browser.new_context(viewport={"width": 390, "height": 844})
     page = await context.new_page()
-    await page.goto(BASE + "/account", wait_until="networkidle")
+    response = await page.goto(BASE + "/account", wait_until="networkidle")
     await page.wait_for_timeout(1000)
+    if not response or response.status != 200 or not await page.locator("#status").count():
+        await context.close()
+        return {"check": "account login CTA", "ok": False, "status": response.status if response else None,
+                "detail": "account page is not served"}
     visible = await page.locator("#signed-out").is_visible()
     status_text = (await page.locator("#status").text_content() or "").strip()
     target = None
