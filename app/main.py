@@ -11,7 +11,7 @@ import psycopg
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
 
@@ -26,6 +26,7 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
+from app.landing import LANDING_PAGE
 
 app = FastAPI(
     title="EC Pulse API",
@@ -273,7 +274,11 @@ def auth_logout():
 
 
 @app.get("/")
-def root():
+def root(request: Request):
+    # Human visitors get the product experience; API clients keep the stable JSON root contract.
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return HTMLResponse(LANDING_PAGE)
     return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits"}
 
 @app.get("/health")
