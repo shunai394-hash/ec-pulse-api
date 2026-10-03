@@ -26,4 +26,4 @@ a{color:inherit;text-decoration:none}.wrap{width:min(calc(100% - 40px),var(--max
 <section class="wrap section"><div class="cta"><div><span class="kicker">Your first useful result</span><h2>Bring one product URL.<br>See what EC Pulse can do.</h2></div><a class="btn primary" href="/docs">Start with the API ↗</a></div></section>
 </main>
 <footer class="wrap footer"><span>© EC Pulse API</span><span><a href="/docs">API Docs</a> · <a href="/health">Health</a></span></footer>
-</body></html>'''\n
+</body></html>''''
