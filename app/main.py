@@ -288,7 +288,16 @@ def root(request: Request):
     accept = request.headers.get("accept", "")
     if "text/html" in accept:
         return HTMLResponse(LANDING_PAGE)
-    return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits"}
+    return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits",**_release()}
+
+
+def _release() -> dict:
+    # Vercel system variables identify the running deployment, so the live commit
+    # can be checked against GitHub without dashboard access. Neither is secret.
+    return {
+        "commit": os.getenv("VERCEL_GIT_COMMIT_SHA", "")[:7] or None,
+        "environment": os.getenv("VERCEL_ENV") or None,
+    }
 
 @app.get("/account", include_in_schema=False)
 def account_page():

@@ -33,6 +33,15 @@ def test_root_api_client_keeps_json_contract():
     assert payload["name"] == "EC Pulse API"
     assert payload["docs"] == "/docs"
     assert payload["health"] == "/health"
+    assert set(payload) >= {"commit", "environment"}
+
+
+def test_root_reports_vercel_release(monkeypatch):
+    monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "ddb1dfd026c12934e94418c748372e820104cac4")
+    monkeypatch.setenv("VERCEL_ENV", "production")
+    payload = client.get("/", headers={"Accept": "application/json"}).json()
+    assert payload["commit"] == "ddb1dfd"
+    assert payload["environment"] == "production"
 
 
 @pytest.mark.parametrize("path", ["/", "/account", "/legal/terms"])
@@ -54,7 +63,10 @@ def test_json_responses_keep_strict_csp():
     assert response.headers["Content-Security-Policy"] == "default-src 'none'; frame-ancestors 'none'"
 
 
-@pytest.mark.parametrize("slug", ["terms", "privacy", "billing", "commercial-transactions", "acceptable-use"])
+@pytest.mark.parametrize("slug", [
+    "terms", "privacy", "billing", "commercial-transactions", "acceptable-use",
+    "terms-of-service", "privacy-policy", "billing-and-cancellation",
+])
 def test_legal_documents_are_served(slug):
     response = client.get(f"/legal/{slug}")
     assert response.status_code == 200
