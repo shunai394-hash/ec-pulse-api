@@ -6,6 +6,49 @@ EC product data API and price monitoring infrastructure for Japanese e-commerce.
 
 EC Pulse turns Japanese marketplace product pages and search results into normalized API data, then adds price history, monitoring, webhooks, and opportunity signals.
 
+## Base URL and website
+
+- API base URL / website: `https://ec-pulse-api.vercel.app` (the Vercel production domain; preview deployment URLs are not stable and must not be used in integrations)
+- `/` — product site (browsers); API clients that do not send `Accept: text/html` get the JSON root document
+- `/account` — Google login, API key issue/rotation, credits, 30-day usage, Stripe checkout and billing portal
+- `/docs` (Swagger UI), `/redoc` — API reference
+- `/legal/terms`, `/legal/privacy`, `/legal/billing`, `/legal/commercial-transactions`, `/legal/acceptable-use`
+- `/health` — returns 200 only when the database is reachable (503 otherwise)
+
+## Quick start
+
+```bash
+curl -X POST https://ec-pulse-api.vercel.app/v1/products \
+  -H "X-API-Key: $EC_PULSE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://shop.example.jp/item/123"}'
+```
+
+### Credit cost
+
+| Endpoint | Credits |
+|---|---|
+| `GET/POST /v1/products` | 1 |
+| `POST /v1/products/search` | `limit` × number of marketplaces |
+| `POST /v1/products/compare` | number of URLs |
+| `POST /v1/research/ingest`, `POST /v1/research/batch` | number of URLs |
+| `POST /v1/consumer-insights/analyze` | 1 per 50 comments |
+| `POST /v1/monitors` | 1 |
+| `GET /v1/monitors/{id}/history` | 1 |
+| `GET /v1/monitors/{id}/opportunity` | 2 |
+| `GET /v1/monitors`, `GET /v1/account`, `GET /v1/pricing` | 0 |
+
+### Errors
+
+| Status | Meaning |
+|---|---|
+| 401 | Missing, invalid or revoked API key |
+| 402 | Insufficient credits (nothing is charged) |
+| 400 / 422 | Invalid input, or a private/local network URL |
+| 429 | Rate limit exceeded; retry after `Retry-After` seconds |
+| 502 | Upstream page/marketplace failure (charged credits are refunded) |
+| 503 | Database or a required integration is unavailable |
+
 ## Current API model
 
 - REST + API key authentication
@@ -69,7 +112,7 @@ Plan limits, Stripe checkout, subscription synchronization, credit accounting, u
 
 ## Customer onboarding
 
-1. Open `GET /auth/google` and complete Google authentication.
+1. Open `/account` (or `GET /auth/google`) and complete Google authentication. The account page covers steps 2–7 without writing any code.
 2. Call `POST /v1/customer/key` to issue the first free API key.
 3. Store the returned `api_key` securely; it is shown only when the key is created.
 4. Send the key as `X-API-Key: <customer-key>` to metered endpoints.

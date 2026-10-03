@@ -11,7 +11,7 @@ import psycopg
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
 
@@ -26,7 +26,7 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
-from app.landing import LANDING_PAGE
+from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, PAGE_CSP, ROBOTS_TXT, legal_page
 
 app = FastAPI(
     title="EC Pulse API",
@@ -59,9 +59,16 @@ async def security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "no-referrer"
     if os.getenv("APP_BASE_URL", "").lower().startswith("https://"):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    # /docs and /redoc load Swagger/ReDoc assets from a CDN; every other
+    # /docs and /redoc load Swagger/ReDoc assets from a CDN. Product pages get a
+    # policy that allows only their own inline blocks (by hash); every other
     # response is JSON (or a redirect) and needs no active content at all.
-    if request.url.path not in _DOC_PATHS:
+    path = request.url.path
+    is_html = response.headers.get("content-type", "").startswith("text/html")
+    if is_html and path in PAGE_CSP:
+        response.headers["Content-Security-Policy"] = PAGE_CSP[path]
+    elif is_html and path.startswith("/legal/"):
+        response.headers["Content-Security-Policy"] = LEGAL_CSP
+    elif path not in _DOC_PATHS:
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")):
         response.headers["Cache-Control"] = "no-store"
@@ -82,6 +89,8 @@ _SECRET_ENV_VARS = (
 )
 _SECRET_PATTERNS = (
     (re.compile(r"([a-z][a-z0-9+.-]*://)[^\s/@:]+:[^\s/@]+@", re.I), r"\1***:***@"),
+    (re.compile(r"\b(Bearer\s+)[A-Za-z0-9._~+/=-]+", re.I), r"\1***"),
+    (re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"), "<jwt>"),
     (re.compile(r"\b(ecp_live_|sk_live_|sk_test_|rk_live_|rk_test_|whsec_)[A-Za-z0-9_-]+"), r"\1***"),
     # httpx errors embed the full URL; receivers often put secrets in the query.
     (re.compile(r"([?&](?:token|access_token|api_key|apikey|key|secret|signature|sig|password|auth|code)=)[^&#\s'\"]+", re.I), r"\1***"),
@@ -280,6 +289,30 @@ def root(request: Request):
     if "text/html" in accept:
         return HTMLResponse(LANDING_PAGE)
     return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits"}
+
+@app.get("/account", include_in_schema=False)
+def account_page():
+    return HTMLResponse(ACCOUNT_PAGE)
+
+
+@app.get("/legal/{slug}", include_in_schema=False)
+def legal(slug: str):
+    page = legal_page(slug)
+    if page is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+    return HTMLResponse(page)
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(FAVICON_SVG, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/robots.txt", include_in_schema=False)
+def robots():
+    return PlainTextResponse(ROBOTS_TXT)
+
 
 @app.get("/health")
 def health():

@@ -1,16 +1,29 @@
+import base64
+import hashlib
+import re
+
+import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import _redact, app
 
 client = TestClient(app)
+
+
+def _inline_hashes(page: str, tag: str) -> set[str]:
+    return {
+        "'sha256-" + base64.b64encode(hashlib.sha256(block.encode()).digest()).decode() + "'"
+        for block in re.findall(rf"<{tag}>(.*?)</{tag}>", page, re.S)
+    }
 
 
 def test_root_browser_gets_customer_landing_page():
     response = client.get("/", headers={"Accept": "text/html"})
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/html")
-    assert "Turn product pages into decisions." in response.text
-    assert 'href="/docs"' in response.text
+    assert "EC Pulse API" in response.text
+    for anchor in ('href="/docs"', 'href="/account"', 'id="pricing"', 'id="quickstart"', 'href="/legal/terms"'):
+        assert anchor in response.text
 
 
 def test_root_api_client_keeps_json_contract():
@@ -20,3 +33,49 @@ def test_root_api_client_keeps_json_contract():
     assert payload["name"] == "EC Pulse API"
     assert payload["docs"] == "/docs"
     assert payload["health"] == "/health"
+
+
+@pytest.mark.parametrize("path", ["/", "/account", "/legal/terms"])
+def test_html_pages_csp_allows_exactly_their_inline_blocks(path):
+    # A blanket default-src 'none' once blocked the landing page's own stylesheet,
+    # so browsers rendered it unstyled. The policy must whitelist each inline block.
+    response = client.get(path, headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    csp = response.headers["Content-Security-Policy"]
+    assert "unsafe-inline" not in csp
+    assert "frame-ancestors 'none'" in csp
+    assert 'style="' not in response.text  # style attributes would need 'unsafe-hashes'
+    for digest in _inline_hashes(response.text, "style") | _inline_hashes(response.text, "script"):
+        assert digest in csp
+
+
+def test_json_responses_keep_strict_csp():
+    response = client.get("/", headers={"Accept": "application/json"})
+    assert response.headers["Content-Security-Policy"] == "default-src 'none'; frame-ancestors 'none'"
+
+
+@pytest.mark.parametrize("slug", ["terms", "privacy", "billing", "commercial-transactions", "acceptable-use"])
+def test_legal_documents_are_served(slug):
+    response = client.get(f"/legal/{slug}")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+
+
+def test_unknown_legal_document_is_404():
+    assert client.get("/legal/../../etc/passwd").status_code == 404
+    assert client.get("/legal/unknown").status_code == 404
+
+
+def test_favicon_and_robots():
+    favicon = client.get("/favicon.ico")
+    assert favicon.status_code == 200
+    assert favicon.headers["content-type"].startswith("image/svg+xml")
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "Disallow: /v1/" in robots.text
+
+
+def test_redact_strips_bearer_tokens_and_jwts():
+    text = _redact("Authorization: Bearer abc.def-123 token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl")
+    assert "abc.def-123" not in text
+    assert "eyJhbGciOiJIUzI1NiJ9" not in text

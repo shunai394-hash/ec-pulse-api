@@ -12,7 +12,7 @@ jobs:
       - name: Check due monitors
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          API_BASE_URL: https://ec-pulse-api.vercel.app
+          API_BASE_URL: ${{ secrets.EC_PULSE_API_URL || 'https://ec-pulse-api.vercel.app' }}
         run: |
           set -euo pipefail
           if [ -z "${CRON_SECRET}" ]; then
