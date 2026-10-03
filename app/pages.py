@@ -341,8 +341,12 @@ ACCOUNT_PAGE = _page(
 )
 
 
+# The document file names are also accepted as slugs, e.g. /legal/privacy-policy.
+_LEGAL_ALIASES = {filename.removesuffix(".md"): slug for slug, (filename, _) in LEGAL_DOCUMENTS.items()}
+
+
 def legal_page(slug: str) -> str | None:
-    entry = LEGAL_DOCUMENTS.get(slug)
+    entry = LEGAL_DOCUMENTS.get(_LEGAL_ALIASES.get(slug, slug))
     if not entry:
         return None
     filename, title = entry

@@ -1,0 +1,124 @@
+name: production-smoke
+# Verifies the live deployment end to end: which commit Vercel serves, HTTP/API
+# contracts, a real Chromium pass at 390/820/1366 px, and the MCP plugin.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Deployment to test"
+        default: "https://ec-pulse-api.vercel.app"
+      expected_commit:
+        description: "Commit the deployment must serve (default: main HEAD)"
+        default: ""
+  schedule:
+    - cron: "41 3 * * *"
+  pull_request:
+    paths:
+      - "scripts/production_smoke.py"
+      - "scripts/browser_smoke.py"
+      - "scripts/mcp_smoke.py"
+      - ".github/workflows/production-smoke.yml"
+
+permissions:
+  contents: read
+  deployments: read
+  statuses: read
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: false
+
+env:
+  EC_PULSE_BASE_URL: ${{ inputs.base_url || 'https://ec-pulse-api.vercel.app' }}
+
+jobs:
+  vercel-deployments:
+    # Only Vercel's Production deployment events, plus manual/scheduled/PR runs.
+    if: github.event_name != 'deployment_status' || (github.event.deployment_status.state == 'success' && startsWith(github.event.deployment.environment, 'Production'))
+    runs-on: ubuntu-latest
+    outputs:
+      expected_commit: ${{ steps.release.outputs.sha }}
+    steps:
+      - name: Resolve the release commit
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ inputs.expected_commit }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+        run: |
+          set -euo pipefail
+          sha="${INPUT_SHA:-${DEPLOY_SHA:-}}"
+          if [ -z "$sha" ]; then
+            sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)
+          fi
+          echo "sha=${sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "Release commit: ${sha:0:7}"
+      - name: Vercel deployments recorded on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "=== Latest 30 deployments (id, sha, environment, created, creator, state, url, description) ==="
+          gh api "repos/${GITHUB_REPOSITORY}/deployments?per_page=30" \
+            --jq '.[] | [.id, .sha[0:7], .environment, .created_at, .creator.login, .statuses_url] | @tsv' |
+          while IFS=$'\t' read -r id sha environment created creator statuses; do
+            status=$(gh api "$statuses" --jq '.[0] | [.state, (.environment_url // "-"), (.description // "-")] | @tsv' || echo "unknown")
+            printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$id" "$sha" "$environment" "$created" "$creator" "$status"
+          done
+          echo "=== All deployment environments on this repo ==="
+          gh api "repos/${GITHUB_REPOSITORY}/environments" --jq '.environments[].name' || true
+          echo "=== Vercel status of the last 15 main commits (no row = Vercel created no deployment) ==="
+          gh api "repos/${GITHUB_REPOSITORY}/commits?sha=main&per_page=15" --jq '.[] | [.sha, .commit.committer.date] | @tsv' |
+          while IFS=$'\t' read -r sha date; do
+            gh api "repos/${GITHUB_REPOSITORY}/commits/${sha}/statuses" \
+              --jq ".[] | select(.context | startswith(\"Vercel\")) | [\"${sha:0:7}\", \"${date}\", .context, .state, .description] | @tsv" | sort -u
+          done
+
+  http-smoke:
+    needs: vercel-deployments
+    # PR runs report the live state without blocking the PR: Production only changes after merge.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: HTTP and API contract checks
+        env:
+          EXPECTED_COMMIT: ${{ needs.vercel-deployments.outputs.expected_commit }}
+          EC_PULSE_SMOKE_API_KEY: ${{ secrets.EC_PULSE_SMOKE_API_KEY }}
+        run: python scripts/production_smoke.py
+      - name: MCP plugin against the live API
+        if: always()
+        env:
+          EC_PULSE_SMOKE_API_KEY: ${{ secrets.EC_PULSE_SMOKE_API_KEY }}
+        run: python scripts/mcp_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-smoke
+          path: production-smoke.json
+          if-no-files-found: ignore
+
+  browser-smoke:
+    needs: vercel-deployments
+    # PR runs report the live state without blocking the PR: Production only changes after merge.
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Chromium at 390 / 820 / 1366 px
+        run: python scripts/browser_smoke.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-smoke
+          path: browser-smoke
+          if-no-files-found: ignore
