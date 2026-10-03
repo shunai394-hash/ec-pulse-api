@@ -82,6 +82,8 @@ _SECRET_ENV_VARS = (
 _SECRET_PATTERNS = (
     (re.compile(r"([a-z][a-z0-9+.-]*://)[^\s/@:]+:[^\s/@]+@", re.I), r"\1***:***@"),
     (re.compile(r"\b(ecp_live_|sk_live_|sk_test_|rk_live_|rk_test_|whsec_)[A-Za-z0-9_-]+"), r"\1***"),
+    # httpx errors embed the full URL; receivers often put secrets in the query.
+    (re.compile(r"([?&](?:token|access_token|api_key|apikey|key|secret|signature|sig|password|auth|code)=)[^&#\s'\"]+", re.I), r"\1***"),
 )
 
 

@@ -6,6 +6,7 @@ DSNs, API keys, provider secrets or stack traces.
 import logging
 import uuid
 
+import httpx
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
@@ -121,3 +122,25 @@ def test_log_redaction_covers_configured_secret_values(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-never-in-logs")
     text = main._redact("auth=Bearer cron-secret-value-123 key=sk-proj-never-in-logs url=https://u:p4ss@h/x")
     assert "cron-secret-value-123" not in text and "sk-proj-never-in-logs" not in text and "p4ss" not in text
+
+
+@pytest.mark.parametrize("url", [
+    "https://hooks.example.com/x?token=QueryTokSECRET",
+    "https://hooks.example.com/x?a=1&api_key=QueryTokSECRET",
+    "https://hooks.example.com/x?signature=QueryTokSECRET&b=2",
+    "https://user:QueryTokSECRET@hooks.example.com/x",
+])
+def test_httpx_error_urls_are_redacted_in_unexpected_error_logs(api, monkeypatch, caplog, url):
+    client, key = api
+    request = httpx.Request("GET", url)
+    error = httpx.HTTPStatusError(f"Server error '500' for url '{url}'", request=request, response=httpx.Response(500, request=request))
+
+    def broken(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(main, "list_monitors", broken)
+    with caplog.at_level("ERROR"):
+        assert client.get("/v1/monitors", headers={"X-API-Key": key}).status_code == 500
+    logged = "\n".join(logging.Formatter().format(rec) for rec in caplog.records)
+    assert "HTTPStatusError" in logged and "hooks.example.com" in logged
+    assert "QueryTokSECRET" not in logged
