@@ -3,11 +3,13 @@
     "ec-pulse": {
       "type": "stdio",
       "command": "python3",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server.py"],
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/server.py"
+      ],
       "env": {
         "EC_PULSE_API_KEY": "${EC_PULSE_API_KEY}",
-        "EC_PULSE_API_BASE_URL": "${EC_PULSE_API_BASE_URL}",
-        "EC_PULSE_REQUIRE_REQUEST_SIGNATURE": "${EC_PULSE_REQUIRE_REQUEST_SIGNATURE}"
+        "EC_PULSE_API_BASE_URL": "${EC_PULSE_API_BASE_URL:-https://ec-pulse-api.vercel.app}",
+        "EC_PULSE_REQUIRE_REQUEST_SIGNATURE": "${EC_PULSE_REQUIRE_REQUEST_SIGNATURE:-false}"
       }
     }
   }

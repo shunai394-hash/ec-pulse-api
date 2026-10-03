@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, Field, HttpUrl
 
-from app.main import get_api_key, _charge, _usage_headers
+from app.main import get_api_key, _charge, _refund, _set_usage_headers
 from app.services.consumer_insights import analyze_comments
 from app.services.monitor_store import save_research_run
 from app.services.research_ingest import fetch_public_comments
@@ -60,8 +60,6 @@ def register_research_batch_routes(app: FastAPI):
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=f"Invalid public URL: {exc}") from exc
         charge = _charge(api_key, "POST /v1/research/batch", len(request.urls))
-        for key, value in _usage_headers(request_http, api_key, charge).items():
-            response.headers[key] = value
 
         results = []
         for url in request.urls:
@@ -99,6 +97,8 @@ def register_research_batch_routes(app: FastAPI):
                     }
                 )
 
+        charge = _refund(api_key, "POST /v1/research/batch", sum(1 for item in results if item.get("ok") is False), charge)
+        _set_usage_headers(response, request_http, api_key, charge)
         successful = [item for item in results if item.get("analysis")]
         total_comments = sum(
             item.get("analysis", {}).get("comments_analyzed", 0)

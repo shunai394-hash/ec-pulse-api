@@ -19,6 +19,10 @@ class FakeConn:
     def fetchall(self):
         return []
 
+    def fetchone(self):
+        # Active API key lookup: the key belongs to "account-hash".
+        return ("account-hash",)
+
     def commit(self):
         self.events.append(("commit", ""))
 

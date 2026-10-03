@@ -8,8 +8,30 @@ MAX_URL_LENGTH = 2048
 _ALLOWED_PORTS = {80, 443}
 
 
+_NAT64_PREFIXES = (ipaddress.ip_network("64:ff9b::/96"), ipaddress.ip_network("64:ff9b:1::/48"))
+
+
+def _embedded_ipv4(ip: ipaddress.IPv6Address) -> list[ipaddress.IPv4Address]:
+    """IPv4 addresses reachable through IPv6 transition mechanisms."""
+    embedded = []
+    if ip.ipv4_mapped:
+        embedded.append(ip.ipv4_mapped)
+    if ip.sixtofour:
+        embedded.append(ip.sixtofour)
+    if ip.teredo:
+        embedded.extend(ip.teredo)
+    if any(ip in prefix for prefix in _NAT64_PREFIXES):
+        embedded.append(ipaddress.IPv4Address(int(ip) & 0xFFFFFFFF))
+    return embedded
+
+
 def _blocked_ip(address: str) -> bool:
-    ip = ipaddress.ip_address(address)
+    ip = ipaddress.ip_address(address.split("%", 1)[0])
+    if isinstance(ip, ipaddress.IPv6Address):
+        # Do not rely on the Python version's special-purpose registry for
+        # transition prefixes: check the embedded IPv4 destination explicitly.
+        if any(_blocked_ip(str(v4)) for v4 in _embedded_ipv4(ip)):
+            return True
     # RFC 6598 shared address space is not considered private by Python's
     # ipaddress module, but it is not a safe destination for server-side fetches.
     shared = ipaddress.ip_network("100.64.0.0/10")
@@ -66,6 +88,19 @@ async def validate_public_url(url: str) -> str:
 
 def next_redirect(base_url: str, location: str) -> str:
     return urljoin(base_url, location)
+
+
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+
+
+def is_redirect_response(response) -> bool:
+    """True for redirect statuses, with or without a Location header.
+
+    httpx 0.28 has no ``Response.is_permanent_redirect``; the previous
+    ``is_redirect or is_permanent_redirect`` check raised AttributeError for
+    every non-redirect response.
+    """
+    return response.status_code in _REDIRECT_STATUSES
 
 
 def safe_async_transport():
