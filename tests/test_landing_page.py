@@ -91,3 +91,43 @@ def test_redact_strips_bearer_tokens_and_jwts():
     text = _redact("Authorization: Bearer abc.def-123 token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl")
     assert "abc.def-123" not in text
     assert "eyJhbGciOiJIUzI1NiJ9" not in text
+
+
+def _landing() -> str:
+    return client.get("/", headers={"Accept": "text/html"}).text
+
+
+def test_landing_demo_tabs_point_at_existing_panels():
+    page = _landing()
+    tabs = re.findall(r'role="tab" id="(t\d)" aria-controls="(p\d)"', page)
+    assert [t for t, _ in tabs] == ["t1", "t2", "t3", "t4", "t5"]
+    for tab, panel in tabs:
+        assert f'role="tabpanel" id="{panel}" aria-labelledby="{tab}"' in page
+
+
+def test_landing_labels_sample_data_and_avoids_unbacked_claims():
+    page = _landing()
+    # The demo and decision card use illustrative numbers; they must say so.
+    assert "サンプル" in page
+    assert "保証するものではありません" in page
+    # The API has no demand/competition score; the page must not invent one.
+    for claim in ("必ず儲かる", "絶対に売れる", "利益保証", "Opportunity Score"):
+        assert claim not in page
+    assert not re.search(r"\d+\s*/\s*100\b", page)  # no "86/100"-style scores
+
+
+def test_landing_buy_ceiling_example_matches_formula():
+    # 仕入れ上限 = 販売価格 × (1 − 手数料率 − 目標粗利率) − 送料・梱包 − その他コスト
+    price, fee, margin, shipping, other = 4980, 0.10, 0.30, 500, 0
+    ceiling = int(price * (1 - fee - margin) - shipping - other)
+    assert ceiling == 2488
+    page = _landing()
+    assert "¥2,488" in page
+    assert 'value="4980"' in page and 'value="10"' in page and 'value="500"' in page and 'value="30"' in page
+
+
+def test_landing_has_skip_link_and_no_external_resources():
+    page = _landing()
+    assert '<a class="skip" href="#main">' in page and 'id="main"' in page
+    assert "http://" not in page.replace("http://localhost", "")
+    assert "<link rel=\"stylesheet\"" not in page and "<script src" not in page

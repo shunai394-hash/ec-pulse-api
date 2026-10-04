@@ -80,7 +80,7 @@ def public_checks():
 
     status, headers, text, _ = request("GET", "/", headers={"Accept": "text/html"})
     csp = headers.get("Content-Security-Policy", "")
-    check("GET / (browser) serves the product landing page", status == 200 and "商品ページを" in text, f"status={status}")
+    check("GET / (browser) serves the product landing page", status == 200 and 'id="pricing"' in text and 'id="calc"' in text, f"status={status}")
     check("landing CSP whitelists inline style by hash, no unsafe-inline",
           "style-src 'sha256-" in csp and "unsafe-inline" not in csp, csp[:90])
 
