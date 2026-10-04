@@ -108,7 +108,7 @@ def csp_for(page: str) -> str:
 _LANDING_BODY = r"""<main>
 <section class="wrap hero" id="main-content" aria-labelledby="hero-title" tabindex="-1">
 <div>
-<span class="kicker">EC Pulse / Profit Intelligence</span>
+<span class="kicker">EC Pulse / Profit Intelligence · Decision Engine</span>
 <h1 id="hero-title">売れる商品を、<br><span class="hero-accent">探す前に絞り込む。</span></h1>
 <p class="lead">「何を仕入れれば儲かる？」を、勘と検索作業だけに任せない。市場の痛点、商品候補、価格、競合、口コミをつなぎ、<strong>仕入れ判断に必要な材料</strong>を一つの流れにします。</p>
 <div class="actions"><a class="btn primary" href="/account">利益候補を探し始める →</a><a class="btn" href="/docs">APIとして組み込む</a></div>
