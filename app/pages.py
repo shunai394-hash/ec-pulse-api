@@ -26,24 +26,24 @@ body{margin:0;background:radial-gradient(circle at 75% 12%,rgba(114,232,255,.08)
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 72%);z-index:-1}
 a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 .wrap{width:min(calc(100% - 40px),var(--max));margin:auto}.skip-link{position:fixed;left:12px;top:12px;z-index:100;padding:10px 14px;border-radius:10px;background:var(--lime);color:#071006;font-weight:800;text-decoration:none;transform:translateY(-160%);transition:transform .18s ease}.skip-link:focus{transform:translateY(0)}section{scroll-margin-top:24px}
-.nav{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05)}
+.nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(5,7,10,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.025em;text-decoration:none}.mark{width:30px;height:30px;border:1px solid var(--lime);border-radius:9px;display:grid;place-items:center;font-size:10px;color:var(--lime);box-shadow:0 0 24px rgba(185,255,92,.12)}
 .links{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.links a{text-decoration:none}.links a:hover{color:var(--text)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:11px 18px;border-radius:12px;border:1px solid var(--line);background:rgba(15,23,32,.8);color:var(--text);font:inherit;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;transition:transform .2s ease,border-color .2s ease,background .2s ease}
 .btn:hover{border-color:#415063;transform:translateY(-1px)}.btn.primary{background:var(--lime);border-color:var(--lime);color:#071006;box-shadow:0 10px 30px rgba(185,255,92,.12)}.btn.primary:hover{background:#c9ff7c}.btn[disabled]{opacity:.5;cursor:not-allowed}
 h1{font-size:clamp(42px,7vw,78px);line-height:.99;letter-spacing:-.055em;margin:14px 0 22px;max-width:850px}
 h2{font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:8px 0 15px}h3{font-size:17px;margin:0 0 7px}
-p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}.max-buy.invalid{color:var(--red)}
+p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}.max-buy.invalid{color:var(--red)}.profit-verdict{display:inline-flex;align-items:center;gap:7px;margin:-2px 0 12px;padding:5px 9px;border:1px solid rgba(185,255,92,.25);border-radius:999px;color:var(--lime);font-size:11px;font-weight:800}.profit-verdict:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}.profit-verdict.bad{color:var(--red);border-color:rgba(255,127,138,.3)}
 .hero{padding:78px 0 62px;display:grid;grid-template-columns:1fr .92fr;gap:54px;align-items:center}.lead{font-size:19px;color:#c8d2de;max-width:42em}
 .hero-note{display:flex;gap:10px;align-items:center;color:#b8c4d2;font-size:13px;margin-top:18px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime);animation:signal-pulse 2.4s ease-in-out infinite}.decision-rail{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.decision-chip{padding:11px 12px;border:1px solid #1b2a35;border-radius:12px;background:#070b10}.decision-chip span{display:block;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.decision-chip strong{display:block;margin-top:2px;font-size:13px}.decision-chip.good strong{color:var(--lime)}.decision-chip.warn strong{color:var(--amber)}.radar-label{display:flex;align-items:center;justify-content:space-between;gap:10px}.radar-action{font-size:10px;color:var(--muted);border:1px solid #263543;border-radius:999px;padding:3px 8px}@keyframes signal-pulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
-.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.section{padding:76px 0;border-top:1px solid rgba(255,255,255,.07)}
+.proof-strip{padding:0 0 28px}.proof-label{display:flex;justify-content:space-between;gap:16px;align-items:end;padding:16px 0 10px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--muted)}.proof-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #182631;border-radius:16px;overflow:hidden;background:rgba(7,11,16,.7)}.proof-grid div{padding:15px 16px;border-right:1px solid #182631}.proof-grid div:last-child{border-right:0}.proof-grid strong{display:block;color:var(--text);font-size:11px;letter-spacing:.08em}.proof-grid span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.section{padding:76px 0;border-top:1px solid rgba(255,255,255,.07)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}.grid.two{grid-template-columns:repeat(2,1fr)}
 .card{background:linear-gradient(145deg,rgba(15,23,32,.92),rgba(7,11,16,.92));border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0;box-shadow:0 18px 60px rgba(0,0,0,.16)}
 .card:hover{border-color:#2b3948}.tag{display:inline-block;font-size:11px;color:var(--cyan);border:1px solid #21434c;border-radius:999px;padding:3px 9px;margin-bottom:9px}
 pre,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}pre{background:#030507;border:1px solid var(--line);border-radius:14px;padding:16px;overflow-x:auto;margin:0;white-space:pre;line-height:1.55}code{background:#111922;border-radius:5px;padding:1px 5px}pre code{background:none;padding:0}
-.signal{border:1px solid #263543;background:linear-gradient(180deg,rgba(10,17,24,.96),rgba(5,9,13,.96));border-radius:22px;padding:18px;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.3)}.signal:before{content:"";position:absolute;left:0;right:0;top:-2px;height:1px;background:linear-gradient(90deg,transparent,rgba(185,255,92,.75),transparent);box-shadow:0 0 18px rgba(185,255,92,.35);animation:radar-scan 5s ease-in-out infinite;pointer-events:none}.signal:after{content:"";position:absolute;width:220px;height:220px;right:-100px;top:-110px;border-radius:50%;background:rgba(185,255,92,.08);filter:blur(8px)}@keyframes radar-scan{0%,100%{transform:translateY(0);opacity:.15}50%{transform:translateY(430px);opacity:.7}}@media (prefers-reduced-motion:reduce){.pulse,.signal:before{animation:none}.btn,.radar-tab,.skip-link{transition:none}}
+.signal{border:1px solid #263543;background:linear-gradient(180deg,rgba(10,17,24,.96),rgba(5,9,13,.96));border-radius:22px;padding:18px;position:relative;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.3)}.signal:before{content:"";position:absolute;left:0;right:0;top:-2px;height:1px;background:linear-gradient(90deg,transparent,rgba(185,255,92,.75),transparent);box-shadow:0 0 18px rgba(185,255,92,.35);animation:radar-scan 5s ease-in-out infinite;pointer-events:none}.signal:after{content:"";position:absolute;width:220px;height:220px;right:-100px;top:-110px;border-radius:50%;background:rgba(185,255,92,.08);filter:blur(8px)}@keyframes radar-scan{0%,100%{transform:translateY(0);opacity:.15}50%{transform:translateY(430px);opacity:.7}}@media (prefers-reduced-motion:reduce){.pulse,.signal:before{animation:none}.btn,.radar-tab,.engine-tab,.skip-link{transition:none}}
 .signal-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}.signal-stage{display:grid;grid-template-columns:1fr 118px;gap:12px;margin:12px 0 14px}.signal-map{position:relative;min-height:104px;border:1px solid #172631;border-radius:14px;background:#05090d;overflow:hidden}.signal-map:before{content:"";position:absolute;inset:18px 12px;background:linear-gradient(90deg,transparent 49.5%,rgba(114,232,255,.12) 50%,transparent 50.5%),linear-gradient(0deg,transparent 49.5%,rgba(114,232,255,.12) 50%,transparent 50.5%);background-size:36px 36px}.signal-line{position:absolute;left:10px;right:10px;bottom:23px;height:42px;border-bottom:2px solid var(--lime);transform:skewY(-9deg);filter:drop-shadow(0 0 7px rgba(185,255,92,.35))}.signal-line:after{content:"";position:absolute;right:6px;top:-7px;width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 16px var(--lime)}.signal-axis{position:absolute;left:10px;bottom:7px;color:#526171;font-size:9px;letter-spacing:.08em}.signal-stack{display:grid;gap:7px}.signal-meter{border:1px solid #182732;border-radius:11px;padding:9px;background:#070c11}.signal-meter span{display:block;font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.signal-meter b{display:block;margin-top:2px;font-size:17px}.signal-meter b.hot{color:var(--lime)}.live{font-size:11px;color:var(--lime);font-weight:800;letter-spacing:.08em}.radar-tabs{display:grid;gap:8px;margin-top:10px}.radar-tab{display:grid;grid-template-columns:1fr auto;gap:10px;text-align:left;width:100%;padding:12px;border:1px solid #1b2935;border-radius:12px;background:#080d12;color:var(--text);font:inherit;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}.radar-tab:hover{transform:translateX(2px);border-color:#405163}.radar-tab[aria-selected="true"]{border-color:rgba(185,255,92,.62);background:rgba(185,255,92,.055)}.radar-tab .tab-name{font-weight:750}.radar-tab .tab-meta{display:block;font-size:11px;color:var(--muted);margin-top:2px}.radar-tab .tab-score{color:var(--lime);font-size:12px;font-weight:850}.radar-detail{margin-top:12px;border:1px solid #253441;border-radius:14px;background:#060a0f;padding:14px}.radar-detail-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.radar-detail h4{margin:0;font-size:15px}.radar-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.radar-detail-grid div{padding:9px;border:1px solid #182530;border-radius:10px}.radar-detail-grid b{display:block;font-size:15px}.radar-detail-grid span{font-size:10px;color:var(--muted)}.radar-next{margin-top:10px;font-size:12px;color:#c9d3de}.radar-next strong{color:var(--lime)}
-.engine-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:16px;margin-top:28px}.engine-steps{display:grid;gap:8px}.engine-step{display:grid;grid-template-columns:34px 1fr;gap:2px 10px;padding:14px 16px;border:1px solid #182632;border-radius:14px;background:#080d12}.engine-step span{grid-row:1/3;color:#526171;font:700 11px ui-monospace,monospace}.engine-step strong{font-size:14px}.engine-step small{color:var(--muted);font-size:11px}.engine-step.active{border-color:rgba(185,255,92,.5);background:rgba(185,255,92,.045)}.engine-step.active span,.engine-step.active strong{color:var(--lime)}.engine-result{border:1px solid rgba(114,232,255,.2);border-radius:18px;padding:22px;background:radial-gradient(circle at 85% 20%,rgba(114,232,255,.09),transparent 35%),#070c11;display:flex;flex-direction:column;justify-content:center}.engine-result-title{font-size:28px;font-weight:800;letter-spacing:-.035em;margin:12px 0 8px}.engine-result p{font-size:17px;color:#c9d4df;max-width:44em}.engine-result p strong{color:var(--lime)}.engine-bottom{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.engine-bottom span{padding:8px 10px;border:1px solid #1b2b37;border-radius:10px;color:var(--muted);font-size:11px}.engine-bottom b{color:var(--text)}.product{display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center;padding:15px 0;border-top:1px solid #18232e}.product:first-of-type{border-top:0}.thumb{width:74px;height:74px;border-radius:14px;background:linear-gradient(135deg,#18242d,#0b1117);display:grid;place-items:center;color:#5e7180;font-size:11px}
+.engine-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:16px;margin-top:28px}.engine-steps{display:grid;gap:8px}.engine-step{display:grid;grid-template-columns:34px 1fr;gap:2px 10px;padding:14px 16px;border:1px solid #182632;border-radius:14px;background:#080d12}.engine-step span{grid-row:1/3;color:#526171;font:700 11px ui-monospace,monospace}.engine-step strong{font-size:14px}.engine-step small{color:var(--muted);font-size:11px}.engine-step.active{border-color:rgba(185,255,92,.5);background:rgba(185,255,92,.045)}.engine-step.active span,.engine-step.active strong{color:var(--lime)}.engine-tab{display:grid;grid-template-columns:34px 1fr;gap:2px 10px;padding:14px 16px;border:1px solid #182632;border-radius:14px;background:#080d12;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease}.engine-tab span{grid-row:1/3;color:#526171;font:700 11px ui-monospace,monospace}.engine-tab strong{font-size:14px}.engine-tab small{color:var(--muted);font-size:11px}.engine-tab:hover{transform:translateX(2px);border-color:#405163}.engine-tab[aria-selected="true"]{border-color:rgba(185,255,92,.5);background:rgba(185,255,92,.045)}.engine-tab[aria-selected="true"] span,.engine-tab[aria-selected="true"] strong{color:var(--lime)}.engine-tab:focus-visible{transform:translateX(3px)}.engine-result{border:1px solid rgba(114,232,255,.2);border-radius:18px;padding:22px;background:radial-gradient(circle at 85% 20%,rgba(114,232,255,.09),transparent 35%),#070c11;display:flex;flex-direction:column;justify-content:center}.engine-result-title{font-size:28px;font-weight:800;letter-spacing:-.035em;margin:12px 0 8px}.engine-result p{font-size:17px;color:#c9d4df;max-width:44em}.engine-result p strong{color:var(--lime)}.engine-bottom{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.engine-bottom span{padding:8px 10px;border:1px solid #1b2b37;border-radius:10px;color:var(--muted);font-size:11px}.engine-bottom b{color:var(--text)}.product{display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center;padding:15px 0;border-top:1px solid #18232e}.product:first-of-type{border-top:0}.thumb{width:74px;height:74px;border-radius:14px;background:linear-gradient(135deg,#18242d,#0b1117);display:grid;place-items:center;color:#5e7180;font-size:11px}
 .product-name{font-weight:750}.product-meta{font-size:12px;color:var(--muted);margin-top:3px}.profit{text-align:right}.profit strong{display:block;color:var(--lime);font-size:20px}.profit span{font-size:11px;color:var(--muted)}
 .score{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 8px;background:rgba(185,255,92,.08);color:var(--lime);font-size:11px;font-weight:800;margin-top:7px}
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.stat{background:#080d12;border:1px solid #18232e;border-radius:12px;padding:12px}.stat b{display:block;font-size:20px}.stat span{font-size:11px;color:var(--muted)}
@@ -58,11 +58,11 @@ pre,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-s
 .doc{max-width:820px;padding:24px 0 56px}.doc pre{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:15px;line-height:1.8;background:var(--panel)}
 .table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600}
 @media (max-width:980px){.hero{grid-template-columns:1fr;gap:34px;padding-top:52px}.flow{grid-template-columns:1fr 1fr}.flow-step:not(:last-child):after{display:none}.grid{grid-template-columns:1fr 1fr}.signal-stage{grid-template-columns:1fr 150px}}
-@media (max-width:620px){.wrap{width:min(calc(100% - 28px),var(--max))}.signal-stage{grid-template-columns:1fr}.signal-stack{grid-template-columns:repeat(3,1fr)}.signal-meter{padding:8px}.signal-meter b{font-size:15px}.hero{padding:42px 0}.grid,.grid.two,.flow{grid-template-columns:1fr}.links{gap:11px;font-size:12px}.nav{padding:9px 0}.lead{font-size:16px}.section{padding:52px 0}.actions .btn{flex:1 1 100%}.stat-row{grid-template-columns:1fr 1fr}.product{grid-template-columns:58px 1fr}.thumb{width:58px;height:58px}.profit{grid-column:2;text-align:left}.hero h1{font-size:clamp(40px,13vw,58px)}}
+@media (max-width:620px){.proof-label{display:block}.proof-label span:last-child{display:block;margin-top:6px}.proof-grid{grid-template-columns:1fr 1fr}.proof-grid div:nth-child(2){border-right:0}.proof-grid div:nth-child(-n+2){border-bottom:1px solid #182631}.wrap{width:min(calc(100% - 28px),var(--max))}.signal-stage{grid-template-columns:1fr}.signal-stack{grid-template-columns:repeat(3,1fr)}.signal-meter{padding:8px}.signal-meter b{font-size:15px}.hero{padding:42px 0}.grid,.grid.two,.flow{grid-template-columns:1fr}.links{gap:11px;font-size:12px}.nav{padding:9px 0}.lead{font-size:16px}.section{padding:52px 0}.actions .btn{flex:1 1 100%}.stat-row{grid-template-columns:1fr 1fr}.product{grid-template-columns:58px 1fr}.thumb{width:58px;height:58px}.profit{grid-column:2;text-align:left}.hero h1{font-size:clamp(40px,13vw,58px)}}
 """
 
-_NAV = """<header class="wrap nav"><a class="brand" href="/"><span class="mark">EP</span>EC Pulse API</a>
-<nav class="links" aria-label="メイン"><a href="/#engine">判断フロー</a><a href="/#features">機能</a><a href="/#profit-check">利益計算</a><a href="/#pricing">料金</a><a href="/docs">API Docs</a><a href="/account">アカウント</a></nav></header>"""
+_NAV = """<header class="wrap nav" role="banner"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true">EP</span><span>EC Pulse API</span></a>
+<nav class="links" aria-label="メインナビゲーション"><a href="/#engine">判断フロー</a><a href="/#features">機能</a><a href="/#profit-check">利益計算</a><a href="/#pricing">料金</a><a href="/docs">API Docs</a><a href="/account">アカウント</a></nav></header>"""
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API</span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
@@ -73,9 +73,7 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
     script_tag = f"<script>{script}</script>" if script else ""
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#05070a">
-<meta name="color-scheme" content="dark">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="theme-color" content="#05070a">\n<meta name="color-scheme" content="dark">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
@@ -114,7 +112,7 @@ _LANDING_BODY = r"""<main>
 <div class="actions"><a class="btn primary" href="/account">利益候補を探し始める →</a><a class="btn" href="/docs">APIとして組み込む</a></div>
 <div class="hero-note"><span class="pulse" aria-hidden="true"></span><span>EC Pulse API — 商品データを「利益につながる判断」へ変えるエンジン</span></div>
 </div>
-<div class="signal" aria-label="利益候補のデモ">
+<div class="signal" aria-label="利益候補のインタラクティブなデモ">
 <div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">判断の出力イメージ</div></div><span class="live">● SIGNAL PREVIEW</span></div>
 <div class="signal-stage" aria-label="市場シグナルの可視化"><div class="signal-map" aria-hidden="true"><div class="signal-line"></div><span class="signal-axis">DEMAND / PRICE / PAIN →</span></div><div class="signal-stack"><div class="signal-meter"><span>Demand</span><b class="hot">↑ 18%</b></div><div class="signal-meter"><span>Pain</span><b>42%</b></div><div class="signal-meter"><span>Risk</span><b>LOW</b></div></div></div><div class="radar-label"><span class="small muted">市場シグナルを重ねて優先順位化</span><span class="radar-action">BUYING DECISION</span></div>
 <div class="radar-tabs" role="tablist" aria-label="利益候補デモ">
@@ -134,7 +132,34 @@ _LANDING_BODY = r"""<main>
 </div>
 </section>
 
-<section class="wrap section" id="engine"><span class="kicker">One decision surface</span><h2>市場データを、<br><span class="hero-accent">「次に何をするか」まで落とす。</span></h2><div class="engine-grid"><div class="engine-steps"><div class="engine-step active"><span>01</span><strong>Signal</strong><small>需要・痛点・価格変化</small></div><div class="engine-step"><span>02</span><strong>Candidate</strong><small>候補を比較・絞り込み</small></div><div class="engine-step"><span>03</span><strong>Economics</strong><small>仕入れ上限・利益余地</small></div><div class="engine-step"><span>04</span><strong>Monitor</strong><small>変化を追って再判断</small></div></div><div class="engine-result"><span class="tag">DECISION, NOT DASHBOARD</span><div class="engine-result-title">今見るべき理由</div><p>需要が上向き、レビューの不満が集中。競合価格 ¥4,980 に対して、目標粗利を守れる仕入れ上限は <strong>¥3,140</strong>。</p><div class="engine-bottom"><span>Opportunity <b>86</b></span><span>Next <b>価格を監視</b></span></div></div></div></section>
+<section class="wrap proof-strip" aria-label="EC Pulseがまとめる判断材料">
+<div class="proof-label"><span class="kicker">ONE SIGNAL SURFACE</span><span>検索結果を増やすのではなく、判断材料を圧縮する。</span></div>
+<div class="proof-grid">
+<div><strong>MARKET</strong><span>需要・痛点</span></div>
+<div><strong>PRODUCT</strong><span>候補・在庫</span></div>
+<div><strong>ECONOMICS</strong><span>価格・仕入れ上限</span></div>
+<div><strong>WATCH</strong><span>競合・変化</span></div>
+</div>
+</section>
+
+<section class="wrap section" id="engine" aria-labelledby="engine-title">
+<span class="kicker">One decision surface</span>
+<h2 id="engine-title">市場データを、<br><span class="hero-accent">「次に何をするか」まで落とす。</span></h2>
+<div class="engine-grid">
+<div class="engine-steps" role="tablist" aria-label="判断エンジンのステップ">
+<button class="engine-tab active" id="engine-tab-0" type="button" role="tab" aria-selected="true" aria-controls="engine-result" tabindex="0" data-engine="0"><span>01</span><strong>Signal</strong><small>需要・痛点・価格変化</small></button>
+<button class="engine-tab" id="engine-tab-1" type="button" role="tab" aria-selected="false" aria-controls="engine-result" tabindex="-1" data-engine="1"><span>02</span><strong>Candidate</strong><small>候補を比較・絞り込み</small></button>
+<button class="engine-tab" id="engine-tab-2" type="button" role="tab" aria-selected="false" aria-controls="engine-result" tabindex="-1" data-engine="2"><span>03</span><strong>Economics</strong><small>仕入れ上限・利益余地</small></button>
+<button class="engine-tab" id="engine-tab-3" type="button" role="tab" aria-selected="false" aria-controls="engine-result" tabindex="-1" data-engine="3"><span>04</span><strong>Monitor</strong><small>変化を追って再判断</small></button>
+</div>
+<div class="engine-result" id="engine-result" role="tabpanel" aria-labelledby="engine-tab-0" tabindex="0" aria-live="polite">
+<span class="tag">DECISION, NOT DASHBOARD</span>
+<div class="engine-result-title" id="engine-result-title">今見るべき理由</div>
+<p id="engine-result-copy">需要が上向き、レビューの不満が集中。競合価格 ¥4,980 に対して、目標粗利を守れる仕入れ上限は <strong>¥3,140</strong>。</p>
+<div class="engine-bottom"><span>Signal <b id="engine-signal">需要 ↑18%</b></span><span>Opportunity <b id="engine-score">86</b></span><span>Next <b id="engine-next">価格を監視</b></span></div>
+</div>
+</div>
+</section>
 
 <section class="wrap section" id="problem">
 <span class="kicker">The real problem</span>
@@ -189,9 +214,9 @@ _LANDING_BODY = r"""<main>
 </section>
 
 
-<section class="wrap section" id="profit-check">
+<section class="wrap section" id="profit-check" aria-labelledby="profit-title">
 <span class="kicker">Buying math / free tool</span>
-<h2>「いくらなら仕入れていい？」を、先に数字にする。</h2>
+<h2 id="profit-title">「いくらなら仕入れていい？」を、先に数字にする。</h2>
 <p class="muted">売価とコスト条件を入れると、目標粗利を守るための<strong>仕入れ上限価格</strong>を計算します。EC Pulseの市場データと組み合わせれば、「安いから買う」ではなく「この条件なら検討する」に変えられます。</p>
 <div class="grid two">
 <div class="card">
@@ -208,7 +233,7 @@ _LANDING_BODY = r"""<main>
 <div class="signal" aria-live="polite">
 <span class="tag">DECISION OUTPUT</span>
 <h3 class="decision-title">仕入れ上限</h3>
-<div id="max-buy" class="max-buy" aria-label="仕入れ上限価格">¥2,488</div>
+<div id="max-buy" class="max-buy" aria-label="仕入れ上限価格">¥2,488</div><div id="profit-verdict" class="profit-verdict" role="status">仕入れ余地を計算中</div>
 <p class="muted">この価格以下なら、入力した条件上では目標粗利率を維持できます。</p>
 <div class="stat-row">
 <div class="stat"><b id="gross-profit">¥1,494</b><span>目標粗利</span></div>
@@ -277,9 +302,47 @@ function calc(){
  document.getElementById("fee-cost").textContent=yen(feeCost);
  document.getElementById("break-even").textContent=yen(breakEven);
  document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";
+ var verdict=document.getElementById("profit-verdict");
+ verdict.textContent=valid?"仕入れ余地あり — 条件内で上限を算出":"条件を見直してください — 仕入れ上限を算出できません";
+ verdict.classList.toggle("bad",!valid);
 }
 ["sale-price","fee-rate","shipping-cost","margin-rate"].forEach(function(id){document.getElementById(id).addEventListener("input",calc)});
 calc();
+
+var engineData=[
+ {title:"今見るべき理由",copy:"需要が上向き、レビューの不満が集中。競合価格 ¥4,980 に対して、目標粗利を守れる仕入れ上限は ¥3,140。",signal:"需要 ↑18%",score:"86",next:"価格を監視"},
+ {title:"候補を絞る理由",copy:"3市場から集めた候補を、需要・痛点・競合余地で比較。似た商品を増やすのではなく、優先順位を作ります。",signal:"候補 3",score:"79",next:"仕入れ候補を比較"},
+ {title:"買える条件",copy:"販売価格・手数料・送料・目標粗利から、仕入れ上限を逆算。感覚ではなく、先に買い条件を決めます。",signal:"上限 ¥3,140",score:"30%",next:"利益条件を確認"},
+ {title:"機会を逃さない理由",copy:"価格・競合・需要の変化を監視。条件が変わったときだけ再判断できるようにします。",signal:"Risk LOW",score:"WATCH",next:"変化を監視"}
+];
+function selectEngine(tab){
+ var d=engineData[Number(tab.getAttribute("data-engine"))]||engineData[0];
+ document.querySelectorAll("[data-engine]").forEach(function(t){
+   var selected=t===tab;
+   t.setAttribute("aria-selected",selected?"true":"false");
+   t.setAttribute("tabindex",selected?"0":"-1");
+ });
+ document.getElementById("engine-result").setAttribute("aria-labelledby",tab.id);
+ document.getElementById("engine-result-title").textContent=d.title;
+ document.getElementById("engine-result-copy").textContent=d.copy;
+ document.getElementById("engine-signal").textContent=d.signal;
+ document.getElementById("engine-score").textContent=d.score;
+ document.getElementById("engine-next").textContent=d.next;
+}
+document.querySelectorAll("[data-engine]").forEach(function(tab){
+ tab.addEventListener("click",function(){selectEngine(tab)});
+ tab.addEventListener("keydown",function(e){
+   if(!["ArrowDown","ArrowUp","Home","End"].includes(e.key))return;
+   e.preventDefault();
+   var tabs=Array.prototype.slice.call(document.querySelectorAll("[data-engine]"));
+   var i=tabs.indexOf(tab),next=i;
+   if(e.key==="ArrowDown")next=(i+1)%tabs.length;
+   if(e.key==="ArrowUp")next=(i-1+tabs.length)%tabs.length;
+   if(e.key==="Home")next=0;
+   if(e.key==="End")next=tabs.length-1;
+   tabs[next].focus();selectEngine(tabs[next]);
+ });
+});
 
 var radarData=[
  {name:"軽量・収納系 EC商品",score:86,price:"¥4,980",buy:"¥3,140",room:"¥842",signal:"需要上昇 + 痛点あり",next:"価格を監視"},

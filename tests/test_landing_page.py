@@ -121,3 +121,18 @@ def test_landing_keeps_csp_safe_dynamic_states():
     assert '.max-buy.invalid' in page
     assert 'classList.toggle("invalid"' in page
     assert 'unsafe-inline' not in response.headers["Content-Security-Policy"]
+
+def test_landing_has_unique_ids_and_interactive_engine():
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    page = response.text
+    ids = re.findall(r'\bid="([^"]+)"', page)
+    assert len(ids) == len(set(ids))
+    assert 'id="engine"' in page
+    assert 'id="flow"' in page
+    assert 'role="tablist" aria-label="判断エンジンのステップ"' in page
+    assert 'data-engine="3"' in page
+    assert 'ArrowDown' in page and 'ArrowUp' in page
+    assert 'id="profit-verdict"' in page
+    assert 'position:sticky' in page
+    assert 'backdrop-filter:blur(16px)' in page
