@@ -175,6 +175,38 @@ _LANDING_BODY = r"""<main>
 </div>
 </section>
 
+
+<section class="wrap section" id="profit-check">
+<span class="kicker">Buying math / free tool</span>
+<h2>「いくらなら仕入れていい？」を、先に数字にする。</h2>
+<p class="muted">売価とコスト条件を入れると、目標粗利を守るための<strong>仕入れ上限価格</strong>を計算します。EC Pulseの市場データと組み合わせれば、「安いから買う」ではなく「この条件なら検討する」に変えられます。</p>
+<div class="grid two">
+<div class="card">
+<label for="sale-price" class="small muted">想定販売価格（円）</label>
+<input id="sale-price" type="text" inputmode="decimal" value="4980" aria-describedby="profit-help">
+<label for="fee-rate" class="small muted" style="display:block;margin-top:12px">販売手数料（%）</label>
+<input id="fee-rate" type="text" inputmode="decimal" value="10">
+<label for="shipping-cost" class="small muted" style="display:block;margin-top:12px">送料・梱包（円）</label>
+<input id="shipping-cost" type="text" inputmode="decimal" value="500">
+<label for="margin-rate" class="small muted" style="display:block;margin-top:12px">目標粗利率（%）</label>
+<input id="margin-rate" type="text" inputmode="decimal" value="30">
+<p id="profit-help" class="small muted mt12">税金・広告費・返品・為替・人件費などは別途考慮してください。</p>
+</div>
+<div class="signal" aria-live="polite">
+<span class="tag">DECISION OUTPUT</span>
+<h3 style="font-size:20px;margin-top:4px">仕入れ上限</h3>
+<div id="max-buy" style="font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0">¥2,482</div>
+<p class="muted">この価格以下なら、入力した条件上では目標粗利率を維持できます。</p>
+<div class="stat-row">
+<div class="stat"><b id="gross-profit">¥1,494</b><span>目標粗利</span></div>
+<div class="stat"><b id="fee-cost">¥498</b><span>販売手数料</span></div>
+<div class="stat"><b id="break-even">¥3,982</b><span>損益分岐点</span></div>
+<div class="stat"><b id="margin-check">30%</b><span>目標粗利率</span></div>
+</div>
+</div>
+</div>
+</section>
+
 <section class="wrap section" id="pricing">
 <span class="kicker">Start with evidence</span>
 <h2>まず無料で「使えるか」を確かめる。</h2>
@@ -223,6 +255,7 @@ LANDING_PAGE = _page(
     "EC Pulse API — 仕入れ判断を速くするProfit Intelligence",
     "市場の痛点、商品候補、価格、口コミ、競合をつなぎ、EC事業者の仕入れ判断を支援するコマースデータAPI。",
     _LANDING_BODY,
+    \n(function(){\nfunction n(id){var v=parseFloat(String(document.getElementById(id).value).replace(/,/g,\"\"));return Number.isFinite(v)&&v>=0?v:0}\nfunction yen(v){return \"¥\"+Math.max(0,Math.round(v)).toLocaleString(\"ja-JP\")}\nfunction calc(){\n var sale=n(\"sale-price\"),fee=n(\"fee-rate\")/100,ship=n(\"shipping-cost\"),margin=n(\"margin-rate\")/100;\n var feeCost=sale*fee, targetProfit=sale*margin, maxBuy=sale-feeCost-ship-targetProfit, breakEven=sale-feeCost-ship;\n document.getElementById(\"max-buy\").textContent=yen(maxBuy);\n document.getElementById(\"gross-profit\").textContent=yen(targetProfit);\n document.getElementById(\"fee-cost\").textContent=yen(feeCost);\n document.getElementById(\"break-even\").textContent=yen(breakEven);\n document.getElementById(\"margin-check\").textContent=Math.round(margin*100)+\"%\";\n}\n[\"sale-price\",\"fee-rate\",\"shipping-cost\",\"margin-rate\"].forEach(function(id){document.getElementById(id).addEventListener(\"input\",calc)});\ncalc();\n})();\n,
 )
 
 _ACCOUNT_BODY = r"""<main class="page-pad wrap">
