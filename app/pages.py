@@ -33,7 +33,7 @@ a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline
 .btn:hover{border-color:#415063;transform:translateY(-1px)}.btn.primary{background:var(--lime);border-color:var(--lime);color:#071006;box-shadow:0 10px 30px rgba(185,255,92,.12)}.btn.primary:hover{background:#c9ff7c}.btn[disabled]{opacity:.5;cursor:not-allowed}
 h1{font-size:clamp(42px,7vw,78px);line-height:.99;letter-spacing:-.055em;margin:14px 0 22px;max-width:850px}
 h2{font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:8px 0 15px}h3{font-size:17px;margin:0 0 7px}
-p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}
+p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}.max-buy.invalid{color:var(--red)}
 .hero{padding:78px 0 62px;display:grid;grid-template-columns:1fr .92fr;gap:54px;align-items:center}.lead{font-size:19px;color:#c8d2de;max-width:42em}
 .hero-note{display:flex;gap:10px;align-items:center;color:#b8c4d2;font-size:13px;margin-top:18px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime);animation:signal-pulse 2.4s ease-in-out infinite}.decision-rail{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.decision-chip{padding:11px 12px;border:1px solid #1b2a35;border-radius:12px;background:#070b10}.decision-chip span{display:block;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.decision-chip strong{display:block;margin-top:2px;font-size:13px}.decision-chip.good strong{color:var(--lime)}.decision-chip.warn strong{color:var(--amber)}.radar-label{display:flex;align-items:center;justify-content:space-between;gap:10px}.radar-action{font-size:10px;color:var(--muted);border:1px solid #263543;border-radius:999px;padding:3px 8px}@keyframes signal-pulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.section{padding:76px 0;border-top:1px solid rgba(255,255,255,.07)}
@@ -270,7 +270,7 @@ function calc(){
  var output=document.getElementById("max-buy"),valid=maxBuy>=0&&sale>0&&margin<=1&&fee<=1;
  output.textContent=yen(maxBuy);
  output.setAttribute("aria-label",valid?"仕入れ上限価格 "+yen(maxBuy):"入力条件では仕入れ上限を計算できません");
- output.style.color=valid?"var(--lime)":"var(--red)";
+ output.classList.toggle("invalid",!valid);
  document.getElementById("gross-profit").textContent=yen(targetProfit);
  document.getElementById("fee-cost").textContent=yen(feeCost);
  document.getElementById("break-even").textContent=yen(breakEven);
