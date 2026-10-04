@@ -251,11 +251,29 @@ _LANDING_BODY = r"""<main>
 
 LANDING_PAGE"""
 
+_LANDING_SCRIPT = r"""
+(function(){
+function n(id){var v=parseFloat(String(document.getElementById(id).value).replace(/,/g,""));return Number.isFinite(v)&&v>=0?v:0}
+function yen(v){return "¥"+Math.max(0,Math.round(v)).toLocaleString("ja-JP")}
+function calc(){
+ var sale=n("sale-price"),fee=n("fee-rate")/100,ship=n("shipping-cost"),margin=n("margin-rate")/100;
+ var feeCost=sale*fee,targetProfit=sale*margin,maxBuy=sale-feeCost-ship-targetProfit,breakEven=sale-feeCost-ship;
+ document.getElementById("max-buy").textContent=yen(maxBuy);
+ document.getElementById("gross-profit").textContent=yen(targetProfit);
+ document.getElementById("fee-cost").textContent=yen(feeCost);
+ document.getElementById("break-even").textContent=yen(breakEven);
+ document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";
+}
+["sale-price","fee-rate","shipping-cost","margin-rate"].forEach(function(id){document.getElementById(id).addEventListener("input",calc)});
+calc();
+})();
+"""
+
 LANDING_PAGE = _page(
     "EC Pulse API — 仕入れ判断を速くするProfit Intelligence",
     "市場の痛点、商品候補、価格、口コミ、競合をつなぎ、EC事業者の仕入れ判断を支援するコマースデータAPI。",
     _LANDING_BODY,
-    \n(function(){\nfunction n(id){var v=parseFloat(String(document.getElementById(id).value).replace(/,/g,\"\"));return Number.isFinite(v)&&v>=0?v:0}\nfunction yen(v){return \"¥\"+Math.max(0,Math.round(v)).toLocaleString(\"ja-JP\")}\nfunction calc(){\n var sale=n(\"sale-price\"),fee=n(\"fee-rate\")/100,ship=n(\"shipping-cost\"),margin=n(\"margin-rate\")/100;\n var feeCost=sale*fee, targetProfit=sale*margin, maxBuy=sale-feeCost-ship-targetProfit, breakEven=sale-feeCost-ship;\n document.getElementById(\"max-buy\").textContent=yen(maxBuy);\n document.getElementById(\"gross-profit\").textContent=yen(targetProfit);\n document.getElementById(\"fee-cost\").textContent=yen(feeCost);\n document.getElementById(\"break-even\").textContent=yen(breakEven);\n document.getElementById(\"margin-check\").textContent=Math.round(margin*100)+\"%\";\n}\n[\"sale-price\",\"fee-rate\",\"shipping-cost\",\"margin-rate\"].forEach(function(id){document.getElementById(id).addEventListener(\"input\",calc)});\ncalc();\n})();\n,
+    _LANDING_SCRIPT,
 )
 
 _ACCOUNT_BODY = r"""<main class="page-pad wrap">
