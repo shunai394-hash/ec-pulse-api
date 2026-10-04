@@ -91,3 +91,30 @@ def test_redact_strips_bearer_tokens_and_jwts():
     text = _redact("Authorization: Bearer abc.def-123 token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl")
     assert "abc.def-123" not in text
     assert "eyJhbGciOiJIUzI1NiJ9" not in text
+
+
+def test_landing_exposes_accessible_decision_loop():
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    page = response.text
+    assert 'class="skip-link" href="#main-content"' in page
+    assert 'id="main-content"' in page
+    assert 'role="tablist"' in page
+    assert 'role="tab"' in page
+    assert 'aria-selected="true"' in page
+    assert 'aria-controls="radar-detail"' in page
+    assert 'role="tabpanel"' in page
+    assert 'ArrowRight' in page
+    assert 'ArrowLeft' in page
+    assert 'tabindex="-1"' in page
+
+
+def test_landing_keeps_csp_safe_dynamic_states():
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert response.status_code == 200
+    page = response.text
+    assert 'style="' not in page
+    assert 'output.style' not in page
+    assert '.max-buy.invalid' in page
+    assert 'classList.toggle("invalid"' in page
+    assert 'unsafe-inline' not in response.headers["Content-Security-Policy"]
