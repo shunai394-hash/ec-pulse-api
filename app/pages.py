@@ -35,7 +35,7 @@ h1{font-size:clamp(42px,7vw,78px);line-height:.99;letter-spacing:-.055em;margin:
 h2{font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:8px 0 15px}h3{font-size:17px;margin:0 0 7px}
 p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}
 .hero{padding:78px 0 62px;display:grid;grid-template-columns:1fr .92fr;gap:54px;align-items:center}.lead{font-size:19px;color:#c8d2de;max-width:42em}
-.hero-note{display:flex;gap:10px;align-items:center;color:#b8c4d2;font-size:13px;margin-top:18px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime)}
+.hero-note{display:flex;gap:10px;align-items:center;color:#b8c4d2;font-size:13px;margin-top:18px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime);animation:signal-pulse 2.4s ease-in-out infinite}.decision-rail{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.decision-chip{padding:11px 12px;border:1px solid #1b2a35;border-radius:12px;background:#070b10}.decision-chip span{display:block;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}.decision-chip strong{display:block;margin-top:2px;font-size:13px}.decision-chip.good strong{color:var(--lime)}.decision-chip.warn strong{color:var(--amber)}.radar-label{display:flex;align-items:center;justify-content:space-between;gap:10px}.radar-action{font-size:10px;color:var(--muted);border:1px solid #263543;border-radius:999px;padding:3px 8px}@keyframes signal-pulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}@media (prefers-reduced-motion:reduce){.pulse{animation:none}}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.section{padding:76px 0;border-top:1px solid rgba(255,255,255,.07)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}.grid.two{grid-template-columns:repeat(2,1fr)}
 .card{background:linear-gradient(145deg,rgba(15,23,32,.92),rgba(7,11,16,.92));border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0;box-shadow:0 18px 60px rgba(0,0,0,.16)}
@@ -114,9 +114,11 @@ _LANDING_BODY = r"""<main>
 </div>
 <div class="signal" aria-label="利益候補のデモ">
 <div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
+<div class="radar-label"><span class="small muted">市場シグナルを重ねて優先順位化</span><span class="radar-action">BUYING DECISION</span></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥1,840</strong><span>想定利益余地*</span></div></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">レビュー改善型アクセサリ</div><div class="product-meta">痛点集中　価格帯安定　出品者少なめ*</div><span class="score">Opportunity 79 / 100</span></div><div class="profit"><strong>¥1,220</strong><span>想定利益余地*</span></div></div>
 <div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6</b><span>競争余地*</span></div></div>
+<div class="decision-rail" aria-label="デモの判断シグナル"><div class="decision-chip good"><span>Signal</span><strong>仕入れ候補</strong></div><div class="decision-chip good"><span>Margin</span><strong>余地あり</strong></div><div class="decision-chip warn"><span>Next</span><strong>価格を監視</strong></div></div>
 <p class="small muted mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
 </div>
 </section>
