@@ -19,11 +19,12 @@ jobs:
           from pathlib import Path
           p = Path("app/pages.py")
           s = p.read_text()
-          s = s.replace(
-              "'<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n<meta name=\"theme-color\" content=\"#05070a\">\n<meta name=\"color-scheme\" content=\"dark\">\\n'",
-              "'<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\\n<meta name=\"theme-color\" content=\"#05070a\">\\n<meta name=\"color-scheme\" content=\"dark\">\\n'"
-          )
-          s = s.replace('<section class="wrap section" id="engine">\n<span class="kicker">From signal to decision</span>', '<section class="wrap section" id="flow">\n<span class="kicker">From signal to decision</span>')
+          bad = """'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<meta name="color-scheme" content="dark">\\n'"""
+          good = """'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\\n<meta name="theme-color" content="#05070a">\\n<meta name="color-scheme" content="dark">\\n'"""
+          s = s.replace(bad, good)
+          s = s.replace('<section class="wrap section" id="engine">\\n<span class="kicker">From signal to decision</span>', '<section class="wrap section" id="flow">\\n<span class="kicker">From signal to decision</span>')
           s = s.replace('<a class="brand" href="/"><span class="mark">EP</span>EC Pulse API</a>', '<a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true">EP</span><span>EC Pulse API</span></a>')
           s = s.replace('<header class="wrap nav">', '<header class="wrap nav" role="banner">')
           s = s.replace('<nav class="links" aria-label="メイン">', '<nav class="links" aria-label="メインナビゲーション">')
@@ -32,7 +33,7 @@ jobs:
           s = s.replace('<h2>「いくらなら仕入れていい？」を、先に数字にする。</h2>', '<h2 id="profit-title">「いくらなら仕入れていい？」を、先に数字にする。</h2>')
           s = s.replace('<div id="max-buy" class="max-buy" aria-label="仕入れ上限価格">¥2,488</div>', '<div id="max-buy" class="max-buy" aria-label="仕入れ上限価格">¥2,488</div><div id="profit-verdict" class="profit-verdict" role="status">仕入れ余地を計算中</div>')
           s = s.replace('.max-buy.invalid{color:var(--red)}', '.max-buy.invalid{color:var(--red)}.profit-verdict{display:inline-flex;align-items:center;gap:7px;margin:-2px 0 12px;padding:5px 9px;border:1px solid rgba(185,255,92,.25);border-radius:999px;color:var(--lime);font-size:11px;font-weight:800}.profit-verdict:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}.profit-verdict.bad{color:var(--red);border-color:rgba(255,127,138,.3)}')
-          s = s.replace('document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";', 'document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";\n var verdict=document.getElementById("profit-verdict");\n verdict.textContent=valid?"仕入れ余地あり — 条件内で上限を算出":"条件を見直してください — 仕入れ上限を算出できません";\n verdict.classList.toggle("bad",!valid);')
+          s = s.replace('document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";', 'document.getElementById("margin-check").textContent=Math.round(margin*100)+"%";\\n var verdict=document.getElementById("profit-verdict");\\n verdict.textContent=valid?"仕入れ余地あり — 条件内で上限を算出":"条件を見直してください — 仕入れ上限を算出できません";\\n verdict.classList.toggle("bad",!valid);')
           s = s.replace('.radar-next strong{color:var(--lime)}', '.radar-next strong{color:var(--lime)}.radar-tab:focus-visible{transform:translateX(3px)}')
           s = s.replace('.nav{display:flex;', '.nav{position:sticky;top:0;z-index:50;display:flex;')
           s = s.replace('border-bottom:1px solid rgba(255,255,255,.05)}', 'border-bottom:1px solid rgba(255,255,255,.08);background:rgba(5,7,10,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}')
@@ -40,6 +41,7 @@ jobs:
           t = Path("tests/test_landing_page.py")
           ts = t.read_text()
           additions = '''
+          
           def test_landing_has_unique_section_ids_and_sticky_navigation():
               response = client.get("/", headers={"Accept": "text/html"})
               assert response.status_code == 200
