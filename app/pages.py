@@ -115,9 +115,9 @@ _LANDING_BODY = r"""<main>
 <div class="signal" aria-label="利益候補のデモ">
 <div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
 <div class="radar-label"><span class="small muted">市場シグナルを重ねて優先順位化</span><span class="radar-action">BUYING DECISION</span></div>
-<div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥1,840</strong><span>想定利益余地*</span></div></div>
+<div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥842</strong><span>想定利益余地*</span></div></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">レビュー改善型アクセサリ</div><div class="product-meta">痛点集中　価格帯安定　出品者少なめ*</div><span class="score">Opportunity 79 / 100</span></div><div class="profit"><strong>¥1,220</strong><span>想定利益余地*</span></div></div>
-<div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6</b><span>競争余地*</span></div></div>
+<div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6/5</b><span>競合余地*</span></div></div>
 <div class="decision-rail" aria-label="デモの判断シグナル"><div class="decision-chip good"><span>Signal</span><strong>仕入れ候補</strong></div><div class="decision-chip good"><span>Margin</span><strong>余地あり</strong></div><div class="decision-chip warn"><span>Next</span><strong>価格を監視</strong></div></div>
 <p class="small muted mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
 </div>
