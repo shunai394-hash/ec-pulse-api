@@ -77,7 +77,7 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
         f'<meta name="description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
-        f"{_NAV}\n{body}\n{_FOOTER}\n{script_tag}\n</body></html>"
+        f"<a class="skip-link" href="#main-content">メインコンテンツへ移動</a>\n{_NAV}\n{body}\n{_FOOTER}\n{script_tag}\n</body></html>"
     )
 
 
