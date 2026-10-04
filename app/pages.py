@@ -25,7 +25,7 @@ _CSS = r"""
 body{margin:0;background:radial-gradient(circle at 75% 12%,rgba(114,232,255,.08),transparent 28%),radial-gradient(circle at 15% 18%,rgba(185,255,92,.07),transparent 24%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.65;-webkit-text-size-adjust:100%}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 72%);z-index:-1}
 a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-.wrap{width:min(calc(100% - 40px),var(--max));margin:auto}
+.wrap{width:min(calc(100% - 40px),var(--max));margin:auto}.skip-link{position:fixed;left:12px;top:12px;z-index:100;padding:10px 14px;border-radius:10px;background:var(--lime);color:#071006;font-weight:800;text-decoration:none;transform:translateY(-160%);transition:transform .18s ease}.skip-link:focus{transform:translateY(0)}section{scroll-margin-top:24px}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:76px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.05)}
 .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.025em;text-decoration:none}.mark{width:30px;height:30px;border:1px solid var(--lime);border-radius:9px;display:grid;place-items:center;font-size:10px;color:var(--lime);box-shadow:0 0 24px rgba(185,255,92,.12)}
 .links{display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.links a{text-decoration:none}.links a:hover{color:var(--text)}
@@ -73,7 +73,9 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
     script_tag = f"<script>{script}</script>" if script else ""
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<meta name="color-scheme" content="dark">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
@@ -104,7 +106,7 @@ def csp_for(page: str) -> str:
 
 
 _LANDING_BODY = r"""<main>
-<section class="wrap hero" aria-labelledby="hero-title">
+<section class="wrap hero" id="main-content" aria-labelledby="hero-title" tabindex="-1">
 <div>
 <span class="kicker">EC Pulse / Profit Intelligence</span>
 <h1 id="hero-title">売れる商品を、<br><span class="hero-accent">探す前に絞り込む。</span></h1>
@@ -113,13 +115,13 @@ _LANDING_BODY = r"""<main>
 <div class="hero-note"><span class="pulse" aria-hidden="true"></span><span>EC Pulse API — 商品データを「利益につながる判断」へ変えるエンジン</span></div>
 </div>
 <div class="signal" aria-label="利益候補のデモ">
-<div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
+<div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNAL PREVIEW</span></div>
 <div class="radar-label"><span class="small muted">市場シグナルを重ねて優先順位化</span><span class="radar-action">BUYING DECISION</span></div>
 <div class="radar-tabs" role="tablist" aria-label="利益候補デモ">
-<button class="radar-tab" type="button" role="tab" aria-selected="true" aria-controls="radar-detail" data-radar="0"><span><span class="tab-name">軽量・収納系 EC商品</span><span class="tab-meta">需要 ↑ · 口コミの不満あり · 競合 ¥4,980</span></span><span class="tab-score">86</span></button>
-<button class="radar-tab" type="button" role="tab" aria-selected="false" aria-controls="radar-detail" data-radar="1"><span><span class="tab-name">レビュー改善型アクセサリ</span><span class="tab-meta">痛点集中 · 価格帯安定 · 出品者少なめ*</span></span><span class="tab-score">79</span></button>
+<button class="radar-tab" id="radar-tab-0" type="button" role="tab" tabindex="0" aria-selected="true" aria-controls="radar-detail" data-radar="0"><span><span class="tab-name">軽量・収納系 EC商品</span><span class="tab-meta">需要 ↑ · 口コミの不満あり · 競合 ¥4,980</span></span><span class="tab-score">86</span></button>
+<button class="radar-tab" id="radar-tab-1" type="button" role="tab" tabindex="-1" aria-selected="false" aria-controls="radar-detail" data-radar="1"><span><span class="tab-name">レビュー改善型アクセサリ</span><span class="tab-meta">痛点集中 · 価格帯安定 · 出品者少なめ*</span></span><span class="tab-score">79</span></button>
 </div>
-<div class="radar-detail" id="radar-detail" role="tabpanel" aria-live="polite">
+<div class="radar-detail" id="radar-detail" role="tabpanel" aria-labelledby="radar-tab-0" tabindex="0" aria-live="polite">
 <div class="radar-detail-head"><div><span class="tag">DECISION OUTPUT</span><h4 id="radar-name">軽量・収納系 EC商品</h4></div><span class="score" id="radar-score">Opportunity 86 / 100</span></div>
 <div class="radar-detail-grid">
 <div><b id="radar-price">¥4,980</b><span>競合価格</span></div><div><b id="radar-buy">¥3,140</b><span>参考仕入れ</span></div><div><b id="radar-room">¥842</b><span>想定利益余地*</span></div>
@@ -127,7 +129,7 @@ _LANDING_BODY = r"""<main>
 <p class="radar-next">Signal: <strong id="radar-signal">需要上昇 + 痛点あり</strong>　Next: <strong id="radar-next">価格を監視</strong></p>
 </div>
 <div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6/5</b><span>競合余地*</span></div></div>
-<div class="decision-rail" aria-label="デモの判断シグナル"><div class="decision-chip good"><span>Signal</span><strong>仕入れ候補</strong></div><div class="decision-chip good"><span>Margin</span><strong>余地あり</strong></div><div class="decision-chip warn"><span>Next</span><strong>価格を監視</strong></div></div>
+<div class="decision-rail" aria-label="デモの判断シグナル"><div class="decision-chip good"><span>Signal</span><strong id="radar-decision">仕入れ候補</strong></div><div class="decision-chip good"><span>Margin</span><strong id="radar-margin">余地あり</strong></div><div class="decision-chip warn"><span>Next</span><strong id="radar-watch">価格を監視</strong></div></div>
 <p class="small muted mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
 </div>
 </section>
@@ -192,19 +194,19 @@ _LANDING_BODY = r"""<main>
 <div class="grid two">
 <div class="card">
 <label for="sale-price" class="small muted">想定販売価格（円）</label>
-<input id="sale-price" type="text" inputmode="decimal" value="4980" aria-describedby="profit-help">
+<input id="sale-price" type="text" inputmode="decimal" value="4980" aria-describedby="profit-help" autocomplete="off" enterkeyhint="next">
 <label for="fee-rate" class="small muted label-block">販売手数料（%）</label>
-<input id="fee-rate" type="text" inputmode="decimal" value="10">
+<input id="fee-rate" type="text" inputmode="decimal" value="10" autocomplete="off" enterkeyhint="next">
 <label for="shipping-cost" class="small muted label-block">送料・梱包（円）</label>
-<input id="shipping-cost" type="text" inputmode="decimal" value="500">
+<input id="shipping-cost" type="text" inputmode="decimal" value="500" autocomplete="off" enterkeyhint="next">
 <label for="margin-rate" class="small muted label-block">目標粗利率（%）</label>
-<input id="margin-rate" type="text" inputmode="decimal" value="30">
+<input id="margin-rate" type="text" inputmode="decimal" value="30" autocomplete="off" enterkeyhint="done">
 <p id="profit-help" class="small muted mt12">税金・広告費・返品・為替・人件費などは別途考慮してください。</p>
 </div>
 <div class="signal" aria-live="polite">
 <span class="tag">DECISION OUTPUT</span>
 <h3 class="decision-title">仕入れ上限</h3>
-<div id="max-buy" class="max-buy">¥2,488</div>
+<div id="max-buy" class="max-buy" aria-label="仕入れ上限価格">¥2,488</div>
 <p class="muted">この価格以下なら、入力した条件上では目標粗利率を維持できます。</p>
 <div class="stat-row">
 <div class="stat"><b id="gross-profit">¥1,494</b><span>目標粗利</span></div>
@@ -265,7 +267,10 @@ function yen(v){return "¥"+Math.max(0,Math.round(v)).toLocaleString("ja-JP")}
 function calc(){
  var sale=n("sale-price"),fee=n("fee-rate")/100,ship=n("shipping-cost"),margin=n("margin-rate")/100;
  var feeCost=sale*fee,targetProfit=sale*margin,maxBuy=sale-feeCost-ship-targetProfit,breakEven=sale-feeCost-ship;
- document.getElementById("max-buy").textContent=yen(maxBuy);
+ var output=document.getElementById("max-buy"),valid=maxBuy>=0&&sale>0&&margin<=1&&fee<=1;
+ output.textContent=yen(maxBuy);
+ output.setAttribute("aria-label",valid?"仕入れ上限価格 "+yen(maxBuy):"入力条件では仕入れ上限を計算できません");
+ output.style.color=valid?"var(--lime)":"var(--red)";
  document.getElementById("gross-profit").textContent=yen(targetProfit);
  document.getElementById("fee-cost").textContent=yen(feeCost);
  document.getElementById("break-even").textContent=yen(breakEven);
@@ -278,17 +283,37 @@ var radarData=[
  {name:"軽量・収納系 EC商品",score:86,price:"¥4,980",buy:"¥3,140",room:"¥842",signal:"需要上昇 + 痛点あり",next:"価格を監視"},
  {name:"レビュー改善型アクセサリ",score:79,price:"¥3,980",buy:"¥2,240",room:"¥1,220",signal:"痛点集中 + 競合少なめ",next:"仕入れ候補を比較"}
 ];
+function selectRadar(tab){
+ var d=radarData[Number(tab.getAttribute("data-radar"))]||radarData[0];
+ document.querySelectorAll("[data-radar]").forEach(function(t){
+   var selected=t===tab;
+   t.setAttribute("aria-selected",selected?"true":"false");
+   t.setAttribute("tabindex",selected?"0":"-1");
+ });
+ document.getElementById("radar-detail").setAttribute("aria-labelledby",tab.id);
+ document.getElementById("radar-name").textContent=d.name;
+ document.getElementById("radar-score").textContent="Opportunity "+d.score+" / 100";
+ document.getElementById("radar-price").textContent=d.price;
+ document.getElementById("radar-buy").textContent=d.buy;
+ document.getElementById("radar-room").textContent=d.room;
+ document.getElementById("radar-signal").textContent=d.signal;
+ document.getElementById("radar-next").textContent=d.next;
+ document.getElementById("radar-decision").textContent=Number(d.score)>=82?"仕入れ候補":"比較候補";
+ document.getElementById("radar-margin").textContent=Number(d.score)>=82?"余地あり":"要精査";
+ document.getElementById("radar-watch").textContent=d.next;
+}
 document.querySelectorAll("[data-radar]").forEach(function(tab){
- tab.addEventListener("click",function(){
-   var d=radarData[Number(tab.getAttribute("data-radar"))]||radarData[0];
-   document.querySelectorAll("[data-radar]").forEach(function(t){t.setAttribute("aria-selected",t===tab?"true":"false")});
-   document.getElementById("radar-name").textContent=d.name;
-   document.getElementById("radar-score").textContent="Opportunity "+d.score+" / 100";
-   document.getElementById("radar-price").textContent=d.price;
-   document.getElementById("radar-buy").textContent=d.buy;
-   document.getElementById("radar-room").textContent=d.room;
-   document.getElementById("radar-signal").textContent=d.signal;
-   document.getElementById("radar-next").textContent=d.next;
+ tab.addEventListener("click",function(){selectRadar(tab)});
+ tab.addEventListener("keydown",function(e){
+   if(e.key!=="ArrowRight"&&e.key!=="ArrowLeft"&&e.key!=="Home"&&e.key!=="End")return;
+   e.preventDefault();
+   var tabs=Array.prototype.slice.call(document.querySelectorAll("[data-radar]"));
+   var i=tabs.indexOf(tab),next=i;
+   if(e.key==="ArrowRight")next=(i+1)%tabs.length;
+   if(e.key==="ArrowLeft")next=(i-1+tabs.length)%tabs.length;
+   if(e.key==="Home")next=0;
+   if(e.key==="End")next=tabs.length-1;
+   tabs[next].focus();selectRadar(tabs[next]);
  });
 });
 })();
