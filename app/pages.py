@@ -62,7 +62,7 @@ pre,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-s
 """
 
 _NAV = """<header class="wrap nav" role="banner"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true">EP</span><span>EC Pulse API</span></a>
-<nav class="links" aria-label="メインナビゲーション"><a href="/#engine">判断フロー</a><a href="/#features">機能</a><a href="/#profit-check">利益計算</a><a href="/#pricing">料金</a><a href="/docs">API Docs</a><a href="/account">アカウント</a></nav></header>"""
+<nav class="links" aria-label="メインナビゲーション"><a href="/#engine">判断フロー</a><a href="/#features">機能</a><a href="/#profit-check">利益計算</a><a href="/#quickstart">クイックスタート</a><a href="/#pricing">料金</a><a href="/docs">API Docs</a><a href="/account">アカウント</a></nav></header>"""
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API</span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
