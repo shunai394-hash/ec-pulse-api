@@ -61,8 +61,6 @@ pre,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-s
 @media (max-width:620px){.wrap{width:min(calc(100% - 28px),var(--max))}.hero{padding:42px 0}.grid,.grid.two,.flow{grid-template-columns:1fr}.links{gap:11px;font-size:12px}.nav{padding:9px 0}.lead{font-size:16px}.section{padding:52px 0}.actions .btn{flex:1 1 100%}.stat-row{grid-template-columns:1fr 1fr}.product{grid-template-columns:58px 1fr}.thumb{width:58px;height:58px}.profit{grid-column:2;text-align:left}.hero h1{font-size:clamp(40px,13vw,58px)}}
 """
 
-_NAV"""
-
 _NAV = """<header class="wrap nav"><a class="brand" href="/"><span class="mark">EP</span>EC Pulse API</a>
 <nav class="links" aria-label="メイン"><a href="/#features">機能</a><a href="/#pricing">料金</a><a href="/#quickstart">クイックスタート</a><a href="/docs">API Docs</a><a href="/account">アカウント</a></nav></header>"""
 
