@@ -33,7 +33,7 @@ a{color:inherit}a:focus-visible,button:focus-visible,input:focus-visible{outline
 .btn:hover{border-color:#415063;transform:translateY(-1px)}.btn.primary{background:var(--lime);border-color:var(--lime);color:#071006;box-shadow:0 10px 30px rgba(185,255,92,.12)}.btn.primary:hover{background:#c9ff7c}.btn[disabled]{opacity:.5;cursor:not-allowed}
 h1{font-size:clamp(42px,7vw,78px);line-height:.99;letter-spacing:-.055em;margin:14px 0 22px;max-width:850px}
 h2{font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-.035em;margin:8px 0 15px}h3{font-size:17px;margin:0 0 7px}
-p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
+p{margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:13px}.kicker{color:var(--lime);font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.hero-accent{color:var(--lime)}.signal-title{font-weight:800;font-size:18px}.mt13{margin-top:13px}.mt7{margin-top:7px}.label-block{display:block;margin-top:12px}.decision-title{font-size:20px;margin-top:4px}.max-buy{font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0}
 .hero{padding:78px 0 62px;display:grid;grid-template-columns:1fr .92fr;gap:54px;align-items:center}.lead{font-size:19px;color:#c8d2de;max-width:42em}
 .hero-note{display:flex;gap:10px;align-items:center;color:#b8c4d2;font-size:13px;margin-top:18px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 14px var(--lime)}
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:25px}.section{padding:76px 0;border-top:1px solid rgba(255,255,255,.07)}
@@ -107,17 +107,17 @@ _LANDING_BODY = r"""<main>
 <section class="wrap hero" aria-labelledby="hero-title">
 <div>
 <span class="kicker">EC Pulse / Profit Intelligence</span>
-<h1 id="hero-title">売れる商品を、<br><span style="color:var(--lime)">探す前に絞り込む。</span></h1>
+<h1 id="hero-title">売れる商品を、<br><span class="hero-accent">探す前に絞り込む。</span></h1>
 <p class="lead">「何を仕入れれば儲かる？」を、勘と検索作業だけに任せない。市場の痛点、商品候補、価格、競合、口コミをつなぎ、<strong>仕入れ判断に必要な材料</strong>を一つの流れにします。</p>
 <div class="actions"><a class="btn primary" href="/account">利益候補を探し始める →</a><a class="btn" href="/docs">APIとして組み込む</a></div>
 <div class="hero-note"><span class="pulse" aria-hidden="true"></span><span>EC Pulse API — 商品データを「利益につながる判断」へ変えるエンジン</span></div>
 </div>
 <div class="signal" aria-label="利益候補のデモ">
-<div class="signal-top"><div><span class="tag">OPPORTUNITY RADAR / DEMO</span><div style="font-weight:800;font-size:18px">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
+<div class="signal-top"><div><span class="tag">OPPORTUNITY RADAR / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥1,840</strong><span>想定利益余地*</span></div></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">レビュー改善型アクセサリ</div><div class="product-meta">痛点集中　価格帯安定　出品者少なめ*</div><span class="score">Opportunity 79 / 100</span></div><div class="profit"><strong>¥1,220</strong><span>想定利益余地*</span></div></div>
 <div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6</b><span>競争余地*</span></div></div>
-<p class="small muted" style="margin-top:13px">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
+<p class="small muted" class="mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
 </div>
 </section>
 
@@ -129,7 +129,7 @@ _LANDING_BODY = r"""<main>
 <div class="card"><span class="tag">02 / 見抜く</span><h3>売れそうでも利益が残らない</h3><p class="muted">販売価格だけでは判断できない。仕入れ価格、競合、価格変化、需要の兆候を一緒に見る必要があります。</p></div>
 <div class="card"><span class="tag">03 / 逃さない</span><h3>見つけた機会が消える</h3><p class="muted">価格が下がった、競合が増えた、需要の痛点が強くなった。変化を監視して次の判断につなげます。</p></div>
 </div>
-<div class="callout"><strong>EC Pulseの仕事は「検索結果を増やす」ことではない。</strong><p class="muted" style="margin-top:7px">調査 → 比較 → 痛点抽出 → 商品候補 → 利益余地 → 監視までをつなげ、あなたが「仕入れる / 見送る」を決めやすくすることです。</p></div>
+<div class="callout"><strong>EC Pulseの仕事は「検索結果を増やす」ことではない。</strong><p class="muted" class="mt7">調査 → 比較 → 痛点抽出 → 商品候補 → 利益余地 → 監視までをつなげ、あなたが「仕入れる / 見送る」を決めやすくすることです。</p></div>
 </section>
 
 <section class="wrap section" id="engine">
@@ -182,7 +182,7 @@ _LANDING_BODY = r"""<main>
 <div class="card">
 <label for="sale-price" class="small muted">想定販売価格（円）</label>
 <input id="sale-price" type="text" inputmode="decimal" value="4980" aria-describedby="profit-help">
-<label for="fee-rate" class="small muted" style="display:block;margin-top:12px">販売手数料（%）</label>
+<label for="fee-rate" class="small muted" class="label-block">販売手数料（%）</label>
 <input id="fee-rate" type="text" inputmode="decimal" value="10">
 <label for="shipping-cost" class="small muted" style="display:block;margin-top:12px">送料・梱包（円）</label>
 <input id="shipping-cost" type="text" inputmode="decimal" value="500">
@@ -192,8 +192,8 @@ _LANDING_BODY = r"""<main>
 </div>
 <div class="signal" aria-live="polite">
 <span class="tag">DECISION OUTPUT</span>
-<h3 style="font-size:20px;margin-top:4px">仕入れ上限</h3>
-<div id="max-buy" style="font-size:48px;line-height:1.05;font-weight:850;color:var(--lime);margin:10px 0">¥2,482</div>
+<h3 class="decision-title">仕入れ上限</h3>
+<div id="max-buy" class="max-buy">¥2,482</div>
 <p class="muted">この価格以下なら、入力した条件上では目標粗利率を維持できます。</p>
 <div class="stat-row">
 <div class="stat"><b id="gross-profit">¥1,494</b><span>目標粗利</span></div>
@@ -247,7 +247,7 @@ _LANDING_BODY = r"""<main>
 </section>
 </main>"""
 
-LANDING_PAGE"""
+LANDING_PAGE
 
 _LANDING_SCRIPT = r"""
 (function(){
