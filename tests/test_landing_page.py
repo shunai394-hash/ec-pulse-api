@@ -107,6 +107,9 @@ def test_landing_exposes_accessible_decision_loop():
     assert 'ArrowRight' in page
     assert 'ArrowLeft' in page
     assert 'tabindex="-1"' in page
+    assert 'href="/#engine"' in page
+    assert 'href="/#profit-check"' in page
+    assert "判断の出力イメージ" in page
 
 
 def test_landing_keeps_csp_safe_dynamic_states():
