@@ -117,7 +117,7 @@ _LANDING_BODY = r"""<main>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥1,840</strong><span>想定利益余地*</span></div></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">レビュー改善型アクセサリ</div><div class="product-meta">痛点集中　価格帯安定　出品者少なめ*</div><span class="score">Opportunity 79 / 100</span></div><div class="profit"><strong>¥1,220</strong><span>想定利益余地*</span></div></div>
 <div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6</b><span>競争余地*</span></div></div>
-<p class="small muted" class="mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
+<p class="small muted mt13">*デモ表示。実際の数値は取得した市場データ・価格・口コミ等から算出されます。利益を保証するものではありません。</p>
 </div>
 </section>
 
@@ -129,7 +129,7 @@ _LANDING_BODY = r"""<main>
 <div class="card"><span class="tag">02 / 見抜く</span><h3>売れそうでも利益が残らない</h3><p class="muted">販売価格だけでは判断できない。仕入れ価格、競合、価格変化、需要の兆候を一緒に見る必要があります。</p></div>
 <div class="card"><span class="tag">03 / 逃さない</span><h3>見つけた機会が消える</h3><p class="muted">価格が下がった、競合が増えた、需要の痛点が強くなった。変化を監視して次の判断につなげます。</p></div>
 </div>
-<div class="callout"><strong>EC Pulseの仕事は「検索結果を増やす」ことではない。</strong><p class="muted" class="mt7">調査 → 比較 → 痛点抽出 → 商品候補 → 利益余地 → 監視までをつなげ、あなたが「仕入れる / 見送る」を決めやすくすることです。</p></div>
+<div class="callout"><strong>EC Pulseの仕事は「検索結果を増やす」ことではない。</strong><p class="muted mt7">調査 → 比較 → 痛点抽出 → 商品候補 → 利益余地 → 監視までをつなげ、あなたが「仕入れる / 見送る」を決めやすくすることです。</p></div>
 </section>
 
 <section class="wrap section" id="engine">
