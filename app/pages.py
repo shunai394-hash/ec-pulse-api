@@ -172,7 +172,7 @@ _LANDING_BODY = r"""<main>
 <div class="callout"><strong>EC Pulseの仕事は「検索結果を増やす」ことではない。</strong><p class="muted mt7">調査 → 比較 → 痛点抽出 → 商品候補 → 利益余地 → 監視までをつなげ、あなたが「仕入れる / 見送る」を決めやすくすることです。</p></div>
 </section>
 
-<section class="wrap section" id="engine">
+<section class="wrap section" id="flow">
 <span class="kicker">From signal to decision</span>
 <h2>「何を仕入れる？」までを、一本のデータフローに。</h2>
 <div class="flow">
