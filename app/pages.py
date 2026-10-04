@@ -113,7 +113,7 @@ _LANDING_BODY = r"""<main>
 <div class="hero-note"><span class="pulse" aria-hidden="true"></span><span>EC Pulse API — 商品データを「利益につながる判断」へ変えるエンジン</span></div>
 </div>
 <div class="signal" aria-label="利益候補のデモ">
-<div class="signal-top"><div><span class="tag">OPPORTUNITY RADAR / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
+<div class="signal-top"><div><span class="tag">Opportunity Radar / DEMO</span><div class="signal-title">今日見るべき商品候補</div></div><span class="live">● SIGNALS</span></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">軽量・収納系 EC商品</div><div class="product-meta">需要シグナル ↑　口コミの不満あり　競合価格 ¥4,980</div><span class="score">Opportunity 86 / 100</span></div><div class="profit"><strong>¥1,840</strong><span>想定利益余地*</span></div></div>
 <div class="product"><div class="thumb">PRODUCT</div><div><div class="product-name">レビュー改善型アクセサリ</div><div class="product-meta">痛点集中　価格帯安定　出品者少なめ*</div><span class="score">Opportunity 79 / 100</span></div><div class="profit"><strong>¥1,220</strong><span>想定利益余地*</span></div></div>
 <div class="stat-row"><div class="stat"><b>3</b><span>市場候補</span></div><div class="stat"><b>42%</b><span>痛点集中度*</span></div><div class="stat"><b>¥3,140</b><span>参考仕入れ*</span></div><div class="stat"><b>4.6</b><span>競争余地*</span></div></div>
@@ -182,18 +182,18 @@ _LANDING_BODY = r"""<main>
 <div class="card">
 <label for="sale-price" class="small muted">想定販売価格（円）</label>
 <input id="sale-price" type="text" inputmode="decimal" value="4980" aria-describedby="profit-help">
-<label for="fee-rate" class="small muted" class="label-block">販売手数料（%）</label>
+<label for="fee-rate" class="small muted label-block">販売手数料（%）</label>
 <input id="fee-rate" type="text" inputmode="decimal" value="10">
-<label for="shipping-cost" class="small muted" style="display:block;margin-top:12px">送料・梱包（円）</label>
+<label for="shipping-cost" class="small muted label-block">送料・梱包（円）</label>
 <input id="shipping-cost" type="text" inputmode="decimal" value="500">
-<label for="margin-rate" class="small muted" style="display:block;margin-top:12px">目標粗利率（%）</label>
+<label for="margin-rate" class="small muted label-block">目標粗利率（%）</label>
 <input id="margin-rate" type="text" inputmode="decimal" value="30">
 <p id="profit-help" class="small muted mt12">税金・広告費・返品・為替・人件費などは別途考慮してください。</p>
 </div>
 <div class="signal" aria-live="polite">
 <span class="tag">DECISION OUTPUT</span>
 <h3 class="decision-title">仕入れ上限</h3>
-<div id="max-buy" class="max-buy">¥2,482</div>
+<div id="max-buy" class="max-buy">¥2,488</div>
 <p class="muted">この価格以下なら、入力した条件上では目標粗利率を維持できます。</p>
 <div class="stat-row">
 <div class="stat"><b id="gross-profit">¥1,494</b><span>目標粗利</span></div>
@@ -246,8 +246,6 @@ _LANDING_BODY = r"""<main>
 </div>
 </section>
 </main>"""
-
-LANDING_PAGE
 
 _LANDING_SCRIPT = r"""
 (function(){
