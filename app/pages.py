@@ -374,7 +374,7 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
     script_tag = f"<script>{script}</script>" if script else ""
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'        '<meta name="theme-color" content="#f3f0e8">\n'        '<meta name="color-scheme" content="light">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
@@ -981,7 +981,7 @@ def legal_page(slug: str) -> str | None:
         return None
     source = re.sub(r"^# .*?\n+", "", source, count=1)
     body = (
-        f'<main class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
+        f'<main id="main" class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
         f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1>'
         f'<p class="lead">EC Pulse APIをご利用いただく前に、対象のポリシーをご確認ください。</p></div>'
         f'<article class="doc-content">{_markdown_to_html(source)}</article>'
