@@ -824,7 +824,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <label for="billing-key" class="small muted">APIキー</label>
 <input id="billing-key" type="password" autocomplete="off" placeholder="ecp_live_…">
 <div class="actions"><button class="btn primary" type="button" data-plan="pro">Proにアップグレード</button><button class="btn" type="button" data-plan="business">Businessにアップグレード</button><button class="btn" type="button" id="portal">請求情報・解約（Stripe）</button></div>
-<p class="mt12 muted small">解約するとFreeプランに戻ります。詳しくは <a href="/legal/billing">料金・解約ポリシー</a>。</p>
+<p class="mt12 muted small">解約後は請求期間の終了にあわせてFreeプランへ戻ります。詳しくは <a href="/legal/billing">料金・解約ポリシー</a>。</p>
 </section>
 
 <form class="mt20" method="post" action="/auth/logout"><button class="btn" type="submit">ログアウト</button></form>
