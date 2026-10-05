@@ -793,6 +793,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <p class="lead">APIキー、クレジット、利用状況、請求をひとつの場所で管理します。必要なときだけ操作し、調査はAPIへ渡せます。</p>
 </div>
 <div id="status" class="notice account-status" role="status">読み込み中…</div>
+<div id="status-actions" class="actions hidden"><button class="btn" id="retry-account" type="button">もう一度確認する</button><a class="btn" href="/docs">API Docsを見る</a></div>
 
 <section id="signed-out" class="mt18 card signed-out hidden">
 <div><span class="kicker">START</span><h2 class="h-sm mt10">まず無料で市場を調べる</h2><p class="muted">Googleアカウントでログインすると、Freeプランの毎月100クレジットとAPIキーを使い始められます。</p></div>
@@ -838,7 +839,7 @@ _ACCOUNT_SCRIPT = r"""
 (function(){
 var $=function(id){return document.getElementById(id)};
 function show(el,on){el.classList.toggle('hidden',!on)}
-function status(msg,kind){var s=$('status');s.textContent=msg;s.className='notice'+(kind?' '+kind:'');show(s,!!msg)}
+function status(msg,kind){var s=$('status');s.textContent=msg;s.className='notice'+(kind?' '+kind:'');show(s,!!msg);show($('status-actions'),!!msg&&kind==='error')}
 async function call(method,url,opts){
   opts=opts||{};
   var headers={'Accept':'application/json'};
@@ -896,6 +897,7 @@ $('copy-key').addEventListener('click',function(){var value=$('new-key-value').t
 function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{var ok=document.execCommand('copy');$('copy-key').textContent=ok?'コピーしました':'コピーできませんでした';if(!ok)status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}catch(e){$('copy-key').textContent='コピーできませんでした';status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}finally{document.body.removeChild(ta)}}
 document.querySelectorAll('[data-plan]').forEach(function(b){b.addEventListener('click',function(){billing('/v1/billing/checkout?plan='+b.getAttribute('data-plan'))})});
 $('portal').addEventListener('click',function(){billing('/v1/billing/portal')});
+$('retry-account').addEventListener('click',function(){show($('status-actions'),false);init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')})});
 init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')});
 })();
 """
