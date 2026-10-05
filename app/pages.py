@@ -33,7 +33,7 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;font-feature-settings:"palt" 1;text-rendering:optimizeLegibility}
 ::selection{background:var(--signal);color:#fff}
 a{color:inherit;text-underline-offset:3px}
-a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible,.mobile-menu summary:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible,.mobile-menu summary:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}.mobile-menu summary{list-style:none;cursor:pointer;user-select:none}.mobile-menu summary::-webkit-details-marker{display:none}.mobile-menu summary:after{content:"＋";margin-left:8px;font-family:var(--mono)}.mobile-menu[open] summary:after{content:"−"}
 .skip{position:absolute;left:-9999px;top:8px;z-index:20;background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:8px}
 .skip:focus{left:8px}
 .wrap{width:min(100% - var(--gut)*2,var(--max));margin-inline:auto}
