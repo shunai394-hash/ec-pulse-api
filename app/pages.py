@@ -276,7 +276,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .table-scroll{overflow-x:auto}
 .footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .footer nav{display:flex;gap:6px 18px;flex-wrap:wrap}
-.footer a{text-decoration:none}.footer a:hover{text-decoration:underline}
+.footer a{text-decoration:none;display:inline-block;padding:4px 0}.footer a:hover{text-decoration:underline}
 mark.legal-input{background:#fbf3dc;color:#5a4610;border:1px dashed #c9a94e;border-radius:4px;padding:0 3px}
 .notice{border:1px solid #e4cf98;background:#fbf3dc;color:#5a4610;border-radius:12px;padding:12px 14px;font-size:14px}
 .error{border-color:#efb8a8;background:#fbe7e1;color:#7b230b}
@@ -679,6 +679,7 @@ _LANDING_BODY = r"""<main id="main">
 <li><div><strong>APIキーを発行</strong><p>キーは発行時に一度だけ表示されます。安全な場所に保存してください。</p></div></li>
 <li><div><strong>呼び出す</strong><p><code>X-API-Key</code> ヘッダーを付けるだけ。残りクレジットは <code>X-EC-Credits-Remaining</code> で返ります。</p></div></li>
 <li><div><strong>詳しく見る</strong><p><a href="/docs" class="textlink">API Docs（Swagger）</a>・<a href="/redoc" class="textlink">ReDoc</a></p></div></li>
+<li><div><strong>Claudeから使う</strong><p>Claude Code プラグインの10のMCPツールが、同じAPIで検索・比較・レビュー分析・価格監視を会話から実行します。<a href="https://github.com/shunai394-hash/ec-pulse-api/tree/main/plugins/ec-pulse" class="textlink" target="_blank" rel="noopener noreferrer">プラグインの導入方法<span class="sr-only">（GitHub、新しいタブで開きます）</span></a></p></div></li>
 </ol>
 <div>
 <pre tabindex="0" aria-label="curlでの呼び出し例"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
