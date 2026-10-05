@@ -374,7 +374,9 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
     script_tag = f"<script>{script}</script>" if script else ""
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
-        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'        '<meta name="theme-color" content="#f3f0e8">\n'        '<meta name="color-scheme" content="light">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+        '<meta name="theme-color" content="#f3f0e8">\n'
+        '<meta name="color-scheme" content="light">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
@@ -597,7 +599,8 @@ _LANDING_BODY = r"""<main id="main">
 <hr>
 <div class="field"><label for="c-buy">候補の仕入れ値<small>比べたい価格（任意）</small></label><div class="inp"><span>¥</span><input id="c-buy" name="buy" type="number" inputmode="numeric" min="0" step="1" value="2280"></div></div>
 </form>
-<div class="result" aria-live="polite"><noscript><p class="msg">仕入れ上限の計算結果はJavaScript有効時に表示されます。</p></noscript>
+<noscript><p class="notice mt18">仕入れ上限の計算結果はJavaScript有効時に表示されます。入力値はこのページ内でのみ計算されます。</p></noscript>
+<div class="result" aria-live="polite">
 <div><p class="label m0">仕入れ上限</p><p class="ceiling m0" id="r-ceiling">¥2,488</p><p class="msg mt12" id="r-msg">この価格以下で仕入れられれば、目標粗利率 30% を確保できます。</p></div>
 <div class="stack" aria-hidden="true"><i class="s-buy" id="b-buy"></i><i class="s-fee" id="b-fee"></i><i class="s-ship" id="b-ship"></i><i class="s-profit" id="b-profit"></i></div>
 <ul class="legend">
