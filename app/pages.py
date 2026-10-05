@@ -367,7 +367,7 @@ _NAV = """<a class="skip" href="#main">本文へ移動</a>
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/redoc">ReDoc</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
-<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a><a href="https://github.com/shunai394-hash/ec-pulse-api" target="_blank" rel="noreferrer">GitHub</a></nav></footer>"""
+<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a><a href="https://github.com/shunai394-hash/ec-pulse-api" target="_blank" rel="noopener noreferrer">GitHub</a></nav></footer>"""
 
 
 def _page(title: str, description: str, body: str, script: str = "") -> str:
