@@ -311,7 +311,8 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
   .mobile-menu-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(78vw,300px);padding:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 45px -24px rgba(18,18,17,.5);display:grid;gap:2px}
   .mobile-menu-panel a{padding:11px 12px;border-radius:10px;text-decoration:none;font-weight:700}
   .mobile-menu-panel a:hover{background:var(--paper-2)}
-  .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 12px;font-size:13px}
+  .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 10px;font-size:12px}
+  .brand{font-size:15px;gap:7px}.mark{width:24px;height:24px}.nav{gap:8px}
   .grid,.grid.two,.plans,.pains,.compare,.trust,.errs{grid-template-columns:minmax(0,1fr)}
   .pain,.pain+.pain,.trust div,.trust div+div{padding:22px 0 6px;border-right:0;border-bottom:1px solid var(--line)}
   .step{grid-template-columns:minmax(0,1fr);gap:10px}
@@ -963,6 +964,7 @@ def legal_page(slug: str) -> str | None:
         source = (_LEGAL_DIR / filename).read_text(encoding="utf-8")
     except OSError:
         return None
+    source = re.sub(r"^# .*?\n+", "", source, count=1)
     body = (
         f'<main class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
         f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1>'
