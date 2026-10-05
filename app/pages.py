@@ -715,7 +715,13 @@ var tabs=[].slice.call(d.querySelectorAll('.stage')),panels=tabs.map(function(t)
 var cur=0,timer=null,paused=false,DWELL=3600;
 function show(i,focus){
   cur=(i+tabs.length)%tabs.length;
-  tabs.forEach(function(t,j){var on=j===cur;t.setAttribute('aria-selected',on?'true':'false');t.tabIndex=on?0:-1;panels[j].classList.toggle('on',on)});
+  tabs.forEach(function(t,j){
+    var on=j===cur;
+    t.setAttribute('aria-selected',on?'true':'false');
+    t.tabIndex=on?0:-1;
+    panels[j].classList.toggle('on',on);
+    panels[j].setAttribute('aria-hidden',on?'false':'true');
+  });
   if(focus)tabs[cur].focus();
 }
 function schedule(){clearTimeout(timer);if(reduce||paused)return;timer=setTimeout(function(){show(cur+1);schedule()},DWELL)}
@@ -841,6 +847,7 @@ async function call(method,url,opts){
 }
 function detail(res){var d=res.data&&res.data.detail;return typeof d==='string'?d:('HTTP '+res.status)}
 async function loadAccount(){
+  status('アカウント情報を読み込んでいます…');
   var acc=await call('GET','/v1/customer/account');
   if(!acc.ok){status('アカウント情報を取得できませんでした: '+detail(acc),'error');return}
   $('plan').textContent=String(acc.data.plan||'free').toUpperCase();
@@ -872,10 +879,11 @@ async function billing(url){
   status('Stripeに接続できませんでした: '+detail(res),'error');
 }
 async function init(){
+  status('接続を確認しています…');
   var me=await call('GET','/auth/me');
   if(me.status===503){status('ログイン機能は現在ご利用いただけません: '+detail(me),'error');return}
-  if(!me.ok){status('','');show($('signed-out'),true);return}
-  status('','');show($('signed-in'),true);
+  if(!me.ok){show($('signed-out'),true);status('ログインするとAPIキー、利用量、請求情報を管理できます。');return}
+  show($('signed-in'),true);
   $('user-email').textContent=(me.data.user&&me.data.user.email)||'—';
   await loadAccount();
 }
