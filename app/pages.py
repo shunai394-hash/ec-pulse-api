@@ -283,7 +283,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .keybox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.keybox code{word-break:break-all;font-size:14px;padding:8px 10px;background:#fff}
 input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line-2);background:#fff;color:var(--ink);font:inherit}
 .hidden{display:none !important}
-.doc{max-width:820px;padding:32px 0 72px}.doc pre{white-space:pre-wrap;word-break:break-word;font-family:var(--sans);font-size:15px;line-height:1.9;background:var(--card);color:var(--ink);border-color:var(--line)}
+.doc{max-width:900px;padding:48px 0 88px}.doc-crumb{display:flex;gap:9px;align-items:center;color:var(--ink-3);font-size:13px;margin-bottom:34px}.doc-crumb a{font-weight:700;text-decoration:none}.doc-head{padding-bottom:34px;border-bottom:1px solid var(--line)}.doc-head h1{font-size:clamp(34px,6vw,64px);margin-top:16px;max-width:14ch}.doc-head .lead{margin-top:18px}.doc-content{max-width:780px;padding:34px 0}.doc-content h1{font-size:30px;margin:0 0 18px}.doc-content h2{font-size:25px;margin:42px 0 14px}.doc-content h3{font-size:19px;margin:30px 0 10px}.doc-content p{color:var(--ink-2);margin:0 0 16px}.doc-content blockquote{margin:0 0 24px;padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 12px 12px 0;color:var(--ink-2)}.doc-content ul{padding-left:22px;color:var(--ink-2)}.doc-content code{background:var(--paper-2);padding:2px 6px;border-radius:5px}.legal-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.legal-table th,.legal-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.legal-table th{font-size:12px;font-family:var(--mono);letter-spacing:.05em;background:var(--paper-2)}.legal-table tr:last-child td{border-bottom:0}.doc-actions{border-top:1px solid var(--line);padding-top:24px;display:flex;gap:10px;flex-wrap:wrap}
 .cta-card{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .h-sm{font-size:22px}.h-page{font-size:clamp(30px,5vw,48px)}.page-pad{padding:32px 0 72px}.break{word-break:break-all}
 .mb8{margin-bottom:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mt14{margin-top:14px}.mt16{margin-top:16px}.mt18{margin-top:18px}.mt20{margin-top:20px}.mt22{margin-top:22px}.m006{margin:0 0 6px}.m0{margin:0}
@@ -893,18 +893,82 @@ ACCOUNT_PAGE = _page(
 _LEGAL_ALIASES = {filename.removesuffix(".md"): slug for slug, (filename, _) in LEGAL_DOCUMENTS.items()}
 
 
+def _inline_markdown(value: str) -> str:
+    value = html.escape(value, quote=False)
+    bt = chr(96)
+    value = re.sub(bt + r"([^" + bt + r"]+)" + bt, r"<code>\1</code>", value)
+    value = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", value)
+    value = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f'<a href="{html.escape(m.group(2), quote=True)}">{m.group(1)}</a>', value)
+    return value
+
+
+def _markdown_to_html(source: str) -> str:
+    lines = source.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+            continue
+        if line.startswith("> "):
+            out.append(f'<blockquote>{_inline_markdown(line[2:])}</blockquote>')
+            i += 1
+            continue
+        if line.startswith("# "):
+            out.append(f'<h1>{_inline_markdown(line[2:])}</h1>')
+            i += 1
+            continue
+        if line.startswith("## "):
+            out.append(f'<h2>{_inline_markdown(line[3:])}</h2>')
+            i += 1
+            continue
+        if line.startswith("### "):
+            out.append(f'<h3>{_inline_markdown(line[4:])}</h3>')
+            i += 1
+            continue
+        if line.startswith("|") and i + 1 < len(lines) and lines[i + 1].strip().startswith("|"):
+            headers = [x.strip() for x in line.strip("|").split("|")]
+            i += 2
+            rows: list[list[str]] = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                rows.append([x.strip() for x in lines[i].strip().strip("|").split("|")])
+                i += 1
+            head = "".join(f"<th>{_inline_markdown(x)}</th>" for x in headers)
+            body = "".join("<tr>" + "".join(f"<td>{_inline_markdown(x)}</td>" for x in row) + "</tr>" for row in rows)
+            out.append(f'<div class="table-scroll"><table class="legal-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>')
+            continue
+        if line.startswith("- ") or line.startswith("* "):
+            items = []
+            while i < len(lines) and lines[i].strip().startswith(("- ", "* ")):
+                items.append(f'<li>{_inline_markdown(lines[i].strip()[2:])}</li>')
+                i += 1
+            out.append("<ul>" + "".join(items) + "</ul>")
+            continue
+        paragraph = [line]
+        i += 1
+        while i < len(lines) and lines[i].strip() and not re.match(r"^(#{1,3} |\> |[-*] |\|)", lines[i].strip()):
+            paragraph.append(lines[i].strip())
+            i += 1
+        out.append("<p>" + _inline_markdown(" ".join(paragraph)) + "</p>")
+    return "".join(out)
+
+
 def legal_page(slug: str) -> str | None:
     entry = LEGAL_DOCUMENTS.get(_LEGAL_ALIASES.get(slug, slug))
     if not entry:
         return None
     filename, title = entry
     try:
-        text = (_LEGAL_DIR / filename).read_text(encoding="utf-8")
+        source = (_LEGAL_DIR / filename).read_text(encoding="utf-8")
     except OSError:
         return None
     body = (
-        f'<main class="wrap doc"><p class="muted small"><a href="/">トップ</a> / {html.escape(title)}</p>'
-        f"<pre>{html.escape(text)}</pre></main>"
+        f'<main class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
+        f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1>'
+        f'<p class="lead">EC Pulse APIをご利用いただく前に、対象のポリシーをご確認ください。</p></div>'
+        f'<article class="doc-content">{_markdown_to_html(source)}</article>'
+        f'<div class="doc-actions"><a class="btn" href="/">トップへ戻る</a><a class="btn primary" href="/account">アカウントを開く</a></div></main>'
     )
     return _page(f"{title} — EC Pulse API", f"EC Pulse API {title}", body)
 
