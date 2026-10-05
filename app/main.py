@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
 
@@ -304,9 +304,16 @@ async def auth_google():
 
 @app.get("/auth/callback", include_in_schema=False)
 async def auth_callback(request: Request, code: str | None = None):
-    if not code:
-        raise HTTPException(status_code=400, detail="Missing OAuth code")
-    return await exchange_callback(request, code)
+    try:
+        if not code:
+            raise HTTPException(status_code=400, detail="Missing OAuth code")
+        return await exchange_callback(request, code)
+    except HTTPException:
+        # A cancelled or expired Google login should land on a page that explains
+        # it and offers a retry, not on a bare JSON error.
+        if "text/html" in request.headers.get("accept", ""):
+            return RedirectResponse("/account?login=failed", status_code=302)
+        raise
 
 
 @app.get("/auth/me", tags=["auth"])

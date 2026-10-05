@@ -957,8 +957,11 @@ async function init(){
   status('接続を確認しています…');
   var me=await call('GET','/auth/me');
   if(me.status===503){status('ログイン機能は現在ご利用いただけません: '+detail(me),'error');return}
+  var loginFailed=/[?&]login=failed\b/.test(location.search);
+  if(loginFailed&&history.replaceState){history.replaceState(null,'',location.pathname+location.hash)}
   if(!me.ok){
     show($('signed-in'),false);show($('signed-out'),true);
+    if(loginFailed){status('Googleでのログインを完了できませんでした。キャンセルされたか、時間切れの可能性があります。下のボタンからもう一度お試しください。','error');return}
     status(location.hash==='#billing'?'有料プランへの変更は、Googleでログインし、APIキーを発行したあとにこのページで行えます。':'ログインするとAPIキー、利用量、請求情報を管理できます。');
     return;
   }

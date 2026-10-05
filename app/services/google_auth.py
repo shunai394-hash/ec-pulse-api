@@ -84,7 +84,8 @@ async def exchange_callback(request: Request, code: str) -> RedirectResponse:
     if not access_token or not refresh_token:
         raise HTTPException(status_code=401, detail="Google login returned no session")
 
-    redirect = RedirectResponse("/", status_code=302)
+    # Back to the account page the login started from, where the API key is issued.
+    redirect = RedirectResponse("/account", status_code=302)
     redirect.delete_cookie("ecp_oauth_verifier", path="/auth")
     # Session tokens must never travel over plain HTTP in production, even if
     # APP_ENV is missing: an https APP_BASE_URL also forces the Secure flag.

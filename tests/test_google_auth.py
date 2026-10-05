@@ -25,3 +25,38 @@ def test_current_user_requires_session(monkeypatch):
     monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
     response = TestClient(app).get("/auth/me")
     assert response.status_code == 401
+
+
+def test_browser_callback_failure_returns_to_account_page():
+    client = TestClient(app)
+    response = client.get("/auth/callback", headers={"Accept": "text/html"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "/account?login=failed"
+
+
+def test_api_callback_failure_keeps_json_error():
+    client = TestClient(app)
+    response = client.get("/auth/callback", headers={"Accept": "application/json"})
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Missing OAuth code"}
+
+
+def test_successful_callback_lands_on_account_page(monkeypatch):
+    import httpx
+    from app.services import google_auth
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *exc): return False
+        async def post(self, *args, **kwargs):
+            return httpx.Response(200, json={"access_token": "a" * 20, "refresh_token": "r" * 20, "expires_in": 3600})
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
+    monkeypatch.setattr(google_auth.httpx, "AsyncClient", FakeClient)
+    client = TestClient(app)
+    client.cookies.set("ecp_oauth_verifier", "v" * 64, path="/auth")
+    response = client.get("/auth/callback?code=abc", headers={"Accept": "text/html"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "/account"
