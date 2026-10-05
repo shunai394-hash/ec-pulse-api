@@ -131,3 +131,41 @@ def test_landing_has_skip_link_and_no_external_resources():
     assert '<a class="skip" href="#main">' in page and 'id="main"' in page
     assert "http://" not in page.replace("http://localhost", "")
     assert "<link rel=\"stylesheet\"" not in page and "<script src" not in page
+
+
+@pytest.mark.parametrize("path", ["/", "/account", "/legal/terms", "/does-not-exist"])
+def test_every_page_ships_mobile_menu_script_covered_by_csp(path):
+    response = client.get(path, headers={"Accept": "text/html"})
+    assert "document.querySelector('.mobile-menu')" in response.text
+    allowed = response.headers["content-security-policy"]
+    for digest in _inline_hashes(response.text, "script"):
+        assert digest in allowed
+
+
+def test_mobile_menu_summary_has_no_stale_open_label():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert '<summary aria-label="メニューを開く">' not in page
+    assert '<details class="mobile-menu"><summary>メニュー</summary>' in page
+
+
+def test_account_status_starts_hidden_for_no_js_visitors():
+    page = client.get("/account").text
+    assert '<div id="status" class="notice account-status hidden"' in page
+    assert "読み込み中…" not in page
+
+
+def test_legal_placeholders_are_marked_not_filled():
+    page = client.get("/legal/commercial-transactions").text
+    assert '<mark class="legal-input">［要入力］</mark>' in page
+    assert "運営者が確定する項目" in page
+
+
+def test_landing_demo_headings_follow_h1():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert "<h4>" not in page
+    assert re.search(r'role="tabpanel"[^>]*>\n<h2>', page)
+
+
+def test_health_is_not_cacheable():
+    response = client.get("/health")
+    assert response.headers.get("cache-control") == "no-store"

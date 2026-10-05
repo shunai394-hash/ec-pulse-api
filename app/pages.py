@@ -90,6 +90,7 @@ p{margin:0 0 14px}
 /* hero */
 .hero{padding:clamp(40px,6vw,88px) 0 clamp(56px,8vw,112px);display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(28px,4vw,56px) clamp(32px,5vw,72px);align-items:start}
 .hero-title{grid-column:1/-1}
+@media (min-width:1021px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);grid-template-areas:"title console" "copy console";align-items:start}.hero-title{grid-area:title}.hero-copy{grid-area:copy}.hero .console{grid-area:console;align-self:center}.hero h1{font-size:clamp(48px,5.2vw,80px)}}
 .hero-copy{padding-top:8px}
 .hero h1 em{font-style:normal;color:var(--signal)}
 .hero .lead{margin-top:0}
@@ -109,7 +110,7 @@ p{margin:0 0 14px}
 .stage .prog{position:absolute;left:0;bottom:-1px;height:2px;width:0;background:rgba(226,67,26,.45)}
 .panel{padding:22px 20px 24px;min-height:318px}
 .js .panel{display:none}.js .panel.on{display:block;animation:fade .45s ease both}
-.panel h4{margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.panel h2{margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:-.01em}
 .panel .cap{font-size:12.5px;color:var(--night-mute);margin:0 0 18px;line-height:1.6}
 .rows{display:grid;gap:10px}
 .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;font-size:13.5px}
@@ -187,7 +188,7 @@ p{margin:0 0 14px}
 .drow dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase}
 .drow dd{margin:0;font-size:15px}
 .drow dd strong{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-.01em}
-.drow.key{background:var(--signal-soft)}
+.drow.key{background:var(--signal-soft)}.drow.key dt,.drow.key .muted{color:var(--ink-2)}
 .drow.key dd strong{color:var(--signal-ink);font-size:clamp(26px,3vw,34px)}
 .pill{display:inline-block;font-family:var(--mono);font-size:11px;border-radius:99px;padding:2px 9px;border:1px solid currentColor;margin-left:8px;vertical-align:2px}
 .pill.go{color:var(--go)}.pill.sig{color:var(--signal-ink)}
@@ -204,7 +205,7 @@ p{margin:0 0 14px}
 .field label{font-weight:700;font-size:15px;line-height:1.4}
 .field label small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
 .inp{display:flex;align-items:center;border:1.5px solid var(--line-2);border-radius:12px;background:#fff;overflow:hidden}
-.inp:focus-within{border-color:var(--ink)}
+.inp:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px var(--signal-soft)}.inp:has(input[aria-invalid=true]){border-color:var(--signal);background:#fff6f2}
 .inp span{padding:0 10px;color:var(--ink-3);font-family:var(--mono);font-size:13px}
 .inp input{border:0;outline:0;width:100%;min-height:46px;padding:0 10px;font-family:var(--mono);font-size:17px;text-align:right;background:transparent;color:var(--ink);font-variant-numeric:tabular-nums}
 .calc form hr{border:0;border-top:1px dashed var(--line-2);margin:4px 0}
@@ -212,7 +213,7 @@ p{margin:0 0 14px}
 .result .label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--night-mute)}
 .result .ceiling{font-family:var(--mono);font-size:clamp(48px,7vw,88px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
 .result .ceiling.neg{color:#ff8a6b}
-.result .msg{font-size:15px;color:var(--night-mute);margin:0}
+.result .msg{font-size:15px;color:var(--night-mute);margin:0}.result .muted{color:var(--night-mute)}
 .stack{display:flex;height:16px;border-radius:99px;overflow:hidden;background:var(--night-line)}
 .stack i{display:block;height:100%;transition:width .5s cubic-bezier(.2,.7,.2,1)}
 .s-fee{background:#6b6860}.s-ship{background:#8f8b80}.s-profit{background:var(--go)}.s-buy{background:var(--signal)}
@@ -276,6 +277,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .footer nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .footer a{text-decoration:none}.footer a:hover{text-decoration:underline}
+mark.legal-input{background:#fbf3dc;color:#5a4610;border:1px dashed #c9a94e;border-radius:4px;padding:0 3px}
 .notice{border:1px solid #e4cf98;background:#fbf3dc;color:#5a4610;border-radius:12px;padding:12px 14px;font-size:14px}
 .error{border-color:#efb8a8;background:#fbe7e1;color:#7b230b}
 .ok{border-color:#b6dcc4;background:#e3f2e8;color:#14532f}
@@ -305,14 +307,14 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
 }
 @media (max-width:760px){
   .links{display:none}
-  .mobile-menu{display:block;margin-left:auto;position:relative}
-  .mobile-menu summary{list-style:none;cursor:pointer;border:1px solid var(--line-2);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;background:var(--card)}
+  .mobile-menu{display:block;margin-left:auto}
+  .mobile-menu summary{list-style:none;cursor:pointer;border:1px solid var(--line-2);border-radius:999px;padding:0 14px;min-height:40px;display:flex;align-items:center;font-size:13px;font-weight:700;background:var(--card);white-space:nowrap}
  .mobile-menu summary::-webkit-details-marker{display:none}
-  .mobile-menu-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(78vw,300px);padding:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 45px -24px rgba(18,18,17,.5);display:grid;gap:2px}
-  .mobile-menu-panel a{padding:11px 12px;border-radius:10px;text-decoration:none;font-weight:700}
+  .mobile-menu-panel{position:absolute;left:var(--gut);right:var(--gut);top:calc(100% + 8px);max-height:calc(100vh - 96px);overflow-y:auto;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 45px -24px rgba(18,18,17,.5);display:grid;gap:2px}
+  .mobile-menu-panel a{padding:12px 14px;min-height:44px;display:flex;align-items:center;border-radius:10px;text-decoration:none;font-weight:700}
   .mobile-menu-panel a:hover{background:var(--paper-2)}
   .mobile-menu summary:after{content:"＋";font-family:var(--mono);margin-left:7px}.mobile-menu[open] summary:after{content:"−"}
-  .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 10px;font-size:12px}
+  .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 12px;font-size:12px;white-space:nowrap}
   .brand{font-size:15px;gap:7px}.mark{width:24px;height:24px}.nav{gap:8px}
   .grid,.grid.two,.plans,.pains,.compare,.trust,.errs{grid-template-columns:minmax(0,1fr)}
   .pain,.pain+.pain,.trust div,.trust div+div{padding:22px 0 6px;border-right:0;border-bottom:1px solid var(--line)}
@@ -330,6 +332,10 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
   .account-head{grid-template-columns:minmax(0,1fr);gap:18px}.signed-out{display:grid;align-items:start}.account-page{padding-top:34px}
   .plan .for{min-height:0}
 }
+@media (max-width:359px){
+  .brand{font-size:14px;gap:6px}.mobile-menu summary{padding:0 10px}.mobile-menu summary:after{margin-left:5px}.nav .nav-cta{padding:8px 10px}
+  .section h2,.final h2{font-size:26px}
+}
 
 /* award-level experience layer: restrained motion, depth and editorial craft */
 :root{--scroll:0}
@@ -345,7 +351,6 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .console:hover{transform:perspective(1400px) rotateX(0) translateY(-4px);box-shadow:0 36px 80px -34px rgba(18,18,17,.62)}
 .section{position:relative;isolation:isolate}
 .section>.wrap{position:relative}
-.section:not(.night):after{content:"";position:absolute;right:clamp(16px,4vw,40px);top:18%;width:1px;height:22%;background:linear-gradient(transparent,var(--line),transparent);opacity:.6}
 .sec-head h2{max-width:15ch;text-wrap:balance}
 .btn{will-change:transform}.btn:active{transform:translateY(1px) scale(.985)}
 .card,.plan,.decision,.flow,.calc form,.result{transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
@@ -355,14 +360,14 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .js .hero-title{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .05s forwards}.js .hero-copy{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .18s forwards}.js .console{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .3s forwards}
 @keyframes heroIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){body:before{display:none}.console{transform:none}.card,.plan{transition:none}.js .hero-title,.js .hero-copy,.js .console{animation:none;opacity:1;transform:none}}
-@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.section:not(.night):after{display:none}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}}
+@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}}
 
 """
 
 _NAV = """<a class="skip" href="#main">本文へ移動</a>
 <header class="site-head"><div class="wrap nav"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true"><i></i></span>EC Pulse</a>
 <nav class="links" aria-label="メイン"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a></nav>
-<details class="mobile-menu"><summary aria-label="メニューを開く">メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
+<details class="mobile-menu"><summary>メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
 <a class="btn primary nav-cta" href="/account">無料で始める</a></div></header>"""
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
@@ -370,14 +375,35 @@ _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判�
 <a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a><a href="https://github.com/shunai394-hash/ec-pulse-api" target="_blank" rel="noopener noreferrer">GitHub</a></nav></footer>"""
 
 
+# Shared by every page: the mobile menu closes on Escape, outside click and link
+# click, so it never stays open over content after same-page navigation.
+_NAV_SCRIPT = r"""
+(function(){
+var m=document.querySelector('.mobile-menu');if(!m)return;var s=m.querySelector('summary');
+function close(focus){if(!m.open)return;m.open=false;if(focus)s.focus()}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')close(true)});
+document.addEventListener('click',function(e){if(!m.contains(e.target))close(false)});
+[].forEach.call(m.querySelectorAll('.mobile-menu-panel a'),function(a){a.addEventListener('click',function(){close(false)})});
+})();
+"""
+
+
 def _page(title: str, description: str, body: str, script: str = "") -> str:
-    script_tag = f"<script>{script}</script>" if script else ""
+    script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         '<meta name="theme-color" content="#f3f0e8">\n'
         '<meta name="color-scheme" content="light">\n'
-        f'<meta name="description" content="{html.escape(description)}">\n        f'<meta property="og:title" content="{html.escape(title)}">\n'        f'<meta property="og:description" content="{html.escape(description)}">\n'        '<meta property="og:type" content="website">\n'        '<meta property="og:site_name" content="EC Pulse API">\n'        '<meta property="og:locale" content="ja_JP">\n'        '<meta name="twitter:card" content="summary">\n'        f'<meta name="twitter:title" content="{html.escape(title)}">\n'        f'<meta name="twitter:description" content="{html.escape(description)}">\n''
+        f'<meta name="description" content="{html.escape(description)}">\n'
+        f'<meta property="og:title" content="{html.escape(title)}">\n'
+        f'<meta property="og:description" content="{html.escape(description)}">\n'
+        '<meta property="og:type" content="website">\n'
+        '<meta property="og:site_name" content="EC Pulse API">\n'
+        '<meta property="og:locale" content="ja_JP">\n'
+        '<meta name="twitter:card" content="summary">\n'
+        f'<meta name="twitter:title" content="{html.escape(title)}">\n'
+        f'<meta name="twitter:description" content="{html.escape(description)}">\n'
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
         f"{_NAV}\n{body}\n{_FOOTER}\n{script_tag}\n</body></html>"
@@ -432,7 +458,7 @@ _LANDING_BODY = r"""<main id="main">
 <button class="stage" role="tab" id="t5" aria-controls="p5" aria-selected="false" tabindex="-1"><b>05</b>判断</button>
 </div>
 <div class="panel on" role="tabpanel" id="p1" aria-labelledby="t1" aria-hidden="false" tabindex="0">
-<h4>3つのモールを一度に集める</h4>
+<h2>3つのモールを一度に集める</h2>
 <p class="cap">キーワード「ワイヤレスイヤホン」で横断検索。各モールの価格帯を同じ目盛りで並べます。</p>
 <div class="rows">
 <div class="row"><span class="lbl">Amazon <span class="muted">5件</span></span><span class="val">¥2,180–6,480</span><div class="bar rg"><i class="rg-a"></i></div></div>
@@ -442,7 +468,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="scale" aria-hidden="true"><span>¥0</span><span>¥4,000</span><span>¥8,000</span></div>
 </div>
 <div class="panel" role="tabpanel" id="p2" aria-labelledby="t2" aria-hidden="true" tabindex="0">
-<h4>顧客がいちばん困っていること</h4>
+<h2>顧客がいちばん困っていること</h2>
 <p class="cap">レビュー212件から不満を分類。件数と割合、実際のコメント例を返します。</p>
 <div class="rows">
 <div class="row"><span class="lbl">接続が途切れる</span><span class="val">38%</span><div class="bar"><i class="w38 hot"></i></div></div>
@@ -452,7 +478,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 </div>
 <div class="panel" role="tabpanel" id="p3" aria-labelledby="t3" aria-hidden="true" tabindex="0">
-<h4>痛点を解消できる商品だけ残す</h4>
+<h2>痛点を解消できる商品だけ残す</h2>
 <p class="cap">上位の痛点ごとに3モールを再検索し、候補を並べます。</p>
 <div class="cands">
 <div class="cand"><span class="mp">AMZ</span><span>マルチポイント対応イヤホン A</span><span class="tag">接続</span></div>
@@ -462,7 +488,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 </div>
 <div class="panel" role="tabpanel" id="p4" aria-labelledby="t4" aria-hidden="true" tabindex="0">
-<h4>今が仕入れどきか</h4>
+<h2>今が仕入れどきか</h2>
 <p class="cap">候補 A の価格を監視。履歴の最安・最高・平均と比べたシグナルを返します。</p>
 <svg class="spark" viewBox="0 0 320 110" role="img" aria-label="価格推移のサンプル。直近で過去最安値を更新">
 <path class="area" d="M0 40 L40 34 L80 46 L120 30 L160 42 L200 36 L240 52 L280 64 L320 82 L320 110 L0 110 Z"/>
@@ -478,7 +504,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 </div>
 <div class="panel" role="tabpanel" id="p5" aria-labelledby="t5" aria-hidden="true" tabindex="0">
-<h4>仕入れるか、見送るか</h4>
+<h2>仕入れるか、見送るか</h2>
 <p class="cap">販売想定 ¥4,980・手数料10%・送料等 ¥500・目標粗利30% の場合</p>
 <div class="verdict">
 <small class="mono">仕入れ上限</small>
@@ -600,8 +626,8 @@ _LANDING_BODY = r"""<main id="main">
 <div class="field"><label for="c-buy">候補の仕入れ値<small>比べたい価格（任意）</small></label><div class="inp"><span>¥</span><input id="c-buy" name="buy" type="number" inputmode="numeric" min="0" step="1" value="2280"></div></div>
 </form>
 <noscript><p class="notice mt18">仕入れ上限の計算結果はJavaScript有効時に表示されます。入力値はこのページ内でのみ計算されます。</p></noscript>
-<div class="result" aria-live="polite">
-<div><p class="label m0">仕入れ上限</p><p class="ceiling m0" id="r-ceiling">¥2,488</p><p class="msg mt12" id="r-msg">この価格以下で仕入れられれば、目標粗利率 30% を確保できます。</p></div>
+<div class="result">
+<div aria-live="polite" aria-atomic="true"><p class="label m0">仕入れ上限</p><p class="ceiling m0" id="r-ceiling">¥2,488</p><p class="msg mt12" id="r-msg">この価格以下で仕入れられれば、目標粗利率 30% を確保できます。</p></div>
 <div class="stack" aria-hidden="true"><i class="s-buy" id="b-buy"></i><i class="s-fee" id="b-fee"></i><i class="s-ship" id="b-ship"></i><i class="s-profit" id="b-profit"></i></div>
 <ul class="legend">
 <li><i class="s-buy"></i><span>仕入れ上限</span><span id="l-buy">¥2,488</span></li>
@@ -655,7 +681,7 @@ _LANDING_BODY = r"""<main id="main">
 <li><div><strong>詳しく見る</strong><p><a href="/docs" class="textlink">API Docs（Swagger）</a>・<a href="/redoc" class="textlink">ReDoc</a></p></div></li>
 </ol>
 <div>
-<pre><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
+<pre tabindex="0" aria-label="curlでの呼び出し例"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
 curl -X POST https://ec-pulse-api.vercel.app/v1/products/search \
   -H <span class="k">"X-API-Key: $EC_PULSE_API_KEY"</span> \
   -H "Content-Type: application/json" \
@@ -758,12 +784,23 @@ var f=d.getElementById('calc-form');
 if(f){
   var yen=function(n){return (n<0?'−¥':'¥')+Math.round(Math.abs(n)).toLocaleString('ja-JP')};
   var num=function(id){var v=parseFloat(d.getElementById(id).value);return isFinite(v)&&v>=0?v:0};
+  /* Out-of-range input is flagged instead of being silently clamped. */
+  var invalid=function(){
+    var bad=[];
+    [].forEach.call(f.querySelectorAll('input'),function(el){
+      var raw=el.value.trim(),v=parseFloat(raw),max=el.hasAttribute('max')?parseFloat(el.max):Infinity;
+      var off=raw!==''&&(!isFinite(v)||v<0||v>max);
+      if(off){el.setAttribute('aria-invalid','true');bad.push(el)}else{el.removeAttribute('aria-invalid')}
+    });
+    return bad;
+  };
   var set=function(id,t){d.getElementById(id).textContent=t};
   var calc=function(){
     var price=num('c-price'),fee=Math.min(num('c-fee'),100)/100,ship=num('c-ship'),other=num('c-other'),margin=Math.min(num('c-margin'),100)/100,buyRaw=d.getElementById('c-buy').value.trim(),buy=num('c-buy');
-    var feeY=price*fee,profitY=price*margin,costs=ship+other,ceiling=Math.floor(price-feeY-profitY-costs);
-    var ce=d.getElementById('r-ceiling');ce.textContent=yen(ceiling);ce.classList.toggle('neg',ceiling<=0);
-    set('r-msg',price<=0?'販売価格を入力してください。':ceiling>0?'この価格以下で仕入れられれば、目標粗利率 '+(margin*100).toFixed(margin*100%1?1:0)+'% を確保できます。':'この条件では利益が残りません。販売価格・コスト・目標粗利率を見直してください。');
+    var feeY=price*fee,profitY=price*margin,costs=ship+other,ceiling=Math.floor(price-feeY-profitY-costs),bad=invalid();
+    var ce=d.getElementById('r-ceiling');ce.textContent=price>0?yen(ceiling):'—';ce.classList.toggle('neg',price>0&&ceiling<=0);
+    if(bad.length){set('r-msg',bad.some(function(el){return el.hasAttribute('max')&&parseFloat(el.value)>100})?'手数料率と目標粗利率は 0〜100% の範囲で入力してください。':'金額と率は 0 以上の数値で入力してください。');}
+    else set('r-msg',price<=0?'販売価格を入力すると、仕入れ上限を計算します。':ceiling>0?'この価格以下で仕入れられれば、目標粗利率 '+(margin*100).toFixed(margin*100%1?1:0)+'% を確保できます。':'この条件では利益が残りません。販売価格・コスト・目標粗利率を見直してください。');
     var total=price>0?price:1,w=function(v){return Math.max(0,v)/total*100+'%'};
     d.getElementById('b-buy').style.width=w(ceiling);d.getElementById('b-fee').style.width=w(feeY);d.getElementById('b-ship').style.width=w(costs);d.getElementById('b-profit').style.width=w(profitY);
     set('l-buy',yen(Math.max(ceiling,0)));set('l-fee',yen(feeY));set('l-ship',yen(costs));set('l-profit',yen(profitY));
@@ -792,7 +829,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <div><span class="kicker">CONTROL / EC PULSE</span><h1 class="h-page mt14">仕入れ調査を、<br><em>ここから動かす。</em></h1></div>
 <p class="lead">APIキー、クレジット、利用状況、請求をひとつの場所で管理します。必要なときだけ操作し、調査はAPIへ渡せます。</p>
 </div>
-<div id="status" class="notice account-status" role="status" aria-live="polite" aria-atomic="true">読み込み中…</div>
+<div id="status" class="notice account-status hidden" role="status" aria-live="polite" aria-atomic="true"></div>
 <noscript><div class="notice error mt18">アカウント管理にはJavaScriptが必要です。ブラウザのJavaScriptを有効にして再読み込みしてください。API DocsはJavaScriptなしでも確認できます。</div></noscript>
 <div id="status-actions" class="actions hidden" aria-live="polite"><button class="btn" id="retry-account" type="button">もう一度確認する</button><a class="btn" href="/docs">API Docsを見る</a></div>
 
@@ -840,7 +877,8 @@ _ACCOUNT_SCRIPT = r"""
 (function(){
 var $=function(id){return document.getElementById(id)};
 function show(el,on){el.classList.toggle('hidden',!on)}
-function status(msg,kind){var s=$('status');s.textContent=msg;s.className='notice'+(kind?' '+kind:'');show(s,!!msg);show($('status-actions'),!!msg&&kind==='error')}
+function status(msg,kind){var s=$('status');s.textContent=msg;s.className='notice account-status'+(kind?' '+kind:'');show(s,!!msg);show($('status-actions'),!!msg&&kind==='error')}
+function busy(b,label){if(!b.dataset.label)b.dataset.label=b.textContent;b.disabled=!!label;b.setAttribute('aria-busy',label?'true':'false');b.textContent=label||b.dataset.label}
 async function call(method,url,opts){
   opts=opts||{};
   var headers={'Accept':'application/json'};
@@ -851,55 +889,81 @@ async function call(method,url,opts){
   return {status:r.status,ok:r.ok,data:data||{}};
 }
 function detail(res){var d=res.data&&res.data.detail;return typeof d==='string'?d:('HTTP '+res.status)}
-async function loadAccount(){
-  status('アカウント情報を読み込んでいます…');
+var NETWORK='通信エラーが発生しました。接続を確認して、もう一度お試しください。';
+async function loadAccount(quiet){
+  if(!quiet)status('アカウント情報を読み込んでいます…');
   var acc=await call('GET','/v1/customer/account');
   if(!acc.ok){status('アカウント情報を取得できませんでした: '+detail(acc),'error');return}
   $('plan').textContent=String(acc.data.plan||'free').toUpperCase();
   $('credits').textContent=acc.data.provisioned?String(acc.data.credits_balance):'100（発行時に付与）';
   if(acc.data.key_prefix){$('key-info').textContent='有効なキー: '+acc.data.key_prefix+'…（キー全体は発行時のみ表示）';show($('issue-key'),false);show($('rotate-key'),true)}
   else{$('key-info').textContent='まだAPIキーは発行されていません。';show($('issue-key'),true);show($('rotate-key'),false)}
-  var rows=[];
-  if(acc.data.provisioned){var usage=await call('GET','/v1/customer/usage?days=30');rows=(usage.ok&&usage.data.by_endpoint)||[]}
+  var rows=[],empty='まだ利用履歴はありません。';
+  if(acc.data.provisioned){
+    var usage=await call('GET','/v1/customer/usage?days=30');
+    if(usage.ok){rows=usage.data.by_endpoint||[]}else{empty='利用状況を取得できませんでした（'+detail(usage)+'）。時間をおいて再読み込みしてください。'}
+  }
   var body=$('usage-rows');body.textContent='';
   rows.forEach(function(r){var tr=document.createElement('tr');[r.endpoint,r.requests,r.credits].forEach(function(v){var td=document.createElement('td');td.textContent=String(v);tr.appendChild(td)});body.appendChild(tr)});
+  $('usage-empty').textContent=empty;
   show($('usage-table'),rows.length>0);show($('usage-empty'),rows.length===0);
+  if(!quiet)status('');
 }
 async function issue(rotate){
   if(rotate&&!confirm('現在のAPIキーは直ちに使えなくなります。再発行しますか？'))return;
-  var b=rotate?$('rotate-key'):$('issue-key');b.disabled=true;
+  var b=rotate?$('rotate-key'):$('issue-key');busy(b,rotate?'再発行しています…':'発行しています…');
   try{
     var res=await call('POST','/v1/customer/key',{body:{rotate:rotate}});
     if(!res.ok){status('APIキーを発行できませんでした: '+detail(res),'error');return}
-    if(res.data.api_key){$('new-key-value').textContent=res.data.api_key;$('billing-key').value=res.data.api_key;show($('new-key'),true);status('APIキーを発行しました。今すぐ安全な場所に保存してください。','ok')}
-    else{status(res.data.warning||'既存のキーがあります。','')}
-    await loadAccount();
-  }finally{b.disabled=false}
+    if(res.data.api_key){
+      $('new-key-value').textContent=res.data.api_key;$('billing-key').value=res.data.api_key;
+      busy($('copy-key'),'');$('copy-key-status').textContent='';show($('new-key'),true);
+      status(rotate?'APIキーを再発行しました。旧キーは使えません。新しいキーを今すぐ安全な場所に保存してください。':'APIキーを発行しました。今すぐ安全な場所に保存してください。','ok');
+    }else{status(res.data.warning||'既存のキーがあります。','')}
+    await loadAccount(true);
+  }catch(e){status(NETWORK,'error')}finally{busy(b,'')}
 }
-async function billing(url){
+var copyTimer=null;
+function copied(ok){
+  var b=$('copy-key');b.textContent=ok?'コピーしました':'コピーできませんでした';
+  $('copy-key-status').textContent=ok?'APIキーをクリップボードにコピーしました。':'コピーできませんでした。キーを選択して手動でコピーしてください。';
+  clearTimeout(copyTimer);copyTimer=setTimeout(function(){b.textContent=b.dataset.label||'コピー'},2500);
+}
+function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}finally{document.body.removeChild(ta)}copied(ok)}
+async function billing(url,b){
   var key=$('billing-key').value.trim();
-  if(!key){status('APIキーを入力してください。','error');$('billing-key').focus();return}
-  var res=await call('POST',url,{key:key});
-  if(res.ok&&res.data.url){window.location.href=res.data.url;return}
-  status('Stripeに接続できませんでした: '+detail(res),'error');
+  if(!key){status('APIキーを入力してください。発行直後のキーは自動で入力されます。','error');$('billing-key').focus();return}
+  var all=[].slice.call(document.querySelectorAll('#billing .actions .btn'));
+  all.forEach(function(x){if(x!==b)x.disabled=true});busy(b,'Stripeに接続しています…');
+  try{
+    var res=await call('POST',url,{key:key});
+    if(res.ok&&res.data.url){status('Stripeへ移動しています…','ok');window.location.href=res.data.url;return}
+    status('Stripeに接続できませんでした: '+detail(res),'error');
+  }catch(e){status(NETWORK,'error')}
+  busy(b,'');all.forEach(function(x){x.disabled=false});
 }
 async function init(){
   status('接続を確認しています…');
   var me=await call('GET','/auth/me');
   if(me.status===503){status('ログイン機能は現在ご利用いただけません: '+detail(me),'error');return}
-  if(!me.ok){show($('signed-out'),true);status('ログインするとAPIキー、利用量、請求情報を管理できます。');return}
-  show($('signed-in'),true);
+  if(!me.ok){
+    show($('signed-in'),false);show($('signed-out'),true);
+    status(location.hash==='#billing'?'有料プランへの変更は、Googleでログインし、APIキーを発行したあとにこのページで行えます。':'ログインするとAPIキー、利用量、請求情報を管理できます。');
+    return;
+  }
+  show($('signed-out'),false);show($('signed-in'),true);
   $('user-email').textContent=(me.data.user&&me.data.user.email)||'—';
-  await loadAccount();
+  await loadAccount(false);
+  if(location.hash==='#billing'){$('billing').scrollIntoView()}
 }
 $('issue-key').addEventListener('click',function(){issue(false)});
 $('rotate-key').addEventListener('click',function(){issue(true)});
-$('copy-key').addEventListener('click',function(){var value=$('new-key-value').textContent;if(navigator.clipboard){navigator.clipboard.writeText(value).then(function(){$('copy-key').textContent='コピーしました'}).catch(function(){fallbackCopy(value)})}else{fallbackCopy(value)}});
-function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{var ok=document.execCommand('copy');$('copy-key').textContent=ok?'コピーしました':'コピーできませんでした';if(!ok)status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}catch(e){$('copy-key').textContent='コピーできませんでした';status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}finally{document.body.removeChild(ta)}}
-document.querySelectorAll('[data-plan]').forEach(function(b){b.addEventListener('click',function(){billing('/v1/billing/checkout?plan='+b.getAttribute('data-plan'))})});
-$('portal').addEventListener('click',function(){billing('/v1/billing/portal')});
-$('retry-account').addEventListener('click',function(){show($('status-actions'),false);init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')})});
-init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')});
+$('copy-key').addEventListener('click',function(){var b=$('copy-key');if(!b.dataset.label)b.dataset.label=b.textContent;var value=$('new-key-value').textContent;if(navigator.clipboard){navigator.clipboard.writeText(value).then(function(){copied(true)}).catch(function(){fallbackCopy(value)})}else{fallbackCopy(value)}});
+[].forEach.call(document.querySelectorAll('[data-plan]'),function(b){b.addEventListener('click',function(){billing('/v1/billing/checkout?plan='+b.getAttribute('data-plan'),b)})});
+$('portal').addEventListener('click',function(){billing('/v1/billing/portal',$('portal'))});
+function start(){init().catch(function(){status(NETWORK,'error')})}
+$('retry-account').addEventListener('click',function(){show($('status-actions'),false);start()});
+start();
 })();
 """
 
@@ -921,6 +985,8 @@ def _inline_markdown(value: str) -> str:
     value = re.sub(bt + r"([^" + bt + r"]+)" + bt, r"<code>\1</code>", value)
     value = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", value)
     value = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", lambda m: f'<a href="{html.escape(m.group(2), quote=True)}">{m.group(1)}</a>', value)
+    # Operator-specific values not yet decided stay visible as placeholders, never guessed.
+    value = re.sub(r"［[^］]*］", lambda m: f'<mark class="legal-input">{m.group(0)}</mark>', value)
     return value
 
 
@@ -986,9 +1052,13 @@ def legal_page(slug: str) -> str | None:
     except OSError:
         return None
     source = re.sub(r"^# .*?\n+", "", source, count=1)
+    pending = (
+        '<p class="notice mt14 legal-pending">この文書には、運営者が確定する項目（<mark class="legal-input">［ ］</mark>で表示）が残っています。確定までの間、該当箇所は表示のとおり未記入です。</p>'
+        if "［" in source else ""
+    )
     body = (
         f'<main id="main" class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
-        f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1><p class="small muted">公開前の確認事項を含む文書です。最新の内容はこのページで確認してください。</p>'
+        f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1>{pending}'
         f'<p class="lead">EC Pulse APIをご利用いただく前に、対象のポリシーをご確認ください。</p></div>'
         f'<article class="doc-content" aria-label="{html.escape(title)}本文">{_markdown_to_html(source)}</article>'
         f'<div class="doc-actions"><a class="btn" href="/">トップへ戻る</a><a class="btn primary" href="/account">アカウントを開く</a></div></main>'

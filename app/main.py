@@ -72,7 +72,7 @@ async def security_headers(request: Request, call_next):
         response.headers["Content-Security-Policy"] = NOT_FOUND_CSP
     elif path not in _DOC_PATHS:
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
-    if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")):
+    if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")) or request.url.path == "/health":
         response.headers["Cache-Control"] = "no-store"
     return response
 
