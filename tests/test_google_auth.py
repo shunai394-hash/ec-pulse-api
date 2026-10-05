@@ -60,3 +60,24 @@ def test_successful_callback_lands_on_account_page(monkeypatch):
     response = client.get("/auth/callback?code=abc", headers={"Accept": "text/html"}, follow_redirects=False)
     assert response.status_code == 302
     assert response.headers["location"] == "/account"
+
+
+def test_browser_callback_survives_auth_provider_outage(monkeypatch):
+    import httpx
+    from app.services import google_auth
+
+    class DownClient:
+        def __init__(self, *args, **kwargs): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *exc): return False
+        async def post(self, *args, **kwargs):
+            raise httpx.ConnectError("supabase unreachable")
+
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
+    monkeypatch.setattr(google_auth.httpx, "AsyncClient", DownClient)
+    client = TestClient(app)
+    client.cookies.set("ecp_oauth_verifier", "v" * 64, path="/auth")
+    response = client.get("/auth/callback?code=abc", headers={"Accept": "text/html"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == "/account?login=failed"

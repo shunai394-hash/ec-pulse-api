@@ -308,7 +308,7 @@ async def auth_callback(request: Request, code: str | None = None):
         if not code:
             raise HTTPException(status_code=400, detail="Missing OAuth code")
         return await exchange_callback(request, code)
-    except HTTPException:
+    except (HTTPException, httpx.HTTPError):
         # A cancelled or expired Google login should land on a page that explains
         # it and offers a retry, not on a bare JSON error.
         if "text/html" in request.headers.get("accept", ""):
