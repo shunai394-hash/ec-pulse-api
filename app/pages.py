@@ -957,10 +957,12 @@ async function init(){
   status('接続を確認しています…');
   var me=await call('GET','/auth/me');
   if(me.status===503){status('ログイン機能は現在ご利用いただけません: '+detail(me),'error');return}
-  var loginFailed=/[?&]login=failed\b/.test(location.search);
-  if(loginFailed&&history.replaceState){history.replaceState(null,'',location.pathname+location.hash)}
+  var loginFailed=/[?&]login=failed\b/.test(location.search),back=(location.search.match(/[?&]billing=(success|cancel|portal)\b/)||[])[1];
+  if((loginFailed||back)&&history.replaceState){history.replaceState(null,'',location.pathname+location.hash)}
+  var BACK={success:['お支払いを受け付けました。プランとクレジットはStripeの確認後に反映されます（通常は数十秒）。表示が変わらない場合は再読み込みしてください。','ok'],cancel:['決済はキャンセルされました。プランは変更されていません。',''],portal:['Stripeの請求管理から戻りました。変更内容は確認後に反映されます（通常は数十秒）。','']}[back];
   if(!me.ok){
     show($('signed-in'),false);show($('signed-out'),true);
+    if(BACK){status(BACK[0]+' ログインすると現在のプランを確認できます。',BACK[1]);return}
     if(loginFailed){status('Googleでのログインを完了できませんでした。キャンセルされたか、時間切れの可能性があります。下のボタンからもう一度お試しください。','error');return}
     status(location.hash==='#billing'?'有料プランへの変更は、Googleでログインし、APIキーを発行したあとにこのページで行えます。':'ログインするとAPIキー、利用量、請求情報を管理できます。');
     return;
@@ -968,7 +970,8 @@ async function init(){
   show($('signed-out'),false);show($('signed-in'),true);
   $('user-email').textContent=(me.data.user&&me.data.user.email)||'—';
   await loadAccount(false);
-  if(location.hash==='#billing'){$('billing').scrollIntoView()}
+  if(BACK&&$('status').classList.contains('hidden')){status(BACK[0],BACK[1])}
+  if(location.hash==='#billing'||BACK){$('billing').scrollIntoView()}
 }
 $('issue-key').addEventListener('click',function(){issue(false)});
 $('rotate-key').addEventListener('click',function(){issue(true)});

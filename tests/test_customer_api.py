@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app import main
@@ -104,3 +105,15 @@ def test_billing_success_does_not_expose_checkout_session_id(monkeypatch):
     assert body["status"] == "active"
     assert "checkout_session_id" not in body
     assert "cs_sensitive" not in response.text
+
+
+@pytest.mark.parametrize("path,outcome", [
+    ("/billing/success?session_id=cs_test", "success"),
+    ("/billing/cancel", "cancel"),
+    ("/billing", "portal"),
+])
+def test_stripe_return_urls_send_browsers_to_account_page(path, outcome):
+    response = TestClient(main.app).get(path, headers={"Accept": "text/html"}, follow_redirects=False)
+    assert response.status_code == 302
+    assert response.headers["location"] == f"/account?billing={outcome}"
+    assert "cs_test" not in response.headers["location"]

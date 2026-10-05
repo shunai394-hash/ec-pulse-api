@@ -381,8 +381,19 @@ def health():
             detail={"status": "degraded", "database": "unavailable", "error": type(exc).__name__},
         ) from exc
 
+def _billing_return(request: Request, outcome: str) -> RedirectResponse | None:
+    """Stripe sends customers back to these URLs in a browser; show them the
+    account page with the outcome instead of a JSON document. API clients
+    (no text/html in Accept) keep the JSON responses below."""
+    if "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(f"/account?billing={outcome}", status_code=302)
+    return None
+
+
 @app.get("/billing", include_in_schema=False)
 async def billing_page(request: Request):
+    if redirect := _billing_return(request, "portal"):
+        return redirect
     user = await current_user(request)
     user_id = user.get("id")
     if not user_id:
@@ -392,6 +403,8 @@ async def billing_page(request: Request):
 
 @app.get("/billing/success", include_in_schema=False)
 async def billing_success(request: Request, session_id: str | None = Query(default=None)):
+    if redirect := _billing_return(request, "success"):
+        return redirect
     user = await current_user(request)
     user_id = user.get("id")
     if not user_id:
@@ -426,6 +439,8 @@ async def billing_success(request: Request, session_id: str | None = Query(defau
 
 @app.get("/billing/cancel", include_in_schema=False)
 async def billing_cancel_page(request: Request):
+    if redirect := _billing_return(request, "cancel"):
+        return redirect
     user = await current_user(request)
     if not user.get("id"):
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")
