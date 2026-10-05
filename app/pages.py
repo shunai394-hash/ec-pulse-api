@@ -811,7 +811,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <h2 class="h-sm">APIキー</h2>
 <p class="muted" id="key-info">—</p>
 <div id="new-key" class="notice ok hidden"><p class="mb8"><strong>新しいAPIキー（この画面でのみ表示されます）</strong></p>
-<div class="keybox"><code id="new-key-value"></code><button class="btn" id="copy-key" type="button">コピー</button></div></div>
+<div class="keybox"><code id="new-key-value" aria-label="新しいAPIキー"></code><button class="btn" id="copy-key" type="button" aria-describedby="copy-key-status">コピー</button></div><span id="copy-key-status" class="small muted" role="status" aria-live="polite"></span></div>
 <div class="actions"><button class="btn primary" id="issue-key" type="button">APIキーを発行</button><button class="btn hidden" id="rotate-key" type="button">キーを再発行（旧キーは失効）</button></div>
 </section>
 
