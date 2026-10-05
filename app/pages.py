@@ -444,9 +444,9 @@ _LANDING_BODY = r"""<main id="main">
 <h1 id="hero-title" class="mt22"><span class="ln">売れる商品を、</span><br><span class="ln"><em>探す前に</em>絞り込む。</span></h1>
 </div>
 <div class="hero-copy">
-<p class="lead">EC Pulse は、Amazon・楽天市場・Yahoo!ショッピングの商品データと、レビューやコメントにある顧客の不満、価格の動きを集めて、判断できる形に並べます。あなたが考えるのは「利益が残るか」だけです。</p>
+<p class="lead">EC Pulse は、Amazon・楽天市場・Yahoo!ショッピングの商品データと、レビューやコメントにある顧客の不満、価格の動きを集めて、判断できる形でAPIから返します。あなたが考えるのは「利益が残るか」だけです。</p>
 <div class="actions">
-<a class="btn primary" href="/account">無料で仕入れ候補を調べる <span class="arr" aria-hidden="true">→</span></a>
+<a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a>
 <a class="btn" href="#calc">仕入れ上限を計算する</a>
 </div>
 <noscript><p class="notice mt18">デモの切り替えと仕入れ上限の自動計算にはJavaScriptが必要です。API Docsとアカウントページはそのまま利用できます。</p></noscript>
@@ -660,7 +660,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="plans">
 <div class="plan"><span class="tagline">まず試す</span><h3 class="mt10">Free</h3><p class="for">1つの商品ジャンルで、市場と痛点を調べてみたい人に。</p><p class="price">¥0<small>/ 月</small></p>
 <ul><li>毎月100クレジット</li><li>30リクエスト / 分</li><li>すべてのAPIを利用可能</li><li>カード登録不要</li></ul>
-<a class="btn" href="/account">無料で市場を調べる</a></div>
+<a class="btn" href="/account">無料でAPIキーを取得</a></div>
 <div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">複数ジャンルの候補探しと価格監視を、日々の業務に組み込む人に。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
 <ul><li>請求ごとに月間クレジットを付与</li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約</li></ul>
 <a class="btn primary" href="/account#billing">Proで仕入れ調査を始める</a></div>
@@ -725,7 +725,7 @@ curl -X POST https://ec-pulse-api.vercel.app/v1/products/search \
 <section class="wrap final" aria-labelledby="final-title">
 <span class="kicker">START</span>
 <h2 id="final-title" class="mt18"><span class="ln">まずは、気になっている</span><br><span class="ln">商品をひとつ。</span></h2>
-<div class="actions"><a class="btn primary" href="/account">無料で仕入れ候補を調べる <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">APIを試す</a></div>
+<div class="actions"><a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">APIを試す</a></div>
 </section>
 </main>
 """
@@ -845,7 +845,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <div id="status-actions" class="actions hidden" aria-live="polite"><button class="btn" id="retry-account" type="button">もう一度確認する</button><a class="btn" href="/docs">API Docsを見る</a></div>
 
 <section id="signed-out" class="mt18 card signed-out hidden">
-<div><span class="kicker">START</span><h2 class="h-sm mt10">まず無料で市場を調べる</h2><p class="muted">Googleアカウントでログインすると、Freeプランの毎月100クレジットとAPIキーを使い始められます。</p></div>
+<div><span class="kicker">START</span><h2 class="h-sm mt10">まず無料でAPIキーを取得</h2><p class="muted">Googleアカウントでログインすると、Freeプランの毎月100クレジットとAPIキーを使い始められます。</p></div>
 <a class="btn primary" href="/auth/google">Googleでログイン <span class="arr" aria-hidden="true">→</span></a>
 </section>
 
