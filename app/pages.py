@@ -33,7 +33,7 @@ html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;font-feature-settings:"palt" 1;text-rendering:optimizeLegibility}
 ::selection{background:var(--signal);color:#fff}
 a{color:inherit;text-underline-offset:3px}
-a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible,.mobile-menu summary:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
 .skip{position:absolute;left:-9999px;top:8px;z-index:20;background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:8px}
 .skip:focus{left:8px}
 .wrap{width:min(100% - var(--gut)*2,var(--max));margin-inline:auto}
@@ -307,10 +307,11 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
   .links{display:none}
   .mobile-menu{display:block;margin-left:auto;position:relative}
   .mobile-menu summary{list-style:none;cursor:pointer;border:1px solid var(--line-2);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;background:var(--card)}
-  .mobile-menu summary::-webkit-details-marker{display:none}
+ .mobile-menu summary::-webkit-details-marker{display:none}
   .mobile-menu-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(78vw,300px);padding:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 45px -24px rgba(18,18,17,.5);display:grid;gap:2px}
   .mobile-menu-panel a{padding:11px 12px;border-radius:10px;text-decoration:none;font-weight:700}
   .mobile-menu-panel a:hover{background:var(--paper-2)}
+  .mobile-menu summary:after{content:"＋";font-family:var(--mono);margin-left:7px}.mobile-menu[open] summary:after{content:"−"}
   .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 10px;font-size:12px}
   .brand{font-size:15px;gap:7px}.mark{width:24px;height:24px}.nav{gap:8px}
   .grid,.grid.two,.plans,.pains,.compare,.trust,.errs{grid-template-columns:minmax(0,1fr)}
@@ -366,7 +367,7 @@ _NAV = """<a class="skip" href="#main">本文へ移動</a>
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/redoc">ReDoc</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
-<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a></nav></footer>"""
+<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a><a href="https://github.com/shunai394-hash/ec-pulse-api" target="_blank" rel="noreferrer">GitHub</a></nav></footer>"""
 
 
 def _page(title: str, description: str, body: str, script: str = "") -> str:
@@ -419,7 +420,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
-<div class="console-top"><span class="live">Signal → Decision</span><span>デモ・サンプルデータ</span></div>
+<div class="console-top"><span class="live">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div>
 <div class="stages" role="tablist" aria-label="判断までの5段階">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
@@ -879,7 +880,8 @@ async function init(){
 }
 $('issue-key').addEventListener('click',function(){issue(false)});
 $('rotate-key').addEventListener('click',function(){issue(true)});
-$('copy-key').addEventListener('click',function(){navigator.clipboard&&navigator.clipboard.writeText($('new-key-value').textContent).then(function(){$('copy-key').textContent='コピーしました'})});
+$('copy-key').addEventListener('click',function(){var value=$('new-key-value').textContent;if(navigator.clipboard){navigator.clipboard.writeText(value).then(function(){$('copy-key').textContent='コピーしました'}).catch(function(){fallbackCopy(value)})}else{fallbackCopy(value)}});
+function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');$('copy-key').textContent='コピーしました'}finally{document.body.removeChild(ta)}}
 document.querySelectorAll('[data-plan]').forEach(function(b){b.addEventListener('click',function(){billing('/v1/billing/checkout?plan='+b.getAttribute('data-plan'))})});
 $('portal').addEventListener('click',function(){billing('/v1/billing/portal')});
 init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')});
