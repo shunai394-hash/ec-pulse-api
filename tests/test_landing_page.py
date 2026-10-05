@@ -189,3 +189,16 @@ def test_api_docs_are_branded_and_skip_third_party_fonts(path):
 
 def test_swagger_oauth2_redirect_still_served():
     assert client.get("/docs/oauth2-redirect").status_code == 200
+
+
+def test_demo_pain_labels_are_ones_the_analyzer_can_return():
+    # The decision card claims to use only real response fields, so its pain
+    # labels must be categories consumer_insights can actually produce.
+    from app.services.consumer_insights import PAIN_PATTERNS
+
+    labels = {label for label, _ in PAIN_PATTERNS}
+    page = _landing()
+    pain_panel = page.split('id="p2"', 1)[1].split('id="p3"', 1)[0]
+    shown = re.findall(r'<span class="lbl">(\S+) <span class="muted">', pain_panel)
+    assert shown and set(shown) <= labels
+    assert re.search(r"<strong>38%</strong> (\S+?)<", page).group(1) in labels

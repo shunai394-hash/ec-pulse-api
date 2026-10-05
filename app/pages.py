@@ -101,7 +101,8 @@ p{margin:0 0 14px}
 .console{background:var(--night);color:var(--night-ink);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(18,18,17,.55)}
 .console-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--night-line);font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--night-mute);text-transform:uppercase}
 .signal{display:inline-flex;align-items:center;gap:8px}
-.console-meta{display:inline-flex;align-items:center;gap:12px}
+.console-top{flex-wrap:wrap;row-gap:8px}.console-top>*,.console-meta>*{white-space:nowrap}
+.console-meta{display:inline-flex;align-items:center;gap:12px;margin-left:auto}
 .autoplay{appearance:none;font:inherit;letter-spacing:inherit;text-transform:none;color:var(--night-ink);background:transparent;border:1px solid var(--night-line);border-radius:999px;min-height:28px;padding:2px 12px;cursor:pointer}
 .autoplay:hover{border-color:var(--night-mute)}
 .autoplay[hidden]{display:none}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
@@ -475,19 +476,19 @@ _LANDING_BODY = r"""<main id="main">
 <h2>顧客がいちばん困っていること</h2>
 <p class="cap">レビュー212件から不満を分類。件数と割合、実際のコメント例を返します。</p>
 <div class="rows">
-<div class="row"><span class="lbl">接続が途切れる</span><span class="val">38%</span><div class="bar"><i class="w38 hot"></i></div></div>
-<div class="row"><span class="lbl">長時間つけると耳が痛い</span><span class="val">24%</span><div class="bar"><i class="w24"></i></div></div>
-<div class="row"><span class="lbl">電池が持たない</span><span class="val">17%</span><div class="bar"><i class="w17"></i></div></div>
-<div class="row"><span class="lbl">ケースが大きい</span><span class="val">12%</span><div class="bar"><i class="w12"></i></div></div>
+<div class="row"><span class="lbl">フィットしない <span class="muted">耳から外れる</span></span><span class="val">38%</span><div class="bar"><i class="w38 hot"></i></div></div>
+<div class="row"><span class="lbl">壊れやすい <span class="muted">ヒンジが割れた</span></span><span class="val">24%</span><div class="bar"><i class="w24"></i></div></div>
+<div class="row"><span class="lbl">耐久性 <span class="muted">電池が劣化</span></span><span class="val">17%</span><div class="bar"><i class="w17"></i></div></div>
+<div class="row"><span class="lbl">価格 <span class="muted">値段が高い</span></span><span class="val">12%</span><div class="bar"><i class="w12"></i></div></div>
 </div>
 </div>
 <div class="panel" role="tabpanel" id="p3" aria-labelledby="t3" aria-hidden="true" tabindex="0">
 <h2>痛点を解消できる商品だけ残す</h2>
 <p class="cap">上位の痛点ごとに3モールを再検索し、候補を並べます。</p>
 <div class="cands">
-<div class="cand"><span class="mp">AMZ</span><span>マルチポイント対応イヤホン A</span><span class="tag">接続</span></div>
-<div class="cand"><span class="mp">RKT</span><span>低遅延モデル B（Bluetooth 5.3）</span><span class="tag">接続</span></div>
-<div class="cand"><span class="mp">YHO</span><span>軽量インナーイヤー C</span><span class="tag">装着感</span></div>
+<div class="cand"><span class="mp">AMZ</span><span>イヤーフック付きモデル A</span><span class="tag">フィット</span></div>
+<div class="cand"><span class="mp">RKT</span><span>イヤーピース3サイズ付きモデル B</span><span class="tag">フィット</span></div>
+<div class="cand"><span class="mp">YHO</span><span>補強ヒンジ・防水モデル C</span><span class="tag">耐久</span></div>
 <div class="cand dim"><span class="mp">AMZ</span><span>大型ケース付きモデル D</span><span class="tag">—</span></div>
 </div>
 </div>
@@ -591,7 +592,7 @@ _LANDING_BODY = r"""<main id="main">
 <header><span>Decision card</span><span>出力例・サンプル</span></header>
 <div class="prod"><p class="small muted m0">キーワード</p><h3>ワイヤレスイヤホン</h3></div>
 <dl class="m0">
-<div class="drow"><dt>いちばんの痛点</dt><dd><strong>38%</strong> 接続が途切れる<span class="pill sig">212件中81件</span></dd></div>
+<div class="drow"><dt>いちばんの痛点</dt><dd><strong>38%</strong> フィットしない<span class="pill sig">212件中81件</span></dd></div>
 <div class="drow"><dt>商品候補</dt><dd><strong>15</strong> 件 — Amazon 5・楽天 5・Yahoo! 5</dd></div>
 <div class="drow"><dt>価格シグナル</dt><dd><strong>−18%</strong> 平均比<span class="pill go">過去最安値</span></dd></div>
 <div class="drow"><dt>現在価格</dt><dd><strong>¥2,280</strong></dd></div>
