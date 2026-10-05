@@ -793,7 +793,7 @@ _ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
 <p class="lead">APIキー、クレジット、利用状況、請求をひとつの場所で管理します。必要なときだけ操作し、調査はAPIへ渡せます。</p>
 </div>
 <div id="status" class="notice account-status" role="status" aria-live="polite" aria-atomic="true">読み込み中…</div>\n<noscript><div class="notice error mt18">アカウント管理にはJavaScriptが必要です。ブラウザのJavaScriptを有効にして再読み込みしてください。API DocsはJavaScriptなしでも確認できます。</div></noscript>
-<div id="status-actions" class="actions hidden"><button class="btn" id="retry-account" type="button">もう一度確認する</button><a class="btn" href="/docs">API Docsを見る</a></div>
+<div id="status-actions" class="actions hidden" aria-live="polite"><button class="btn" id="retry-account" type="button">もう一度確認する</button><a class="btn" href="/docs">API Docsを見る</a></div>
 
 <section id="signed-out" class="mt18 card signed-out hidden">
 <div><span class="kicker">START</span><h2 class="h-sm mt10">まず無料で市場を調べる</h2><p class="muted">Googleアカウントでログインすると、Freeプランの毎月100クレジットとAPIキーを使い始められます。</p></div>
