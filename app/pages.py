@@ -422,14 +422,14 @@ _LANDING_BODY = r"""<main id="main">
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
 <div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div>
-<div class="stages" role="tablist" aria-label="判断までの5段階">
+<div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
 <button class="stage" role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1"><b>03</b>候補</button>
 <button class="stage" role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1"><b>04</b>価格</button>
 <button class="stage" role="tab" id="t5" aria-controls="p5" aria-selected="false" tabindex="-1"><b>05</b>判断</button>
 </div>
-<div class="panel on" role="tabpanel" id="p1" aria-labelledby="t1">
+<div class="panel on" role="tabpanel" id="p1" aria-labelledby="t1" aria-hidden="false" tabindex="0">
 <h4>3つのモールを一度に集める</h4>
 <p class="cap">キーワード「ワイヤレスイヤホン」で横断検索。各モールの価格帯を同じ目盛りで並べます。</p>
 <div class="rows">
@@ -439,7 +439,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <div class="scale" aria-hidden="true"><span>¥0</span><span>¥4,000</span><span>¥8,000</span></div>
 </div>
-<div class="panel" role="tabpanel" id="p2" aria-labelledby="t2">
+<div class="panel" role="tabpanel" id="p2" aria-labelledby="t2" aria-hidden="true" tabindex="0">
 <h4>顧客がいちばん困っていること</h4>
 <p class="cap">レビュー212件から不満を分類。件数と割合、実際のコメント例を返します。</p>
 <div class="rows">
@@ -449,7 +449,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="row"><span class="lbl">ケースが大きい</span><span class="val">12%</span><div class="bar"><i class="w12"></i></div></div>
 </div>
 </div>
-<div class="panel" role="tabpanel" id="p3" aria-labelledby="t3">
+<div class="panel" role="tabpanel" id="p3" aria-labelledby="t3" aria-hidden="true" tabindex="0">
 <h4>痛点を解消できる商品だけ残す</h4>
 <p class="cap">上位の痛点ごとに3モールを再検索し、候補を並べます。</p>
 <div class="cands">
@@ -459,7 +459,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="cand dim"><span class="mp">AMZ</span><span>大型ケース付きモデル D</span><span class="tag">—</span></div>
 </div>
 </div>
-<div class="panel" role="tabpanel" id="p4" aria-labelledby="t4">
+<div class="panel" role="tabpanel" id="p4" aria-labelledby="t4" aria-hidden="true" tabindex="0">
 <h4>今が仕入れどきか</h4>
 <p class="cap">候補 A の価格を監視。履歴の最安・最高・平均と比べたシグナルを返します。</p>
 <svg class="spark" viewBox="0 0 320 110" role="img" aria-label="価格推移のサンプル。直近で過去最安値を更新">
@@ -475,7 +475,7 @@ _LANDING_BODY = r"""<main id="main">
 <div><small>シグナル</small><strong>最安値</strong></div>
 </div>
 </div>
-<div class="panel" role="tabpanel" id="p5" aria-labelledby="t5">
+<div class="panel" role="tabpanel" id="p5" aria-labelledby="t5" aria-hidden="true" tabindex="0">
 <h4>仕入れるか、見送るか</h4>
 <p class="cap">販売想定 ¥4,980・手数料10%・送料等 ¥500・目標粗利30% の場合</p>
 <div class="verdict">
