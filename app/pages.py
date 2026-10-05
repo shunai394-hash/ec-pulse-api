@@ -320,6 +320,33 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
   .actions .btn{flex:1 1 100%}
   .plan .for{min-height:0}
 }
+
+/* award-level experience layer: restrained motion, depth and editorial craft */
+:root{--scroll:0}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(circle at 12% 8%,rgba(210,60,20,.07),transparent 26%),radial-gradient(circle at 88% 34%,rgba(23,112,74,.045),transparent 24%);opacity:.9}
+.site-head:after{content:"";position:absolute;left:0;bottom:-1px;width:calc(var(--scroll)*100%);height:2px;background:var(--signal);transform-origin:left}
+.brand{transition:transform .25s ease}.brand:hover{transform:translateY(-1px)}
+.mark{position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.05) inset}.mark:after{content:"";position:absolute;inset:-80%;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.22) 50%,transparent 58%);transform:translateX(-45%) rotate(8deg);transition:transform .7s ease}.brand:hover .mark:after{transform:translateX(45%) rotate(8deg)}
+.hero{position:relative}.hero:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,rgba(18,18,17,.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(18,18,17,.035) 1px,transparent 1px);background-size:64px 64px;mask-image:linear-gradient(to bottom,black,transparent 72%);opacity:.45}
+.hero-title,.hero-copy,.console{position:relative;z-index:1}
+.hero-title h1{max-width:12ch;text-wrap:balance}
+.hero h1 em{text-shadow:0 0 36px rgba(210,60,20,.13)}
+.console{transform:perspective(1400px) rotateX(.4deg);transition:transform .6s cubic-bezier(.2,.7,.2,1),box-shadow .6s ease}
+.console:hover{transform:perspective(1400px) rotateX(0) translateY(-4px);box-shadow:0 36px 80px -34px rgba(18,18,17,.62)}
+.section{position:relative;isolation:isolate}
+.section>.wrap{position:relative}
+.section:not(.night):after{content:"";position:absolute;right:clamp(16px,4vw,40px);top:18%;width:1px;height:22%;background:linear-gradient(transparent,var(--line),transparent);opacity:.6}
+.sec-head h2{max-width:15ch;text-wrap:balance}
+.btn{will-change:transform}.btn:active{transform:translateY(1px) scale(.985)}
+.card,.plan,.decision,.flow,.calc form,.result{transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.card:hover,.plan:hover{transform:translateY(-3px);box-shadow:0 18px 42px -30px rgba(18,18,17,.5)}
+.js .section .sec-head,.js .section .pains,.js .section .compare,.js .section .steps,.js .section .output,.js .section .calc,.js .section .plans,.js .section .dev,.js .section .trust,.js .section .cta-card{opacity:0;transform:translateY(18px)}
+.js .reveal-in{opacity:1 !important;transform:none !important;transition:opacity .75s ease,transform .75s cubic-bezier(.2,.7,.2,1)}
+.js .hero-title{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .05s forwards}.js .hero-copy{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .18s forwards}.js .console{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .3s forwards}
+@keyframes heroIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){body:before{display:none}.console{transform:none}.card,.plan{transition:none}.js .hero-title,.js .hero-copy,.js .console{animation:none;opacity:1;transform:none}}
+@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.section:not(.night):after{display:none}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}}
+
 """
 
 _NAV = """<a class="skip" href="#main">本文へ移動</a>
@@ -660,6 +687,15 @@ _LANDING_SCRIPT = r"""
 (function(){
 var d=document,root=d.documentElement;root.classList.add('js');
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Global polish: reveal sections and keep a quiet scroll-progress signal. */
+var revealTargets=[].slice.call(d.querySelectorAll('.section .sec-head,.section .pains,.section .compare,.section .steps,.section .output,.section .calc,.section .plans,.section .dev,.section .trust,.section .cta-card'));
+function reveal(el){el.classList.add('reveal-in')}
+if(reduce){revealTargets.forEach(reveal)}
+else if('IntersectionObserver' in window){var rio=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){reveal(e.target);rio.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -8% 0px'});revealTargets.forEach(function(el){rio.observe(el)})}
+else{revealTargets.forEach(reveal)}
+function scrollSignal(){var h=d.documentElement.scrollHeight-window.innerHeight;root.style.setProperty('--scroll',h>0?Math.min(1,window.scrollY/h):0)}
+scrollSignal();window.addEventListener('scroll',scrollSignal,{passive:true});
 
 /* Hero console: five stages of the decision flow. Auto-advances unless the
    visitor prefers reduced motion or is interacting with it. */
