@@ -377,7 +377,7 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
         '<meta name="theme-color" content="#f3f0e8">\n'
         '<meta name="color-scheme" content="light">\n'
-        f'<meta name="description" content="{html.escape(description)}">\n'
+        f'<meta name="description" content="{html.escape(description)}">\n        f'<meta property="og:title" content="{html.escape(title)}">\n'        f'<meta property="og:description" content="{html.escape(description)}">\n'        '<meta property="og:type" content="website">\n'        '<meta property="og:site_name" content="EC Pulse API">\n'        '<meta property="og:locale" content="ja_JP">\n'        '<meta name="twitter:card" content="summary">\n'        f'<meta name="twitter:title" content="{html.escape(title)}">\n'        f'<meta name="twitter:description" content="{html.escape(description)}">\n''
         '<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
         f"<title>{html.escape(title)}</title>\n<style>{_CSS}</style>\n</head>\n<body>\n"
         f"{_NAV}\n{body}\n{_FOOTER}\n{script_tag}\n</body></html>"
