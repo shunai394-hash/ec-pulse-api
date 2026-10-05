@@ -50,6 +50,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .links a{text-decoration:none;color:var(--ink-2);padding:8px 10px;border-radius:8px}
 .links a:hover{background:var(--paper-2);color:var(--ink)}
 .nav .btn{min-height:40px;padding:8px 16px;font-size:14px}
+.mobile-menu{display:none}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:12px 22px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font:inherit;font-weight:700;font-size:15px;line-height:1.3;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
@@ -304,7 +305,13 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
 }
 @media (max-width:760px){
   .links{display:none}
-  .nav .btn{margin-left:auto}
+  .mobile-menu{display:block;margin-left:auto;position:relative}
+  .mobile-menu summary{list-style:none;cursor:pointer;border:1px solid var(--line-2);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;background:var(--card)}
+  .mobile-menu summary::-webkit-details-marker{display:none}
+  .mobile-menu-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(78vw,300px);padding:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 45px -24px rgba(18,18,17,.5);display:grid;gap:2px}
+  .mobile-menu-panel a{padding:11px 12px;border-radius:10px;text-decoration:none;font-weight:700}
+  .mobile-menu-panel a:hover{background:var(--paper-2)}
+  .nav .nav-cta{margin-left:0;min-height:40px;padding:8px 12px;font-size:13px}
   .grid,.grid.two,.plans,.pains,.compare,.trust,.errs{grid-template-columns:minmax(0,1fr)}
   .pain,.pain+.pain,.trust div,.trust div+div{padding:22px 0 6px;border-right:0;border-bottom:1px solid var(--line)}
   .step{grid-template-columns:minmax(0,1fr);gap:10px}
@@ -352,11 +359,12 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 _NAV = """<a class="skip" href="#main">本文へ移動</a>
 <header class="site-head"><div class="wrap nav"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true"><i></i></span>EC Pulse</a>
 <nav class="links" aria-label="メイン"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a></nav>
-<a class="btn primary" href="/account">無料で始める</a></div></header>"""
+<details class="mobile-menu"><summary aria-label="メニューを開く">メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
+<a class="btn primary nav-cta" href="/account">無料で始める</a></div></header>"""
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/redoc">ReDoc</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
-<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a></nav></footer>"""
+<a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a></nav></footer>"""
 
 
 def _page(title: str, description: str, body: str, script: str = "") -> str:
