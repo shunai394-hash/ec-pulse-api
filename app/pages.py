@@ -989,7 +989,7 @@ def legal_page(slug: str) -> str | None:
         f'<main id="main" class="wrap doc"><div class="doc-crumb"><a href="/">EC Pulse</a><span>/</span>{html.escape(title)}</div>'
         f'<div class="doc-head"><span class="kicker">POLICY / {html.escape(slug.upper())}</span><h1>{html.escape(title)}</h1>'
         f'<p class="lead">EC Pulse APIをご利用いただく前に、対象のポリシーをご確認ください。</p></div>'
-        f'<article class="doc-content">{_markdown_to_html(source)}</article>'
+        f'<article class="doc-content" aria-label="{html.escape(title)}本文">{_markdown_to_html(source)}</article>'
         f'<div class="doc-actions"><a class="btn" href="/">トップへ戻る</a><a class="btn primary" href="/account">アカウントを開く</a></div></main>'
     )
     return _page(f"{title} — EC Pulse API", f"EC Pulse API {title}", body)
