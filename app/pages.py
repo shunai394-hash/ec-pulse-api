@@ -283,7 +283,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .keybox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.keybox code{word-break:break-all;font-size:14px;padding:8px 10px;background:#fff}
 input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line-2);background:#fff;color:var(--ink);font:inherit}
 .hidden{display:none !important}
-.doc{max-width:900px;padding:48px 0 88px}.not-found{min-height:58vh;display:flex;flex-direction:column;justify-content:center}.not-found-code{font-family:var(--mono);font-size:clamp(88px,18vw,190px);font-weight:600;letter-spacing:-.08em;line-height:.85;color:var(--signal);margin-bottom:24px}.not-found h1 em{font-style:normal;color:var(--signal)}.doc-crumb{display:flex;gap:9px;align-items:center;color:var(--ink-3);font-size:13px;margin-bottom:34px}.doc-crumb a{font-weight:700;text-decoration:none}.doc-head{padding-bottom:34px;border-bottom:1px solid var(--line)}.doc-head h1{font-size:clamp(34px,6vw,64px);margin-top:16px;max-width:14ch}.doc-head .lead{margin-top:18px}.doc-content{max-width:780px;padding:34px 0}.doc-content h1{font-size:30px;margin:0 0 18px}.doc-content h2{font-size:25px;margin:42px 0 14px}.doc-content h3{font-size:19px;margin:30px 0 10px}.doc-content p{color:var(--ink-2);margin:0 0 16px}.doc-content blockquote{margin:0 0 24px;padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 12px 12px 0;color:var(--ink-2)}.doc-content ul{padding-left:22px;color:var(--ink-2)}.doc-content code{background:var(--paper-2);padding:2px 6px;border-radius:5px}.legal-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.legal-table th,.legal-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.legal-table th{font-size:12px;font-family:var(--mono);letter-spacing:.05em;background:var(--paper-2)}.legal-table tr:last-child td{border-bottom:0}.doc-actions{border-top:1px solid var(--line);padding-top:24px;display:flex;gap:10px;flex-wrap:wrap}
+.doc{max-width:900px;padding:48px 0 88px}.account-page{padding-top:clamp(42px,7vw,82px);padding-bottom:88px}.account-head{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:32px 72px;align-items:end;padding-bottom:38px;border-bottom:1px solid var(--line)}.account-head h1 em{font-style:normal;color:var(--signal)}.account-head .lead{margin:0 0 5px}.account-status{margin-top:18px}.signed-out{display:flex;justify-content:space-between;align-items:end;gap:24px;padding:28px}.section-label{display:flex;justify-content:space-between;align-items:center;gap:16px}.billing-card{scroll-margin-top:88px}.not-found{min-height:58vh;display:flex;flex-direction:column;justify-content:center}.not-found-code{font-family:var(--mono);font-size:clamp(88px,18vw,190px);font-weight:600;letter-spacing:-.08em;line-height:.85;color:var(--signal);margin-bottom:24px}.not-found h1 em{font-style:normal;color:var(--signal)}.doc-crumb{display:flex;gap:9px;align-items:center;color:var(--ink-3);font-size:13px;margin-bottom:34px}.doc-crumb a{font-weight:700;text-decoration:none}.doc-head{padding-bottom:34px;border-bottom:1px solid var(--line)}.doc-head h1{font-size:clamp(34px,6vw,64px);margin-top:16px;max-width:14ch}.doc-head .lead{margin-top:18px}.doc-content{max-width:780px;padding:34px 0}.doc-content h1{font-size:30px;margin:0 0 18px}.doc-content h2{font-size:25px;margin:42px 0 14px}.doc-content h3{font-size:19px;margin:30px 0 10px}.doc-content p{color:var(--ink-2);margin:0 0 16px}.doc-content blockquote{margin:0 0 24px;padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 12px 12px 0;color:var(--ink-2)}.doc-content ul{padding-left:22px;color:var(--ink-2)}.doc-content code{background:var(--paper-2);padding:2px 6px;border-radius:5px}.legal-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.legal-table th,.legal-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.legal-table th{font-size:12px;font-family:var(--mono);letter-spacing:.05em;background:var(--paper-2)}.legal-table tr:last-child td{border-bottom:0}.doc-actions{border-top:1px solid var(--line);padding-top:24px;display:flex;gap:10px;flex-wrap:wrap}
 .cta-card{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .h-sm{font-size:22px}.h-page{font-size:clamp(30px,5vw,48px)}.page-pad{padding:32px 0 72px}.break{word-break:break-all}
 .mb8{margin-bottom:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mt14{margin-top:14px}.mt16{margin-top:16px}.mt18{margin-top:18px}.mt20{margin-top:20px}.mt22{margin-top:22px}.m006{margin:0 0 6px}.m0{margin:0}
@@ -326,6 +326,7 @@ input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14
   .kv{grid-template-columns:repeat(3,minmax(0,1fr))}
   .kv strong{font-size:14px}
   .actions .btn{flex:1 1 100%}
+  .account-head{grid-template-columns:minmax(0,1fr);gap:18px}.signed-out{display:grid;align-items:start}.account-page{padding-top:34px}
   .plan .for{min-height:0}
 }
 
@@ -775,14 +776,16 @@ LANDING_PAGE = _page(
     _LANDING_SCRIPT,
 )
 
-_ACCOUNT_BODY = r"""<main class="page-pad wrap">
-<h1 class="h-page">アカウント</h1>
-<div id="status" class="notice" role="status">読み込み中…</div>
+_ACCOUNT_BODY = r"""<main id="main" class="page-pad wrap account-page">
+<div class="account-head">
+<div><span class="kicker">CONTROL / EC PULSE</span><h1 class="h-page mt14">仕入れ調査を、<br><em>ここから動かす。</em></h1></div>
+<p class="lead">APIキー、クレジット、利用状況、請求をひとつの場所で管理します。必要なときだけ操作し、調査はAPIへ渡せます。</p>
+</div>
+<div id="status" class="notice account-status" role="status">読み込み中…</div>
 
-<section id="signed-out" class="mt18 card hidden">
-<h2 class="h-sm">ログインして APIキーを発行</h2>
-<p class="muted">Googleアカウントでログインすると、Freeプラン（毎月100クレジット）のAPIキーを発行できます。</p>
-<a class="btn primary" href="/auth/google">Googleでログイン</a>
+<section id="signed-out" class="mt18 card signed-out hidden">
+<div><span class="kicker">START</span><h2 class="h-sm mt10">まず無料で市場を調べる</h2><p class="muted">Googleアカウントでログインすると、Freeプランの毎月100クレジットとAPIキーを使い始められます。</p></div>
+<a class="btn primary" href="/auth/google">Googleでログイン <span class="arr" aria-hidden="true">→</span></a>
 </section>
 
 <div id="signed-in" class="hidden">
@@ -806,9 +809,10 @@ _ACCOUNT_BODY = r"""<main class="page-pad wrap">
 <div class="table-scroll"><table id="usage-table" class="hidden"><thead><tr><th>エンドポイント</th><th>リクエスト</th><th>クレジット</th></tr></thead><tbody id="usage-rows"></tbody></table></div>
 </section>
 
-<section class="mt16 card" id="billing">
-<h2 class="h-sm">プラン変更・お支払い</h2>
-<p class="muted">決済とプラン管理は Stripe で行います。操作にはAPIキーが必要です（このページを開いている間だけ使用し、保存しません）。</p>
+<section class="mt16 card billing-card" id="billing">
+<div class="section-label"><span class="kicker">BILLING</span><span class="small muted">Stripeで安全に管理</span></div>
+<h2 class="h-sm mt10">プラン変更・お支払い</h2>
+<p class="muted">決済とプラン管理は Stripe で行います。操作にはAPIキーが必要です。このページを閉じると入力したキーは保存されません。</p>
 <label for="billing-key" class="small muted">APIキー</label>
 <input id="billing-key" type="password" autocomplete="off" placeholder="ecp_live_…">
 <div class="actions"><button class="btn primary" type="button" data-plan="pro">Proにアップグレード</button><button class="btn" type="button" data-plan="business">Businessにアップグレード</button><button class="btn" type="button" id="portal">請求情報・解約（Stripe）</button></div>
