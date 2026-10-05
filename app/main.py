@@ -11,6 +11,7 @@ import psycopg
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
@@ -32,8 +33,10 @@ app = FastAPI(
     title="EC Pulse API",
     description="Commerce data, product discovery, price monitoring, and market research infrastructure.",
     version="0.12.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # Served by the routes below so the docs carry EC Pulse branding and
+    # ReDoc does not pull Google Fonts (visitor IPs would reach a third party).
+    docs_url=None,
+    redoc_url=None,
 )
 logger = logging.getLogger(__name__)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -268,6 +271,31 @@ async def _fetch_product_or_http_error(url: str):
         return {**payload,"cache":{"hit":cache_hit,"ttl_seconds":300}}
     except ValueError as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
     except Exception as exc: raise HTTPException(status_code=502,detail=f"Unable to retrieve product page: {type(exc).__name__}") from exc
+
+@app.get("/docs", include_in_schema=False)
+def swagger_docs():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title="API Docs — EC Pulse API",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_favicon_url="/favicon.svg",
+    )
+
+
+@app.get("/docs/oauth2-redirect", include_in_schema=False)
+def swagger_oauth2_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
+
+@app.get("/redoc", include_in_schema=False)
+def redoc_docs():
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title="ReDoc — EC Pulse API",
+        redoc_favicon_url="/favicon.svg",
+        with_google_fonts=False,
+    )
+
 
 @app.get("/auth/google", include_in_schema=False)
 async def auth_google():

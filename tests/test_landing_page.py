@@ -175,3 +175,17 @@ def test_demo_autoplay_has_visible_pause_control():
     page = client.get("/", headers={"Accept": "text/html"}).text
     assert '<button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>' in page
     assert "pointerType==='mouse'" in page
+
+
+@pytest.mark.parametrize("path", ["/docs", "/redoc"])
+def test_api_docs_are_branded_and_skip_third_party_fonts(path):
+    response = client.get(path)
+    assert response.status_code == 200
+    assert "EC Pulse API</title>" in response.text
+    assert "/favicon.svg" in response.text
+    assert "fastapi.tiangolo.com" not in response.text
+    assert "fonts.googleapis.com" not in response.text
+
+
+def test_swagger_oauth2_redirect_still_served():
+    assert client.get("/docs/oauth2-redirect").status_code == 200
