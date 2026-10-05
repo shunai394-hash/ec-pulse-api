@@ -26,7 +26,7 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
-from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, PAGE_CSP, ROBOTS_TXT, legal_page
+from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page
 
 app = FastAPI(
     title="EC Pulse API",
@@ -68,11 +68,20 @@ async def security_headers(request: Request, call_next):
         response.headers["Content-Security-Policy"] = PAGE_CSP[path]
     elif is_html and path.startswith("/legal/"):
         response.headers["Content-Security-Policy"] = LEGAL_CSP
+    elif is_html and response.status_code == 404:
+        response.headers["Content-Security-Policy"] = NOT_FOUND_CSP
     elif path not in _DOC_PATHS:
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")):
         response.headers["Cache-Control"] = "no-store"
     return response
+
+
+@app.exception_handler(404)
+async def not_found(request: Request, exc: HTTPException):
+    if "text/html" in request.headers.get("accept", ""):
+        return HTMLResponse(NOT_FOUND_PAGE, status_code=404)
+    return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 
 @app.exception_handler(psycopg.OperationalError)
