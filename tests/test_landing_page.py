@@ -169,3 +169,9 @@ def test_landing_demo_headings_follow_h1():
 def test_health_is_not_cacheable():
     response = client.get("/health")
     assert response.headers.get("cache-control") == "no-store"
+
+
+def test_demo_autoplay_has_visible_pause_control():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert '<button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>' in page
+    assert "pointerType==='mouse'" in page

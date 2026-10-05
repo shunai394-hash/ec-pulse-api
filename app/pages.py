@@ -100,7 +100,11 @@ p{margin:0 0 14px}
 /* console (hero demo) */
 .console{background:var(--night);color:var(--night-ink);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(18,18,17,.55)}
 .console-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--night-line);font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--night-mute);text-transform:uppercase}
-.signal{display:inline-flex;align-items:center;gap:8px}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
+.signal{display:inline-flex;align-items:center;gap:8px}
+.console-meta{display:inline-flex;align-items:center;gap:12px}
+.autoplay{appearance:none;font:inherit;letter-spacing:inherit;text-transform:none;color:var(--night-ink);background:transparent;border:1px solid var(--night-line);border-radius:999px;min-height:28px;padding:2px 12px;cursor:pointer}
+.autoplay:hover{border-color:var(--night-mute)}
+.autoplay[hidden]{display:none}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
 .stages{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--night-line)}
 .stage{appearance:none;background:none;border:0;border-right:1px solid var(--night-line);color:var(--night-mute);font:inherit;font-size:12px;padding:12px 6px 11px;cursor:pointer;text-align:center;position:relative;line-height:1.3}
 .stage:last-child{border-right:0}
@@ -449,7 +453,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
-<div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
+<div class="console-top"><span class="signal">Signal → Decision</span><span class="console-meta"><button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>一時停止</button><span>DEMO / SAMPLE DATA</span></span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
 <div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal" aria-describedby="demo-note">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
@@ -742,7 +746,7 @@ scrollSignal();window.addEventListener('scroll',scrollSignal,{passive:true});
 /* Hero console: five stages of the decision flow. Auto-advances unless the
    visitor prefers reduced motion or is interacting with it. */
 var tabs=[].slice.call(d.querySelectorAll('.stage')),panels=tabs.map(function(t){return d.getElementById(t.getAttribute('aria-controls'))});
-var cur=0,timer=null,paused=false,DWELL=3600;
+var cur=0,timer=null,stopped=false,hover=false,DWELL=3600,btn=d.getElementById('autoplay');
 function show(i,focus){
   cur=(i+tabs.length)%tabs.length;
   tabs.forEach(function(t,j){
@@ -754,19 +758,24 @@ function show(i,focus){
   });
   if(focus)tabs[cur].focus();
 }
-function schedule(){clearTimeout(timer);if(reduce||paused)return;timer=setTimeout(function(){show(cur+1);schedule()},DWELL)}
+function schedule(){clearTimeout(timer);if(reduce||stopped||hover)return;timer=setTimeout(function(){show(cur+1);schedule()},DWELL)}
+/* Visible pause control (WCAG 2.2.2): hover/focus pausing alone is not enough on touch screens. */
+function setStopped(on){stopped=on;if(btn){btn.setAttribute('aria-pressed',on?'true':'false');btn.textContent=on?'自動再生':'一時停止';btn.setAttribute('aria-label',on?'デモの自動切り替えを再開':'デモの自動切り替えを一時停止')}schedule()}
+if(btn&&!reduce&&tabs.length){btn.hidden=false;setStopped(false);btn.addEventListener('click',function(){hover=false;setStopped(!stopped)})}
 tabs.forEach(function(t,j){
-  t.addEventListener('click',function(){show(j);paused=true;clearTimeout(timer)});
+  t.addEventListener('click',function(){show(j);setStopped(true)});
   t.addEventListener('keydown',function(e){
-    var k=e.key;if(k==='ArrowRight'||k==='ArrowLeft'||k==='Home'||k==='End'){e.preventDefault();paused=true;clearTimeout(timer);
+    var k=e.key;if(k==='ArrowRight'||k==='ArrowLeft'||k==='Home'||k==='End'){e.preventDefault();setStopped(true);
       show(k==='Home'?0:k==='End'?tabs.length-1:cur+(k==='ArrowRight'?1:-1),true)}
   });
 });
 var con=d.getElementById('console');
 if(con){
-  con.addEventListener('mouseenter',function(){paused=true;clearTimeout(timer)});
-  con.addEventListener('mouseleave',function(){paused=false;schedule()});
-  con.addEventListener('focusin',function(){paused=true;clearTimeout(timer)});
+  /* Only a real mouse pauses on hover; taps emulate mouse events and would never "leave". */
+  con.addEventListener('pointerenter',function(e){if(e.pointerType==='mouse'){hover=true;clearTimeout(timer)}});
+  con.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'){hover=false;schedule()}});
+  con.addEventListener('focusin',function(e){if(e.target!==btn){hover=true;clearTimeout(timer)}});
+  con.addEventListener('focusout',function(e){if(!con.contains(e.relatedTarget)){hover=false;schedule()}});
 }
 if(tabs.length){show(0);schedule()}
 
