@@ -199,7 +199,7 @@ p{margin:0 0 14px}
 
 /* calculator */
 .calc{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
-.calc form{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px);display:grid;gap:16px;align-content:start}
+.calc form{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px);display:grid;gap:16px;align-content:start}.calc .result{display:none}.js .calc .result{display:grid}
 .field{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:14px;align-items:center}
 .field label{font-weight:700;font-size:15px;line-height:1.4}
 .field label small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
@@ -597,7 +597,7 @@ _LANDING_BODY = r"""<main id="main">
 <hr>
 <div class="field"><label for="c-buy">候補の仕入れ値<small>比べたい価格（任意）</small></label><div class="inp"><span>¥</span><input id="c-buy" name="buy" type="number" inputmode="numeric" min="0" step="1" value="2280"></div></div>
 </form>
-<div class="result" aria-live="polite">
+<div class="result" aria-live="polite"><noscript><p class="msg">仕入れ上限の計算結果はJavaScript有効時に表示されます。</p></noscript>
 <div><p class="label m0">仕入れ上限</p><p class="ceiling m0" id="r-ceiling">¥2,488</p><p class="msg mt12" id="r-msg">この価格以下で仕入れられれば、目標粗利率 30% を確保できます。</p></div>
 <div class="stack" aria-hidden="true"><i class="s-buy" id="b-buy"></i><i class="s-fee" id="b-fee"></i><i class="s-ship" id="b-ship"></i><i class="s-profit" id="b-profit"></i></div>
 <ul class="legend">
@@ -890,7 +890,7 @@ async function init(){
 $('issue-key').addEventListener('click',function(){issue(false)});
 $('rotate-key').addEventListener('click',function(){issue(true)});
 $('copy-key').addEventListener('click',function(){var value=$('new-key-value').textContent;if(navigator.clipboard){navigator.clipboard.writeText(value).then(function(){$('copy-key').textContent='コピーしました'}).catch(function(){fallbackCopy(value)})}else{fallbackCopy(value)}});
-function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');$('copy-key').textContent='コピーしました'}finally{document.body.removeChild(ta)}}
+function fallbackCopy(value){var ta=document.createElement('textarea');ta.value=value;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{var ok=document.execCommand('copy');$('copy-key').textContent=ok?'コピーしました':'コピーできませんでした';if(!ok)status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}catch(e){$('copy-key').textContent='コピーできませんでした';status('コピーに失敗しました。APIキーを手動で選択してコピーしてください。','error')}finally{document.body.removeChild(ta)}}
 document.querySelectorAll('[data-plan]').forEach(function(b){b.addEventListener('click',function(){billing('/v1/billing/checkout?plan='+b.getAttribute('data-plan'))})});
 $('portal').addEventListener('click',function(){billing('/v1/billing/portal')});
 init().catch(function(){status('通信エラーが発生しました。時間をおいて再読み込みしてください。','error')});
