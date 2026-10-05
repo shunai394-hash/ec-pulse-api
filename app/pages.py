@@ -28,7 +28,7 @@ _CSS = r"""
   --sans:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Yu Gothic",Meiryo,system-ui,-apple-system,"Segoe UI",sans-serif;
   --max:1240px;--gut:clamp(16px,4vw,40px);--r:14px
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;font-feature-settings:"palt" 1;text-rendering:optimizeLegibility}
 ::selection{background:var(--signal);color:#fff}
@@ -423,7 +423,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
-<div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div>
+<div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
 <div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
