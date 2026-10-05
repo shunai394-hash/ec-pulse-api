@@ -99,7 +99,7 @@ p{margin:0 0 14px}
 /* console (hero demo) */
 .console{background:var(--night);color:var(--night-ink);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(18,18,17,.55)}
 .console-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--night-line);font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--night-mute);text-transform:uppercase}
-.live{display:inline-flex;align-items:center;gap:8px}.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal);animation:pulse 1.6s ease-in-out infinite}
+.signal{display:inline-flex;align-items:center;gap:8px}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
 .stages{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--night-line)}
 .stage{appearance:none;background:none;border:0;border-right:1px solid var(--night-line);color:var(--night-mute);font:inherit;font-size:12px;padding:12px 6px 11px;cursor:pointer;text-align:center;position:relative;line-height:1.3}
 .stage:last-child{border-right:0}
@@ -416,11 +416,12 @@ _LANDING_BODY = r"""<main id="main">
 <a class="btn primary" href="/account">無料で仕入れ候補を調べる <span class="arr" aria-hidden="true">→</span></a>
 <a class="btn" href="#calc">仕入れ上限を計算する</a>
 </div>
+<noscript><p class="notice mt18">デモの切り替えと仕入れ上限の自動計算にはJavaScriptが必要です。API Docsとアカウントページはそのまま利用できます。</p></noscript>
 <p class="hero-note"><span>毎月100クレジット無料</span><span>カード登録不要</span><span>成功した処理だけ課金</span></p>
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
-<div class="console-top"><span class="live">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div>
+<div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div>
 <div class="stages" role="tablist" aria-label="判断までの5段階">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
