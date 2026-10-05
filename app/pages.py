@@ -283,7 +283,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .keybox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.keybox code{word-break:break-all;font-size:14px;padding:8px 10px;background:#fff}
 input[type=password],input[type=text]{width:100%;min-height:48px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line-2);background:#fff;color:var(--ink);font:inherit}
 .hidden{display:none !important}
-.doc{max-width:900px;padding:48px 0 88px}.doc-crumb{display:flex;gap:9px;align-items:center;color:var(--ink-3);font-size:13px;margin-bottom:34px}.doc-crumb a{font-weight:700;text-decoration:none}.doc-head{padding-bottom:34px;border-bottom:1px solid var(--line)}.doc-head h1{font-size:clamp(34px,6vw,64px);margin-top:16px;max-width:14ch}.doc-head .lead{margin-top:18px}.doc-content{max-width:780px;padding:34px 0}.doc-content h1{font-size:30px;margin:0 0 18px}.doc-content h2{font-size:25px;margin:42px 0 14px}.doc-content h3{font-size:19px;margin:30px 0 10px}.doc-content p{color:var(--ink-2);margin:0 0 16px}.doc-content blockquote{margin:0 0 24px;padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 12px 12px 0;color:var(--ink-2)}.doc-content ul{padding-left:22px;color:var(--ink-2)}.doc-content code{background:var(--paper-2);padding:2px 6px;border-radius:5px}.legal-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.legal-table th,.legal-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.legal-table th{font-size:12px;font-family:var(--mono);letter-spacing:.05em;background:var(--paper-2)}.legal-table tr:last-child td{border-bottom:0}.doc-actions{border-top:1px solid var(--line);padding-top:24px;display:flex;gap:10px;flex-wrap:wrap}
+.doc{max-width:900px;padding:48px 0 88px}.not-found{min-height:58vh;display:flex;flex-direction:column;justify-content:center}.not-found-code{font-family:var(--mono);font-size:clamp(88px,18vw,190px);font-weight:600;letter-spacing:-.08em;line-height:.85;color:var(--signal);margin-bottom:24px}.not-found h1 em{font-style:normal;color:var(--signal)}.doc-crumb{display:flex;gap:9px;align-items:center;color:var(--ink-3);font-size:13px;margin-bottom:34px}.doc-crumb a{font-weight:700;text-decoration:none}.doc-head{padding-bottom:34px;border-bottom:1px solid var(--line)}.doc-head h1{font-size:clamp(34px,6vw,64px);margin-top:16px;max-width:14ch}.doc-head .lead{margin-top:18px}.doc-content{max-width:780px;padding:34px 0}.doc-content h1{font-size:30px;margin:0 0 18px}.doc-content h2{font-size:25px;margin:42px 0 14px}.doc-content h3{font-size:19px;margin:30px 0 10px}.doc-content p{color:var(--ink-2);margin:0 0 16px}.doc-content blockquote{margin:0 0 24px;padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 12px 12px 0;color:var(--ink-2)}.doc-content ul{padding-left:22px;color:var(--ink-2)}.doc-content code{background:var(--paper-2);padding:2px 6px;border-radius:5px}.legal-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}.legal-table th,.legal-table td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.legal-table th{font-size:12px;font-family:var(--mono);letter-spacing:.05em;background:var(--paper-2)}.legal-table tr:last-child td{border-bottom:0}.doc-actions{border-top:1px solid var(--line);padding-top:24px;display:flex;gap:10px;flex-wrap:wrap}
 .cta-card{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
 .h-sm{font-size:22px}.h-page{font-size:clamp(30px,5vw,48px)}.page-pad{padding:32px 0 72px}.break{word-break:break-all}
 .mb8{margin-bottom:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}.mt14{margin-top:14px}.mt16{margin-top:16px}.mt18{margin-top:18px}.mt20{margin-top:20px}.mt22{margin-top:22px}.m006{margin:0 0 6px}.m0{margin:0}
@@ -991,3 +991,22 @@ PAGE_CSP = {
 }
 # Legal pages share the page shell and have no script, so one policy fits all of them.
 LEGAL_CSP = csp_for(_page("", "", ""))
+
+_NOT_FOUND_BODY = r"""<main id="main" class="wrap page-pad not-found">
+<div class="not-found-code">404</div>
+<span class="kicker">SIGNAL LOST</span>
+<h1 class="h-page mt18">そのページは、<br><em>見つかりません。</em></h1>
+<p class="lead mt18">URLが変わったか、まだ公開されていない可能性があります。EC Pulseの主要な入口から続けられます。</p>
+<div class="actions mt20">
+<a class="btn primary" href="/">EC Pulseへ戻る <span class="arr" aria-hidden="true">→</span></a>
+<a class="btn" href="/docs">API Docs</a>
+<a class="btn" href="/account">アカウント</a>
+</div>
+</main>"""
+
+NOT_FOUND_PAGE = _page(
+    "ページが見つかりません — EC Pulse API",
+    "EC Pulse API のページが見つかりません。",
+    _NOT_FOUND_BODY,
+)
+NOT_FOUND_CSP = csp_for(NOT_FOUND_PAGE)
