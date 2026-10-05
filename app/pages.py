@@ -424,7 +424,7 @@ _LANDING_BODY = r"""<main id="main">
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
 <div class="console-top"><span class="signal">Signal → Decision</span><span>DEMO / SAMPLE DATA</span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
-<div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal">
+<div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal" aria-describedby="demo-note">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
 <button class="stage" role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1"><b>03</b>候補</button>
