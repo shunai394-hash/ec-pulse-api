@@ -95,7 +95,7 @@ p{margin:0 0 14px}
 .hero h1 em{font-style:normal;color:var(--signal)}
 .hero .lead{margin-top:0}
 .hero-note{margin-top:18px;font-size:13px;color:var(--ink-3);display:flex;gap:16px;flex-wrap:wrap}
-.hero-note span:before{content:"✓ ";color:var(--go);font-weight:800}
+.hero-note span:before{content:"✓ ";color:var(--go);font-weight:800}.proof-rail{margin-top:24px;display:flex;align-items:center;gap:12px;max-width:560px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(251,250,246,.72);box-shadow:0 12px 30px -26px rgba(18,18,17,.55)}.proof-rail div{display:grid;gap:0;min-width:58px}.proof-rail strong{font-family:var(--mono);font-size:22px;line-height:1}.proof-rail span{font-size:10px;color:var(--ink-3);letter-spacing:.04em}.proof-rail i{font-style:normal;color:var(--signal-ink);font-family:var(--mono)}.proof-rail p{margin:0 0 0 4px;padding-left:12px;border-left:1px solid var(--line);font-size:11px;line-height:1.5;color:var(--ink-3)}
 
 /* console (hero demo) */
 .console{background:var(--night);color:var(--night-ink);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(18,18,17,.55)}
@@ -104,7 +104,7 @@ p{margin:0 0 14px}
 .console-top{flex-wrap:wrap;row-gap:8px}.console-top>*,.console-meta>*{white-space:nowrap}
 .console-meta{display:inline-flex;align-items:center;gap:12px;margin-left:auto}
 .autoplay{appearance:none;font:inherit;letter-spacing:inherit;text-transform:none;color:var(--night-ink);background:transparent;border:1px solid var(--night-line);border-radius:999px;min-height:28px;padding:2px 12px;cursor:pointer}
-.autoplay:hover{border-color:var(--night-mute)}
+.autoplay:hover{border-color:var(--night-mute)}.sample-badge{display:inline-flex;align-items:center;min-height:28px;padding:2px 9px;border:1px solid var(--night-line);border-radius:999px;background:rgba(255,255,255,.025)}
 .autoplay[hidden]{display:none}.signal:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
 .stages{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--night-line)}
 .stage{appearance:none;background:none;border:0;border-right:1px solid var(--night-line);color:var(--night-mute);font:inherit;font-size:12px;padding:12px 6px 11px;cursor:pointer;text-align:center;position:relative;line-height:1.3}
@@ -187,7 +187,7 @@ p{margin:0 0 14px}
 .output{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,56px);align-items:start}
 .decision{background:var(--card);border:1.5px solid var(--ink);border-radius:20px;overflow:hidden}
 .decision header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
-.decision .prod{padding:20px 20px 4px}
+.decision .prod{padding:20px 20px 4px}.evidence-strip{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:9px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-3)}.evidence-strip span:first-child{color:var(--signal-ink);font-weight:700}
 .decision .prod h3{font-size:clamp(20px,2.4vw,26px)}
 .drow{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;padding:16px 20px;border-top:1px solid var(--line);align-items:baseline}
 .drow dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--ink-3);text-transform:uppercase}
@@ -223,7 +223,7 @@ p{margin:0 0 14px}
 .inp:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px var(--signal-soft)}.inp:has(input[aria-invalid=true]){border-color:var(--signal);background:#fff6f2}
 .inp span{padding:0 10px;color:var(--ink-3);font-family:var(--mono);font-size:13px}
 .inp input{border:0;outline:0;width:100%;min-height:46px;padding:0 10px;font-family:var(--mono);font-size:17px;text-align:right;background:transparent;color:var(--ink);font-variant-numeric:tabular-nums}
-.calc form hr{border:0;border-top:1px dashed var(--line-2);margin:4px 0}
+.calc form hr{border:0;border-top:1px dashed var(--line-2);margin:4px 0}.presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.presets span{font-size:11px;color:var(--ink-3);font-family:var(--mono)}.presets button{appearance:none;border:1px solid var(--line-2);background:var(--paper-2);color:var(--ink-2);border-radius:999px;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer}.presets button:hover,.presets button:focus-visible{border-color:var(--signal);color:var(--signal-ink);background:var(--signal-soft)}
 .result{background:var(--night);color:var(--night-ink);border-radius:20px;padding:clamp(22px,3.4vw,40px);display:grid;gap:22px;align-content:start}
 .result .label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--night-mute)}
 .result .ceiling{font-family:var(--mono);font-size:clamp(48px,7vw,88px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
@@ -267,13 +267,13 @@ pre{background:#0a0a09;color:#ecebe4;border:1px solid var(--night-line);border-r
 code{background:var(--paper-2);border-radius:5px;padding:1px 6px}
 pre code,.night code{background:none;padding:0}
 .night code{color:var(--night-ink)}
-pre .c{color:#8d8a80}pre .k{color:#ff9d80}
+pre .c{color:#8d8a80}pre .k{color:#ff9d80}.code-shell{position:relative}.code-copy{position:absolute;right:10px;top:10px;z-index:1;border:1px solid var(--night-line);background:var(--night);color:var(--night-ink);border-radius:999px;padding:6px 10px;font:inherit;font-family:var(--mono);font-size:10px;cursor:pointer}.code-copy:hover{border-color:var(--night-mute)}
 .errs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--night-line);border:1px solid var(--night-line);border-radius:14px;overflow:hidden;margin-top:16px}
 .errs div{background:var(--night);padding:14px 16px;font-size:13px;color:var(--night-mute)}
 .errs b{display:block;font-family:var(--mono);font-size:15px;color:var(--night-ink);font-weight:600}
 
 /* trust */
-.trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1.5px solid var(--ink)}
+.trust{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border-top:1.5px solid var(--ink)}
 .trust div{padding:24px 24px 8px 0;border-right:1px solid var(--line)}
 .trust div+div{padding-left:24px}.trust div:last-child{border-right:0}
 .trust h3{font-size:17px;margin-bottom:10px}
@@ -291,7 +291,7 @@ th{color:var(--ink-3);font-weight:600;font-family:var(--mono);font-size:12px;let
 .table-scroll{overflow-x:auto}
 .footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--ink-3);font-size:13px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .footer nav{display:flex;gap:6px 18px;flex-wrap:wrap}
-.footer a{text-decoration:none;display:inline-block;padding:4px 0}.footer a:hover{text-decoration:underline}
+.footer a{text-decoration:none;display:inline-block;padding:4px 0}.footer a:hover{text-decoration:underline}.footer-signal{display:inline-flex;align-items:center;gap:5px;margin-left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--signal-ink)}.footer-signal:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--signal)}
 mark.legal-input{background:#fbf3dc;color:#5a4610;border:1px dashed #c9a94e;border-radius:4px;padding:0 3px}
 .notice{border:1px solid #e4cf98;background:#fbf3dc;color:#5a4610;border-radius:12px;padding:12px 14px;font-size:14px}
 .error{border-color:#efb8a8;background:#fbe7e1;color:#7b230b}
@@ -383,9 +383,9 @@ _NAV = """<a class="skip" href="#main">本文へ移動</a>
 <header class="site-head"><div class="wrap nav"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true"><i></i></span>EC Pulse</a>
 <nav class="links" aria-label="メイン"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/#faq">FAQ</a><a href="/account">アカウント</a></nav>
 <details class="mobile-menu"><summary>メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/#faq">FAQ</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
-<a class="btn primary nav-cta" href="/account">無料で始める</a></div></header>"""
+<a class="btn primary nav-cta" href="/account">無料でAPIキー</a></div></header>"""
 
-_FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
+_FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル <span class="footer-signal" aria-label="API first">● API FIRST</span></span><nav aria-label="フッター">
 <a href="/docs">API Docs</a><a href="/redoc">ReDoc</a><a href="/health">Status</a><a href="/legal/terms">利用規約</a><a href="/legal/privacy">プライバシー</a>
 <a href="/legal/billing">料金・解約</a><a href="/legal/commercial-transactions">特定商取引法に基づく表記</a><a href="/legal/acceptable-use">利用制限</a><a href="https://github.com/shunai394-hash/ec-pulse-api" target="_blank" rel="noopener noreferrer">GitHub</a></nav></footer>"""
 
@@ -461,10 +461,11 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <noscript><p class="notice mt18">デモの切り替えと仕入れ上限の自動計算にはJavaScriptが必要です。API Docsとアカウントページはそのまま利用できます。</p></noscript>
 <p class="hero-note"><span>毎月100クレジット無料</span><span>カード登録不要</span><span>成功した処理だけ課金</span><span>10 MCPツール対応</span></p>
+<div class="proof-rail" aria-label="EC Pulseの判断フロー"><div><strong>3</strong><span>モール</span></div><i aria-hidden="true">→</i><div><strong>5</strong><span>シグナル</span></div><i aria-hidden="true">→</i><div><strong>1</strong><span>判断</span></div><p>検索結果を増やすのではなく、判断材料を圧縮する。</p></div>
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
-<div class="console-top"><span class="signal">Signal → Decision</span><span class="console-meta"><button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>一時停止</button><span>DEMO / SAMPLE DATA</span></span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
+<div class="console-top"><span class="signal">Signal → Decision</span><span class="console-meta"><button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>一時停止</button><span class="sample-badge">DEMO / SAMPLE DATA</span></span></div><p class="sr-only" id="demo-note">以下は操作イメージのサンプルデータです。実データの取得結果ではありません。</p>
 <div class="stages" role="tablist" aria-label="判断までの5段階" aria-orientation="horizontal" aria-describedby="demo-note">
 <button class="stage" role="tab" id="t1" aria-controls="p1" aria-selected="true"><b>01</b>市場</button>
 <button class="stage" role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><b>02</b>痛点</button>
@@ -599,7 +600,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <div class="output">
 <article class="decision" aria-label="判断カードの例">
-<header><span>Decision card</span><span>出力例・サンプル</span></header>
+<header><span>Decision card</span><span>出力例・サンプル</span></header><div class="evidence-strip"><span>TRACEABLE OUTPUT</span><span>件数・価格・計算式を確認できます</span></div>
 <div class="prod"><p class="small muted m0">キーワード</p><h3>ワイヤレスイヤホン</h3></div>
 <dl class="m0">
 <div class="drow"><dt>いちばんの痛点</dt><dd><strong>38%</strong> フィットしない<span class="pill sig">212件中81件</span></dd></div>
@@ -631,7 +632,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <div class="calc">
 <form id="calc-form" aria-describedby="calc-help" novalidate>
-<p id="calc-help" class="small muted m0">すべて税込・1個あたりで入力してください。計算はこのページの中だけで行い、どこにも送信しません。</p>
+<p id="calc-help" class="small muted m0">すべて税込・1個あたりで入力してください。計算はこのページの中だけで行い、どこにも送信しません。</p><div class="presets" aria-label="計算例"><span>試す：</span><button type="button" data-preset="balanced">標準</button><button type="button" data-preset="tight">薄利</button><button type="button" data-preset="premium">高単価</button></div>
 <div class="field"><label for="c-price">販売価格<small>売りたい価格</small></label><div class="inp"><span>¥</span><input id="c-price" name="price" type="number" inputmode="numeric" min="0" step="1" value="4980"></div></div>
 <div class="field"><label for="c-fee">販売手数料<small>モールの手数料率</small></label><div class="inp"><input id="c-fee" name="fee" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="10"><span>%</span></div></div>
 <div class="field"><label for="c-ship">送料・梱包<small>1個あたり</small></label><div class="inp"><span>¥</span><input id="c-ship" name="ship" type="number" inputmode="numeric" min="0" step="1" value="500"></div></div>
@@ -686,7 +687,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="wrap">
 <div class="sec-head">
 <div><span class="sec-no">07 — FOR DEVELOPERS</span><h2 id="qs-title"><span class="ln">仕入れ調査を、</span><br><span class="ln">APIで自動化する。</span></h2></div>
-<p class="lead">EC PulseはAPIが本体。スプレッドシート、社内ツール、ClaudeなどのAIエージェントから、同じ認証・クレジット体系で呼び出せます。</p>
+<p class="lead">EC PulseはAPIが本体。スプレッドシート、社内ツール、ClaudeなどのAIエージェントから、同じ認証・クレジット体系で呼び出せます。<br><strong>まず1回呼ぶ → 判断材料を見る → 自動化する。</strong></p>
 </div>
 <div class="dev">
 <ol>
@@ -697,13 +698,13 @@ _LANDING_BODY = r"""<main id="main">
 <li><div><strong>Claudeから使う</strong><p>Claude Code プラグインの10のMCPツールが、同じAPIで検索・比較・レビュー分析・価格監視を会話から実行します。<a href="https://github.com/shunai394-hash/ec-pulse-api/tree/main/plugins/ec-pulse" class="textlink" target="_blank" rel="noopener noreferrer">プラグインの導入方法<span class="sr-only">（GitHub、新しいタブで開きます）</span></a></p></div></li>
 </ol>
 <div>
-<pre tabindex="0" aria-label="curlでの呼び出し例"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
+<div class="code-shell"><button type="button" class="code-copy" id="copy-curl">curlをコピー</button><pre tabindex="0" aria-label="curlでの呼び出し例" id="curl-example"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
 curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
   -H <span class="k">"X-API-Key: $EC_PULSE_API_KEY"</span> \
   -H "Content-Type: application/json" \
   -d '{"query":"ワイヤレスイヤホン",
        "marketplaces":["amazon","rakuten","yahoo"],
-       "limit":5}'</code></pre>
+       "limit":5}'</code></pre></div>
 <div class="errs">
 <div><b>401</b>APIキーがない・無効</div>
 <div><b>402</b>クレジット不足（消費なし）</div>
@@ -849,7 +850,8 @@ if(f){
       b.textContent=ceiling<=0?'この条件では、どの仕入れ値でも目標に届きません':gap>=0?'上限より '+yen(gap)+' 安い — 仕入れ条件を満たしています':'上限を '+yen(-gap)+' 超えています — この値段では目標粗利に届きません';
     }
   };
-  f.addEventListener('input',calc);f.addEventListener('submit',function(e){e.preventDefault()});calc();
+  f.addEventListener('input',calc);f.addEventListener('submit',function(e){e.preventDefault()});[].forEach.call(d.querySelectorAll('[data-preset]'),function(b){b.addEventListener('click',function(){var p={balanced:[4980,10,500,0,30,2280],tight:[3980,12,550,120,35,1900],premium:[12800,8,700,300,35,7200]}[b.getAttribute('data-preset')];if(!p)return;['c-price','c-fee','c-ship','c-other','c-margin','c-buy'].forEach(function(id,i){d.getElementById(id).value=p[i]});calc();d.getElementById('c-price').focus()})});calc();
+var copyCurl=d.getElementById('copy-curl'),curl=d.getElementById('curl-example');if(copyCurl&&curl){copyCurl.addEventListener('click',function(){var value=curl.innerText.trim();var done=function(ok){copyCurl.textContent=ok?'コピーしました':'手動でコピー';setTimeout(function(){copyCurl.textContent='curlをコピー'},1800)};if(navigator.clipboard){navigator.clipboard.writeText(value).then(function(){done(true)}).catch(function(){done(false)})}else{done(false)}})}
 }
 })();
 """
