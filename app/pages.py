@@ -450,7 +450,7 @@ _LANDING_BODY = r"""<main id="main">
 <a class="btn" href="#calc">仕入れ上限を計算する</a>
 </div>
 <noscript><p class="notice mt18">デモの切り替えと仕入れ上限の自動計算にはJavaScriptが必要です。API Docsとアカウントページはそのまま利用できます。</p></noscript>
-<p class="hero-note"><span>毎月100クレジット無料</span><span>カード登録不要</span><span>成功した処理だけ課金</span></p>
+<p class="hero-note"><span>毎月100クレジット無料</span><span>カード登録不要</span><span>成功した処理だけ課金</span><span>10 MCPツール対応</span></p>
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
