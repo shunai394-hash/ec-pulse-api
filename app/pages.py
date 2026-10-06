@@ -751,7 +751,7 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 <section class="wrap final" aria-labelledby="final-title">
 <span class="kicker">START</span>
 <h2 id="final-title" class="mt18"><span class="ln">まずは、気になっている</span><br><span class="ln">商品をひとつ。</span></h2>
-<div class="actions"><a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">APIを試す</a></div>
+<div class="actions"><a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">API仕様を見る</a><a class="textlink" href="/#faq">よくある質問を確認</a></div>
 </section>
 </main>
 """
