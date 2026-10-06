@@ -381,8 +381,8 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 
 _NAV = """<a class="skip" href="#main">本文へ移動</a>
 <header class="site-head"><div class="wrap nav"><a class="brand" href="/" aria-label="EC Pulse API ホーム"><span class="mark" aria-hidden="true"><i></i></span>EC Pulse</a>
-<nav class="links" aria-label="メイン"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a></nav>
-<details class="mobile-menu"><summary>メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
+<nav class="links" aria-label="メイン"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/#faq">FAQ</a><a href="/account">アカウント</a></nav>
+<details class="mobile-menu"><summary>メニュー</summary><div class="mobile-menu-panel"><a href="/#features">仕組み</a><a href="/#calc">仕入れ上限</a><a href="/#pricing">料金</a><a href="/#quickstart">開発者</a><a href="/#faq">FAQ</a><a href="/account">アカウント</a><a href="/docs">API Docs</a></div></details>
 <a class="btn primary nav-cta" href="/account">無料で始める</a></div></header>"""
 
 _FOOTER = """<footer class="wrap footer"><span>© EC Pulse API — 仕入れ判断のための市場シグナル</span><nav aria-label="フッター">
