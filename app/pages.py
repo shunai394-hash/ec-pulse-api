@@ -688,7 +688,7 @@ _LANDING_BODY = r"""<main id="main">
 </ol>
 <div>
 <pre tabindex="0" aria-label="curlでの呼び出し例"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
-curl -X POST https://ec-pulse-api.vercel.app/v1/products/search \
+curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
   -H <span class="k">"X-API-Key: $EC_PULSE_API_KEY"</span> \
   -H "Content-Type: application/json" \
   -d '{"query":"ワイヤレスイヤホン",
