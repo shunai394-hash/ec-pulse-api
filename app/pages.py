@@ -676,7 +676,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="wrap">
 <div class="sec-head">
 <div><span class="sec-no">07 — FOR DEVELOPERS</span><h2 id="qs-title"><span class="ln">仕入れ調査を、</span><br><span class="ln">APIで自動化する。</span></h2></div>
-<p class="lead">スプレッドシート、社内ツール、Claude などのAIエージェントから、同じAPIを呼び出せます。</p>
+<p class="lead">EC PulseはAPIが本体。スプレッドシート、社内ツール、ClaudeなどのAIエージェントから、同じ認証・クレジット体系で呼び出せます。</p>
 </div>
 <div class="dev">
 <ol>
