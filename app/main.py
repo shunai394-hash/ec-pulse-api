@@ -11,7 +11,8 @@ import psycopg
 from datetime import datetime, timezone
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, constr, HttpUrl
 
@@ -26,14 +27,16 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
-from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, PAGE_CSP, ROBOTS_TXT, legal_page
+from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page
 
 app = FastAPI(
     title="EC Pulse API",
     description="Commerce data, product discovery, price monitoring, and market research infrastructure.",
     version="0.12.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    # Served by the routes below so the docs carry EC Pulse branding and
+    # ReDoc does not pull Google Fonts (visitor IPs would reach a third party).
+    docs_url=None,
+    redoc_url=None,
 )
 logger = logging.getLogger(__name__)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -68,11 +71,20 @@ async def security_headers(request: Request, call_next):
         response.headers["Content-Security-Policy"] = PAGE_CSP[path]
     elif is_html and path.startswith("/legal/"):
         response.headers["Content-Security-Policy"] = LEGAL_CSP
+    elif is_html and response.status_code == 404:
+        response.headers["Content-Security-Policy"] = NOT_FOUND_CSP
     elif path not in _DOC_PATHS:
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
-    if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")):
+    if request.url.path.startswith(("/v1/", "/auth/", "/billing", "/api/")) or request.url.path == "/health":
         response.headers["Cache-Control"] = "no-store"
     return response
+
+
+@app.exception_handler(404)
+async def not_found(request: Request, exc: HTTPException):
+    if "text/html" in request.headers.get("accept", ""):
+        return HTMLResponse(NOT_FOUND_PAGE, status_code=404)
+    return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 
 @app.exception_handler(psycopg.OperationalError)
@@ -260,6 +272,31 @@ async def _fetch_product_or_http_error(url: str):
     except ValueError as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
     except Exception as exc: raise HTTPException(status_code=502,detail=f"Unable to retrieve product page: {type(exc).__name__}") from exc
 
+@app.get("/docs", include_in_schema=False)
+def swagger_docs():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title="API Docs — EC Pulse API",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_favicon_url="/favicon.svg",
+    )
+
+
+@app.get("/docs/oauth2-redirect", include_in_schema=False)
+def swagger_oauth2_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
+
+@app.get("/redoc", include_in_schema=False)
+def redoc_docs():
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title="ReDoc — EC Pulse API",
+        redoc_favicon_url="/favicon.svg",
+        with_google_fonts=False,
+    )
+
+
 @app.get("/auth/google", include_in_schema=False)
 async def auth_google():
     return await google_login()
@@ -267,9 +304,16 @@ async def auth_google():
 
 @app.get("/auth/callback", include_in_schema=False)
 async def auth_callback(request: Request, code: str | None = None):
-    if not code:
-        raise HTTPException(status_code=400, detail="Missing OAuth code")
-    return await exchange_callback(request, code)
+    try:
+        if not code:
+            raise HTTPException(status_code=400, detail="Missing OAuth code")
+        return await exchange_callback(request, code)
+    except (HTTPException, httpx.HTTPError):
+        # A cancelled or expired Google login should land on a page that explains
+        # it and offers a retry, not on a bare JSON error.
+        if "text/html" in request.headers.get("accept", ""):
+            return RedirectResponse("/account?login=failed", status_code=302)
+        raise
 
 
 @app.get("/auth/me", tags=["auth"])
@@ -337,8 +381,19 @@ def health():
             detail={"status": "degraded", "database": "unavailable", "error": type(exc).__name__},
         ) from exc
 
+def _billing_return(request: Request, outcome: str) -> RedirectResponse | None:
+    """Stripe sends customers back to these URLs in a browser; show them the
+    account page with the outcome instead of a JSON document. API clients
+    (no text/html in Accept) keep the JSON responses below."""
+    if "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(f"/account?billing={outcome}", status_code=302)
+    return None
+
+
 @app.get("/billing", include_in_schema=False)
 async def billing_page(request: Request):
+    if redirect := _billing_return(request, "portal"):
+        return redirect
     user = await current_user(request)
     user_id = user.get("id")
     if not user_id:
@@ -348,6 +403,8 @@ async def billing_page(request: Request):
 
 @app.get("/billing/success", include_in_schema=False)
 async def billing_success(request: Request, session_id: str | None = Query(default=None)):
+    if redirect := _billing_return(request, "success"):
+        return redirect
     user = await current_user(request)
     user_id = user.get("id")
     if not user_id:
@@ -382,6 +439,8 @@ async def billing_success(request: Request, session_id: str | None = Query(defau
 
 @app.get("/billing/cancel", include_in_schema=False)
 async def billing_cancel_page(request: Request):
+    if redirect := _billing_return(request, "cancel"):
+        return redirect
     user = await current_user(request)
     if not user.get("id"):
         raise HTTPException(status_code=401, detail="Authenticated user id is missing")

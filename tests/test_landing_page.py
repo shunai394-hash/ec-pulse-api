@@ -131,3 +131,74 @@ def test_landing_has_skip_link_and_no_external_resources():
     assert '<a class="skip" href="#main">' in page and 'id="main"' in page
     assert "http://" not in page.replace("http://localhost", "")
     assert "<link rel=\"stylesheet\"" not in page and "<script src" not in page
+
+
+@pytest.mark.parametrize("path", ["/", "/account", "/legal/terms", "/does-not-exist"])
+def test_every_page_ships_mobile_menu_script_covered_by_csp(path):
+    response = client.get(path, headers={"Accept": "text/html"})
+    assert "document.querySelector('.mobile-menu')" in response.text
+    allowed = response.headers["content-security-policy"]
+    for digest in _inline_hashes(response.text, "script"):
+        assert digest in allowed
+
+
+def test_mobile_menu_summary_has_no_stale_open_label():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert '<summary aria-label="メニューを開く">' not in page
+    assert '<details class="mobile-menu"><summary>メニュー</summary>' in page
+
+
+def test_account_status_starts_hidden_for_no_js_visitors():
+    page = client.get("/account").text
+    assert '<div id="status" class="notice account-status hidden"' in page
+    assert "読み込み中…" not in page
+
+
+def test_legal_placeholders_are_marked_not_filled():
+    page = client.get("/legal/commercial-transactions").text
+    assert '<mark class="legal-input">［要入力］</mark>' in page
+    assert "運営者が確定する項目" in page
+
+
+def test_landing_demo_headings_follow_h1():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert "<h4>" not in page
+    assert re.search(r'role="tabpanel"[^>]*>\n<h2>', page)
+
+
+def test_health_is_not_cacheable():
+    response = client.get("/health")
+    assert response.headers.get("cache-control") == "no-store"
+
+
+def test_demo_autoplay_has_visible_pause_control():
+    page = client.get("/", headers={"Accept": "text/html"}).text
+    assert '<button class="autoplay" id="autoplay" type="button" aria-pressed="false" hidden>' in page
+    assert "pointerType==='mouse'" in page
+
+
+@pytest.mark.parametrize("path", ["/docs", "/redoc"])
+def test_api_docs_are_branded_and_skip_third_party_fonts(path):
+    response = client.get(path)
+    assert response.status_code == 200
+    assert "EC Pulse API</title>" in response.text
+    assert "/favicon.svg" in response.text
+    assert "fastapi.tiangolo.com" not in response.text
+    assert "fonts.googleapis.com" not in response.text
+
+
+def test_swagger_oauth2_redirect_still_served():
+    assert client.get("/docs/oauth2-redirect").status_code == 200
+
+
+def test_demo_pain_labels_are_ones_the_analyzer_can_return():
+    # The decision card claims to use only real response fields, so its pain
+    # labels must be categories consumer_insights can actually produce.
+    from app.services.consumer_insights import PAIN_PATTERNS
+
+    labels = {label for label, _ in PAIN_PATTERNS}
+    page = _landing()
+    pain_panel = page.split('id="p2"', 1)[1].split('id="p3"', 1)[0]
+    shown = re.findall(r'<span class="lbl">(\S+) <span class="muted">', pain_panel)
+    assert shown and set(shown) <= labels
+    assert re.search(r"<strong>38%</strong> (\S+?)<", page).group(1) in labels

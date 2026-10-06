@@ -4,7 +4,7 @@
 料金・クレジット・利用上限は申込画面または料金ページに表示します。有料サブスクリプションの決済にはStripeを利用します。
 
 ## 2. 解約
-利用者はAPIの `POST /v1/billing/cancel` またはStripe Customer Portalから解約手続きを行えます。標準の解約は「現在の請求期間の終了時に解約」です。Stripeでは `cancel_at_period_end=true` により、既に支払済みの期間を維持したまま次回更新を停止できます。Stripe公式仕様でもこの方法が案内されています。citeturn1view0
+利用者はAPIの `POST /v1/billing/cancel` またはStripe Customer Portalから解約手続きを行えます。標準の解約は「現在の請求期間の終了時に解約」です。Stripeでは `cancel_at_period_end=true` により、既に支払済みの期間を維持したまま次回更新を停止できます。Stripeの仕様に基づき、既に支払済みの請求期間を維持したまま次回更新を停止します。
 
 ## 3. 即時解約
 即時解約を選択した場合は、Stripe上で直ちにSubscriptionを終了します。未利用期間の返金・日割りは自動的に保証されません。返金を行う場合の基準は［要入力］です。
