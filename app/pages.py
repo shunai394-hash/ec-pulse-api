@@ -655,7 +655,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="row2"><span>この値段での粗利</span><span id="k-profit">¥1,702（34.2%）</span></div>
 <p class="badge ok m0" id="k-badge">上限より ¥208 安い — 仕入れ条件を満たしています</p>
 </div>
-<p class="small m0 muted">計算式：仕入れ上限 = 販売価格 ×（1 − 手数料率 − 目標粗利率）− 送料・梱包 − その他コスト</p>
+<p class="small m0 muted">計算式：仕入れ上限 = 販売価格 ×（1 − 手数料率 − 目標粗利率）− 送料・梱包 − その他コスト。<a href="/docs" class="textlink">APIではこの判断材料を自動取得できます。</a></p>
 </div>
 </div>
 </div>
