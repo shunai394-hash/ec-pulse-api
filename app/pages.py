@@ -733,6 +733,21 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 </div>
 </section>
 
+<section class="section" id="faq" aria-labelledby="faq-title">
+<div class="wrap">
+<div class="sec-head">
+<div><span class="sec-no">09 — FAQ</span><h2 id="faq-title"><span class="ln">始める前に、</span><br><span class="ln">知っておきたいこと。</span></h2></div>
+<p class="lead">最初の一歩で迷わないように、料金・データ・AI・失敗時の扱いを先に答えます。</p>
+</div>
+<div class="faq">
+<details><summary>本当に無料で試せますか？</summary><div class="answer"><p>Freeプランは毎月100クレジット、30リクエスト/分、カード登録なしで利用できます。メータード処理の成功時だけクレジットを消費します。</p></div></details>
+<details><summary>AIが勝手に「売れる」と判断するサービスですか？</summary><div class="answer"><p>いいえ。EC Pulseは市場データ、レビューの痛点、価格シグナルをAPIで返し、判断材料を作ります。売上や利益を保証しません。痛点分類は現在ルールベースです。</p></div></details>
+<details><summary>失敗した取得にもクレジットがかかりますか？</summary><div class="answer"><p>入力エラーやクレジット不足では消費しません。取得先の障害で失敗した処理は返却する設計です。</p></div></details>
+<details><summary>有料プランの価格はどこで確認できますか？</summary><div class="answer"><p>Pro / Businessの最終的な月額と付与クレジットは、Stripeの決済画面で確認してから確定します。公開前に料金・法務情報も最終確定する必要があります。</p></div></details>
+</div>
+</div>
+</section>
+
 <section class="wrap final" aria-labelledby="final-title">
 <span class="kicker">START</span>
 <h2 id="final-title" class="mt18"><span class="ln">まずは、気になっている</span><br><span class="ln">商品をひとつ。</span></h2>
