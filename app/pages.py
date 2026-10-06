@@ -203,6 +203,16 @@ p{margin:0 0 14px}
 .map li code{font-family:var(--mono);font-size:12px;color:var(--ink-2);overflow-wrap:anywhere}
 .disclaim{margin-top:18px;font-size:13px;color:var(--ink-3)}
 
+/* FAQ */
+.faq{display:grid;gap:0;border-top:1.5px solid var(--ink)}
+.faq details{border-bottom:1px solid var(--line);padding:0}
+.faq summary{list-style:none;cursor:pointer;padding:22px 42px 22px 0;position:relative;font-weight:800;font-size:17px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"＋";position:absolute;right:0;top:20px;font-family:var(--mono);font-weight:400;color:var(--signal-ink)}
+.faq details[open] summary:after{content:"−"}
+.faq .answer{padding:0 42px 24px 0;color:var(--ink-2);max-width:72ch}
+.faq .answer p:last-child{margin-bottom:0}
+
 /* calculator */
 .calc{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:16px}
 .calc form{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,32px);display:grid;gap:16px;align-content:start}.calc .result{display:none}.js .calc .result{display:grid}
