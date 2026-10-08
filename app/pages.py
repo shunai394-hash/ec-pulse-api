@@ -95,7 +95,7 @@ p{margin:0 0 14px}
 .hero h1 em{font-style:normal;color:var(--signal)}
 .hero .lead{margin-top:0}
 .hero-note{margin-top:18px;font-size:13px;color:var(--ink-3);display:flex;gap:16px;flex-wrap:wrap}
-.hero-note span:before{content:"✓ ";color:var(--go);font-weight:800}.proof-rail{margin-top:24px;display:flex;align-items:center;gap:12px;max-width:560px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(251,250,246,.72);box-shadow:0 12px 30px -26px rgba(18,18,17,.55)}.proof-rail div{display:grid;gap:0;min-width:58px}.proof-rail strong{font-family:var(--mono);font-size:22px;line-height:1}.proof-rail span{font-size:10px;color:var(--ink-3);letter-spacing:.04em}.proof-rail i{font-style:normal;color:var(--signal-ink);font-family:var(--mono)}.proof-rail p{margin:0 0 0 4px;padding-left:12px;border-left:1px solid var(--line);font-size:11px;line-height:1.5;color:var(--ink-3)}
+.hero-note span:before{content:"✓ ";color:var(--go);font-weight:800}.signal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.signal-chip{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:2px}.signal-chip strong{font-family:var(--mono);font-size:11px;letter-spacing:.05em}.signal-chip span{font-size:11px;color:var(--ink-3);line-height:1.45}.signal-chip em{font-style:normal;color:var(--signal-ink)}.proof-rail{margin-top:24px;display:flex;align-items:center;gap:12px;max-width:560px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(251,250,246,.72);box-shadow:0 12px 30px -26px rgba(18,18,17,.55)}.proof-rail div{display:grid;gap:0;min-width:58px}.proof-rail strong{font-family:var(--mono);font-size:22px;line-height:1}.proof-rail span{font-size:10px;color:var(--ink-3);letter-spacing:.04em}.proof-rail i{font-style:normal;color:var(--signal-ink);font-family:var(--mono)}.proof-rail p{margin:0 0 0 4px;padding-left:12px;border-left:1px solid var(--line);font-size:11px;line-height:1.5;color:var(--ink-3)}
 
 /* console (hero demo) */
 .console{background:var(--night);color:var(--night-ink);border-radius:20px;padding:0;overflow:hidden;box-shadow:0 1px 0 rgba(0,0,0,.04),0 30px 60px -30px rgba(18,18,17,.55)}
@@ -145,7 +145,7 @@ p{margin:0 0 14px}
 .verdict ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:6px;font-size:13px}
 .verdict li{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--night-line);padding-top:6px}
 .verdict li span:last-child{font-family:var(--mono);text-align:right}
-.console-foot{padding:11px 18px;border-top:1px solid var(--night-line);font-size:11px;color:var(--night-mute);font-family:var(--mono);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.console-foot{padding:11px 18px;border-top:1px solid var(--night-line);font-size:11px;color:var(--night-mute);font-family:var(--mono);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.console-hint{color:var(--night-ink)}
 
 /* problem */
 .pains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1.5px solid var(--ink)}
@@ -154,7 +154,7 @@ p{margin:0 0 14px}
 .pain .verb{font-size:clamp(44px,5.4vw,72px);font-weight:800;letter-spacing:-.06em;line-height:1;margin:0 0 18px}
 .pain .now{color:var(--ink-2)}
 .pain .then{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line-2);font-weight:700}
-.pain .then:before{content:"EC Pulse → ";font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--signal-ink);font-weight:400;display:block}
+.pain .then:before{content:"EC Pulse → ";font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--signal-ink);font-weight:400;display:block}.friction-note{margin-top:28px;padding:14px 16px;border:1px dashed var(--line-2);border-radius:12px;display:flex;justify-content:space-between;gap:16px;align-items:baseline;background:var(--card)}.friction-note strong{font-family:var(--mono);font-size:12px;color:var(--signal-ink)}.friction-note span{font-size:13px;color:var(--ink-2)}
 
 /* discovery */
 .compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:16px}
@@ -171,7 +171,7 @@ p{margin:0 0 14px}
 .flow.new li{transition:color .4s,opacity .4s}
 .js .flow.new li{opacity:.28}.js .flow.new li.lit{opacity:1}
 .flow.new li.end span{font-weight:800;color:var(--signal-dk)}
-.flow .foot{margin:18px 0 0;font-size:13px;color:var(--night-mute)}
+.flow .foot{margin:18px 0 0;font-size:13px;color:var(--night-mute)}.decision-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}.decision-path div{border:1px solid var(--night-line);border-radius:12px;padding:12px}.decision-path b{display:block;font-family:var(--mono);font-size:10px;color:var(--night-mute);margin-bottom:5px}.decision-path span{font-size:13px}.decision-path .last{border-color:var(--signal)}
 
 /* how / steps */
 .steps{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink)}
@@ -181,7 +181,7 @@ p{margin:0 0 14px}
 .step p{color:var(--ink-2);margin:0}
 .step .api{display:grid;gap:6px;font-family:var(--mono);font-size:12px}
 .step .api code{background:var(--paper-2);border-radius:6px;padding:3px 8px;width:fit-content;max-width:100%;white-space:nowrap;font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
-.step .api span{color:var(--ink-3)}
+.step .api span{color:var(--ink-3)}.usecases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:28px}.usecase{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--card);transition:transform .2s,box-shadow .2s,border-color .2s}.usecase:hover{transform:translateY(-3px);border-color:var(--line-2);box-shadow:0 18px 38px -30px rgba(18,18,17,.55)}.usecase b{font-family:var(--mono);font-size:10px;color:var(--signal-ink);letter-spacing:.06em}.usecase h3{font-size:16px;margin-top:7px}.usecase p{font-size:13px;color:var(--ink-2);margin:6px 0 0}
 
 /* output card */
 .output{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,56px);align-items:start}
@@ -201,7 +201,7 @@ p{margin:0 0 14px}
 .map li{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:16px 0;border-bottom:1px solid var(--line)}
 .map li b{font-size:15px}
 .map li code{font-family:var(--mono);font-size:12px;color:var(--ink-2);overflow-wrap:anywhere}
-.disclaim{margin-top:18px;font-size:13px;color:var(--ink-3)}
+.disclaim{margin-top:18px;font-size:13px;color:var(--ink-3)}.provenance{margin-top:16px;border:1px solid var(--line);border-radius:14px;padding:15px 16px;background:var(--paper-2)}.provenance-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:8px}.provenance-head b{font-family:var(--mono);font-size:10px;letter-spacing:.07em;color:var(--signal-ink)}.provenance-head span{font-size:11px;color:var(--ink-3)}.provenance p{font-size:13px;color:var(--ink-2);margin:0}.provenance code{font-size:11px}
 
 /* FAQ */
 .faq{display:grid;gap:0;border-top:1.5px solid var(--ink)}
@@ -223,7 +223,7 @@ p{margin:0 0 14px}
 .inp:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px var(--signal-soft)}.inp:has(input[aria-invalid=true]){border-color:var(--signal);background:#fff6f2}
 .inp span{padding:0 10px;color:var(--ink-3);font-family:var(--mono);font-size:13px}
 .inp input{border:0;outline:0;width:100%;min-height:46px;padding:0 10px;font-family:var(--mono);font-size:17px;text-align:right;background:transparent;color:var(--ink);font-variant-numeric:tabular-nums}
-.calc form hr{border:0;border-top:1px dashed var(--line-2);margin:4px 0}.presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.presets span{font-size:11px;color:var(--ink-3);font-family:var(--mono)}.presets button{appearance:none;border:1px solid var(--line-2);background:var(--paper-2);color:var(--ink-2);border-radius:999px;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer}.presets button:hover,.presets button:focus-visible{border-color:var(--signal);color:var(--signal-ink);background:var(--signal-soft)}
+.calc form hr{border:0;border-top:1px dashed var(--line-2);margin:4px 0}.calc-assumption{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:10px;background:var(--paper-2);font-size:11px;color:var(--ink-3);line-height:1.55}.calc-assumption b{font-family:var(--mono);color:var(--signal-ink);white-space:nowrap}.presets{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.presets span{font-size:11px;color:var(--ink-3);font-family:var(--mono)}.presets button{appearance:none;border:1px solid var(--line-2);background:var(--paper-2);color:var(--ink-2);border-radius:999px;padding:6px 10px;font:inherit;font-size:11px;cursor:pointer}.presets button:hover,.presets button:focus-visible{border-color:var(--signal);color:var(--signal-ink);background:var(--signal-soft)}
 .result{background:var(--night);color:var(--night-ink);border-radius:20px;padding:clamp(22px,3.4vw,40px);display:grid;gap:22px;align-content:start}
 .result .label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--night-mute)}
 .result .ceiling{font-family:var(--mono);font-size:clamp(48px,7vw,88px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
@@ -253,7 +253,7 @@ p{margin:0 0 14px}
 .plan ul{list-style:none;padding:0;margin:20px 0 26px;display:grid;gap:10px;font-size:14.5px}
 .plan li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px}
 .plan li:before{content:"—";color:var(--signal-ink);font-family:var(--mono)}
-.plan .btn{margin-top:auto;width:100%}
+.plan .btn{margin-top:auto;width:100%}.plan-note{margin-top:10px;font-size:11px;color:var(--ink-3);line-height:1.5}.plan.featured .plan-note{color:var(--ink-2)}
 .tagline{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--signal-ink)}
 
 /* developers */
@@ -269,7 +269,7 @@ pre code,.night code{background:none;padding:0}
 .night code{color:var(--night-ink)}
 pre .c{color:#8d8a80}pre .k{color:#ff9d80}.code-shell{position:relative}.code-copy{position:absolute;right:10px;top:10px;z-index:1;border:1px solid var(--night-line);background:var(--night);color:var(--night-ink);border-radius:999px;padding:6px 10px;font:inherit;font-family:var(--mono);font-size:10px;cursor:pointer}.code-copy:hover{border-color:var(--night-mute)}
 .errs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--night-line);border:1px solid var(--night-line);border-radius:14px;overflow:hidden;margin-top:16px}
-.errs div{background:var(--night);padding:14px 16px;font-size:13px;color:var(--night-mute)}
+.errs div{background:var(--night);padding:14px 16px;font-size:13px;color:var(--night-mute)}.dev-next{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;padding:12px 14px;border:1px solid var(--night-line);border-radius:12px;background:var(--night-2);font-size:12px;color:var(--night-mute)}.dev-next b{color:var(--night-ink);font-family:var(--mono);font-size:10px;letter-spacing:.05em}
 .errs b{display:block;font-family:var(--mono);font-size:15px;color:var(--night-ink);font-weight:600}
 
 /* trust */
@@ -282,7 +282,7 @@ pre .c{color:#8d8a80}pre .k{color:#ff9d80}.code-shell{position:relative}.code-co
 /* final */
 .final{padding:clamp(80px,11vw,160px) 0;text-align:left}
 .final h2{font-size:clamp(36px,6.4vw,88px);max-width:12em}
-.final .actions{margin-top:36px}
+.final .actions{margin-top:36px}.final-path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:780px;margin-top:30px}.final-path div{border-top:1px solid var(--line);padding-top:12px}.final-path b{font-family:var(--mono);font-size:10px;color:var(--signal-ink)}.final-path span{display:block;font-size:13px;color:var(--ink-2);margin-top:4px}
 
 /* tables / misc shared */
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -375,7 +375,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .js .hero-title{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .05s forwards}.js .hero-copy{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .18s forwards}.js .console{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .3s forwards}
 @keyframes heroIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){body:before{display:none}.console{transform:none}.card,.plan{transition:none}.js .hero-title,.js .hero-copy,.js .console{animation:none;opacity:1;transform:none}}
-@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}}
+@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}.signal-grid,.decision-path,.usecases,.final-path{grid-template-columns:1fr}.friction-note{display:grid}.console-hint{display:none}.signal-chip{padding-top:8px}.provenance-head{display:grid;gap:3px}}
 
 """
 
@@ -461,7 +461,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <noscript><p class="notice mt18">デモの切り替えと仕入れ上限の自動計算にはJavaScriptが必要です。API Docsとアカウントページはそのまま利用できます。</p></noscript>
 <p class="hero-note"><span>毎月100クレジット無料</span><span>カード登録不要</span><span>成功した処理だけ課金</span><span>10 MCPツール対応</span></p>
-<div class="proof-rail" aria-label="EC Pulseの判断フロー"><div><strong>3</strong><span>モール</span></div><i aria-hidden="true">→</i><div><strong>5</strong><span>シグナル</span></div><i aria-hidden="true">→</i><div><strong>1</strong><span>判断</span></div><p>検索結果を増やすのではなく、判断材料を圧縮する。</p></div>
+<div class="proof-rail" aria-label="EC Pulseの判断フロー"><div><strong>3</strong><span>モール</span></div><i aria-hidden="true">→</i><div><strong>5</strong><span>シグナル</span></div><i aria-hidden="true">→</i><div><strong>1</strong><span>判断</span></div><p>検索結果を増やすのではなく、判断材料を圧縮する。</p></div><div class="signal-grid" aria-label="サービスの要点"><div class="signal-chip"><strong>API FIRST</strong><span>画面ではなくAPIを中心に設計</span></div><div class="signal-chip"><strong><em>100</em> CREDITS</strong><span>Freeで毎月100クレジット</span></div><div class="signal-chip"><strong><em>10</em> MCP TOOLS</strong><span>Claudeからも同じAPIを利用</span></div></div>
 </div>
 
 <div class="console" id="console" aria-label="EC Pulse が判断材料を作る流れ（デモ表示）">
@@ -532,7 +532,7 @@ _LANDING_BODY = r"""<main id="main">
 </ul>
 </div>
 </div>
-<div class="console-foot"><span>表示はサンプルです。結果は実際のデータによって変わります。</span><a href="#output" class="textlink">出力の見方</a></div>
+<div class="console-foot"><span>表示はサンプルです。結果は実際のデータによって変わります。</span><span class="console-hint">クリック / ← → で切替</span><a href="#output" class="textlink">出力の見方</a></div>
 </div>
 </section>
 
@@ -546,7 +546,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="pain"><p class="verb">探す</p><p class="now">キーワードを変えながら、モールごとに同じ検索を繰り返す。</p><p class="then">3モールを1回の呼び出しで横断検索</p></div>
 <div class="pain"><p class="verb">読む</p><p class="now">何百件ものレビューを読んで、不満の傾向を手で数える。</p><p class="then">不満を分類し、割合と実例で返す</p></div>
 <div class="pain"><p class="verb">見張る</p><p class="now">値下がりを逃さないよう、毎日ページを開いて価格を確かめる。</p><p class="then">価格を監視し、変化をWebhookで通知</p></div>
-</div>
+</div><div class="friction-note"><strong>FRICTION → DECISION</strong><span>探す・読む・見張るをAPIに寄せ、最後の「仕入れるか」を人に残します。</span></div>
 </div>
 </section>
 
@@ -572,7 +572,7 @@ _LANDING_BODY = r"""<main id="main">
 <li><b>05</b><span>利益が残る仕入れ上限を出す</span></li>
 <li class="end"><b>→</b><span>あなたは、仕入れるかどうかだけを決める</span></li>
 </ol><p class="foot">比較は API が終わらせる。残るのは判断だけ。</p></div>
-</div>
+</div><div class="decision-path" aria-label="判断の出口"><div><b>INPUT</b><span>市場・痛点・価格</span></div><div><b>OUTPUT</b><span>候補と仕入れ上限</span></div><div class="last"><b>NEXT</b><span>仕入れる / 監視する / 見送る</span></div></div>
 </div>
 </section>
 
@@ -588,7 +588,7 @@ _LANDING_BODY = r"""<main id="main">
 <li class="step"><span class="no">03</span><h3>候補を絞る</h3><p>上位の痛点ごとに3モールを再検索し、痛点に対する商品の方向性と候補商品、広告で試す訴求案を返します。</p><div class="api"><code>GET /v1/research/runs/{id}/opportunity</code><span>検索件数に応じて</span></div></li>
 <li class="step"><span class="no">04</span><h3>価格を確かめる</h3><p>商品ページから価格を取得し、複数商品を並べて比較します。監視中の商品は履歴の最安・最高・平均と比べた水準を返します。</p><div class="api"><code>POST /v1/products</code><span>1</span><code>POST /v1/products/compare</code><span>URL数</span><code>GET /v1/monitors/{id}/opportunity</code><span>2</span></div></li>
 <li class="step"><span class="no">05</span><h3>見張り続ける</h3><p>気になる商品を5分〜1週間の間隔で監視。価格が変わるとあなたのシステムへWebhookで通知します。</p><div class="api"><code>POST /v1/monitors</code><span>登録時に1</span><code>GET /v1/monitors/{id}/history</code><span>1</span></div></li>
-</ol>
+</ol><div class="usecases" aria-label="代表的な使い方"><article class="usecase"><b>USE CASE 01</b><h3>新商品を探す</h3><p>3モールの候補を集め、レビューの痛点と価格を同じ判断面に置く。</p></article><article class="usecase"><b>USE CASE 02</b><h3>勝ち筋を監視する</h3><p>候補商品の価格履歴を追い、変化をWebhookで自社システムへ渡す。</p></article><article class="usecase"><b>USE CASE 03</b><h3>AIから調査する</h3><p>ClaudeなどからMCPツール経由で検索・比較・分析・監視を実行する。</p></article></div>
 </div>
 </section>
 
@@ -618,7 +618,7 @@ _LANDING_BODY = r"""<main id="main">
 <li><b>現在価格</b><code>current_price</code></li>
 <li><b>仕入れ上限</b>販売価格・手数料・送料・目標粗利率から計算（下の計算機と同じ式）</li>
 </ol>
-<p class="disclaim">EC Pulse は判断の材料を出すツールです。売上や利益を保証するものではありません。痛点の分類はルールベースの集計なので、仕入れ前には元のコメントも確認してください。</p>
+<p class="disclaim">EC Pulse は判断の材料を出すツールです。売上や利益を保証するものではありません。痛点の分類はルールベースの集計なので、仕入れ前には元のコメントも確認してください。</p><div class="provenance"><div class="provenance-head"><b>TRACEABILITY</b><span>サンプル表示</span></div><p>数字の意味を追えるよう、件数・価格・計算条件を同じ画面で示します。実データの取得結果ではなく、<code>/v1/products/search</code> などのAPI出力項目を説明するための例です。</p></div>
 </div>
 </div>
 </div>
@@ -632,7 +632,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <div class="calc">
 <form id="calc-form" aria-describedby="calc-help" novalidate>
-<p id="calc-help" class="small muted m0">すべて税込・1個あたりで入力してください。計算はこのページの中だけで行い、どこにも送信しません。</p><div class="presets" aria-label="計算例"><span>試す：</span><button type="button" data-preset="balanced">標準</button><button type="button" data-preset="tight">薄利</button><button type="button" data-preset="premium">高単価</button></div>
+<p id="calc-help" class="small muted m0">すべて税込・1個あたりで入力してください。計算はこのページの中だけで行い、どこにも送信しません。</p><div class="calc-assumption"><b>LOCAL</b><span>入力値はブラウザ内だけで計算。APIキーや入力内容はこの計算機から送信しません。</span></div><div class="presets" aria-label="計算例"><span>試す：</span><button type="button" data-preset="balanced">標準</button><button type="button" data-preset="tight">薄利</button><button type="button" data-preset="premium">高単価</button></div>
 <div class="field"><label for="c-price">販売価格<small>売りたい価格</small></label><div class="inp"><span>¥</span><input id="c-price" name="price" type="number" inputmode="numeric" min="0" step="1" value="4980"></div></div>
 <div class="field"><label for="c-fee">販売手数料<small>モールの手数料率</small></label><div class="inp"><input id="c-fee" name="fee" type="number" inputmode="decimal" min="0" max="100" step="0.1" value="10"><span>%</span></div></div>
 <div class="field"><label for="c-ship">送料・梱包<small>1個あたり</small></label><div class="inp"><span>¥</span><input id="c-ship" name="ship" type="number" inputmode="numeric" min="0" step="1" value="500"></div></div>
@@ -674,10 +674,10 @@ _LANDING_BODY = r"""<main id="main">
 <a class="btn" href="/account">無料でAPIキーを取得</a></div>
 <div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">複数ジャンルの候補探しと価格監視を、日々の業務に組み込む人に。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
 <ul><li>請求ごとに月間クレジットを付与</li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn primary" href="/account#billing">Proで仕入れ調査を始める</a></div>
+<a class="btn primary" href="/account#billing">Proで仕入れ調査を始める</a><p class="plan-note">最終的な月額と付与クレジットは、決済確定前にStripe画面で確認できます。</p></div>
 <div class="plan"><span class="tagline">規模を広げる</span><h3 class="mt10">Business</h3><p class="for">大量の商品リサーチや監視を、自社システムで自動化するチームに。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
 <ul><li>請求ごとに月間クレジットを付与</li><li>3,000リクエスト / 分</li><li>大量のリサーチと監視向け</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn" href="/account#billing">Businessで自動化する</a></div>
+<a class="btn" href="/account#billing">Businessで自動化する</a><p class="plan-note">大規模利用を想定。実際の料金・付与クレジットはStripe画面で確定前に確認してください。</p></div>
 </div>
 <p class="small muted mt20">有料プランの金額と付与クレジット数は、Stripeの決済画面で確定前に表示されます。<a href="/legal/billing">料金・解約ポリシー</a></p>
 </div>
@@ -714,6 +714,7 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 <div><b>503</b>一時的な障害</div>
 </div>
 </div>
+</div><div class="dev-next"><b>DEVELOPER PATH</b><span>ログイン → APIキー発行 → 1回呼ぶ → レスポンス確認 → 自動化</span></div>
 </div>
 </div>
 </section>
@@ -752,7 +753,7 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 <section class="wrap final" aria-labelledby="final-title">
 <span class="kicker">START</span>
 <h2 id="final-title" class="mt18"><span class="ln">まずは、気になっている</span><br><span class="ln">商品をひとつ。</span></h2>
-<div class="actions"><a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">API仕様を見る</a><a class="textlink" href="/#faq">よくある質問を確認</a></div>
+<div class="actions"><a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a><a class="btn" href="/docs">API仕様を見る</a><a class="textlink" href="/#faq">よくある質問を確認</a></div><div class="final-path" aria-label="開始手順"><div><b>01 / ACCESS</b><span>GoogleでログインしてFreeを開始</span></div><div><b>02 / KEY</b><span>APIキーを発行して保存</span></div><div><b>03 / SIGNAL</b><span>気になる商品を1回検索して判断材料を見る</span></div></div>
 </section>
 </main>
 """
