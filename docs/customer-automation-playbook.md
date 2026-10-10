@@ -1,0 +1,80 @@
+# EC Pulse API: customer automation playbook
+
+This guide turns the API into repeatable workflows so a seller spends less time collecting pages and more time deciding what to buy. The API supplies signals; it does not guarantee sales or profit.
+
+## 1. Find candidate products on a schedule
+
+Use `POST /v1/products/search` for discovery and keep the query, marketplace scope, and run time in your own job scheduler. Store each run's results with a timestamp so the team can compare new candidates with prior runs instead of starting from zero.
+
+## 2. Compare a shortlist consistently
+
+Use `POST /v1/products/compare` after discovery. Apply the same comparison fields and internal buying rules to every candidate. Do not rank products on price alone: add shipping, marketplace fees, expected return rate, and your own target margin in your downstream calculation.
+
+## 3. Turn customer comments into product requirements
+
+Use `POST /v1/research/ingest` to collect supported public research inputs and `POST /v1/consumer-insights/analyze` to group recurring pain points. Review representative source comments before treating a category as a real customer need; keyword matches are a signal, not proof of demand.
+
+## 4. Create price monitors for qualified candidates
+
+Create a monitor with `POST /v1/monitors`, then use `GET /v1/monitors` to review active monitors. A monitor requires a product URL, an interval, and a webhook destination. Use an interval of at least five minutes and create monitors only after the candidate passes your own qualification rules.
+
+```bash
+curl -X POST "$EC_PULSE_BASE_URL/v1/monitors" \
+  -H "X-API-Key: $EC_PULSE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/product",
+    "interval_minutes": 60,
+    "webhook_url": "https://your-service.example.com/ec-pulse/events"
+  }'
+```
+
+Replace both example URLs with endpoints you control. Do not put API keys, session tokens, or private data in webhook URLs.
+
+## 5. Make webhooks trigger a useful next step
+
+Have your receiver validate the event shape, persist the event, and return a successful HTTP response promptly. Queue slower downstream work rather than doing it in the webhook request. Make the receiver idempotent so repeated deliveries do not create duplicate alerts or purchase actions.
+
+## 6. Build an opportunity review queue
+
+Use `GET /v1/monitors/{id}/opportunity` and `GET /v1/monitors/{id}/history` to present price context to a human reviewer. Show the observed price, when it was checked, the comparison baseline, and the reason it was flagged. Do not label a price movement as profit unless costs and fees are included.
+
+## 7. Automate market-research batches
+
+Use `POST /v1/research/batch` for a repeatable batch rather than manually submitting each input. Persist the returned run identifier and inspect `GET /v1/research/runs` and `GET /v1/research/runs/{run_id}/opportunity` to continue from saved results.
+
+## 8. Make credit usage visible before a workflow runs
+
+Check `GET /v1/account` and `GET /v1/customer/usage` before scheduling large jobs. Metered responses expose `X-EC-Credits-Used` and `X-EC-Credits-Remaining`; record these with the job result. Handle HTTP 402 by pausing the job and asking the account owner to review usage or plan settings—never retry it in a tight loop.
+
+## 9. Make retries safe and bounded
+
+Retry only transient failures such as 429 or selected 5xx responses. Honor `Retry-After` when present, use exponential backoff with jitter, and set a maximum attempt count. Do not automatically retry invalid input (400/422), authentication failures (401), or insufficient credits (402). Record the request ID and sanitized error for support.
+
+## 10. Keep automation safe for production
+
+- Start with a small candidate list and a low-cost dry run.
+- Keep purchase, listing publication, refunds, and other irreversible commerce actions behind explicit human approval.
+- Use a separate API key for each integration; rotate compromised keys immediately.
+- Keep API keys in a secret manager, never in source code, browser storage, or logs.
+- Treat third-party pages and comments as untrusted input.
+- Monitor failure rate, duplicate events, credit consumption, and last successful run.
+- Review source evidence and your own cost model before buying inventory.
+
+## Suggested end-to-end loop
+
+```text
+Scheduled discovery
+  -> normalize candidates
+  -> compare candidates
+  -> analyze customer pain points
+  -> apply your cost / margin rules
+  -> create monitors for qualified candidates
+  -> receive and deduplicate webhook events
+  -> queue opportunities for human review
+  -> record decision and outcome
+```
+
+## Endpoint reference
+
+The canonical contract is `/docs` and `/openapi.json`. See the [README](../README.md) for authentication, credit costs, response headers, and account setup. Exact request and response fields should always be checked against the deployed API schema.

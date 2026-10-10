@@ -110,6 +110,10 @@ Plan limits, Stripe checkout, subscription synchronization, credit accounting, u
 - `GET /api/cron/check-monitors`, `GET /api/cron/patrol`, `GET /api/cron/patrol/latest` (`Authorization: Bearer $CRON_SECRET`)
 - `/v1/admin/keys` (admin key; hidden from `/docs`)
 
+## Customer automation playbook
+
+See the [customer automation playbook](docs/customer-automation-playbook.md) for practical discovery, comparison, research, monitoring, webhook, retry, and credit-usage workflows.
+
 ## Customer onboarding
 
 1. Open `/account` (or `GET /auth/google`) and complete Google authentication. The account page covers steps 2–7 without writing any code.
