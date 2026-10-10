@@ -78,3 +78,66 @@ Scheduled discovery
 ## Endpoint reference
 
 The canonical contract is `/docs` and `/openapi.json`. See the [README](../README.md) for authentication, credit costs, response headers, and account setup. Exact request and response fields should always be checked against the deployed API schema.
+
+
+## Copy-ready starter: daily discovery without accidental purchases
+
+The following workflow runs discovery once per day and stores the result as a GitHub Actions artifact. It **does not publish listings, place orders, or make buying decisions**. Create the file as `.github/workflows/ec-pulse-discovery.yml` in your own integration repository and configure the two repository secrets first.
+
+```yaml
+name: EC Pulse daily discovery
+on:
+  schedule:
+    - cron: "23 0 * * *" # 09:23 JST
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Search candidate products
+        env:
+          EC_PULSE_BASE_URL: ${{ secrets.EC_PULSE_BASE_URL }}
+          EC_PULSE_API_KEY: ${{ secrets.EC_PULSE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EC_PULSE_BASE_URL}" ] || [ -z "${EC_PULSE_API_KEY}" ]; then
+            echo "Configure EC_PULSE_BASE_URL and EC_PULSE_API_KEY in repository secrets." >&2
+            exit 1
+          fi
+          mkdir -p output
+          code=$(curl --silent --show-error --max-time 45 \
+            -o output/discovery.json -w '%{http_code}' \
+            -X POST "${EC_PULSE_BASE_URL%/}/v1/products/search" \
+            -H "X-API-Key: ${EC_PULSE_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"query":"replace with your product category","marketplaces":["amazon","rakuten","yahoo"],"limit":5}')
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "EC Pulse discovery failed with HTTP $code; see sanitized response artifact only if it contains no sensitive data." >&2
+            cat output/discovery.json
+            exit 1
+          fi
+      - name: Save discovery result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec-pulse-discovery-${{ github.run_id }}
+          path: output/discovery.json
+          retention-days: 7
+```
+
+Before enabling the schedule, replace the example query, verify the endpoint contract in `/docs`, and run it manually once. Treat artifacts as potentially sensitive business data. Keep the API key only in repository secrets. A failed run should notify a human; it must not trigger a purchase or listing publication.
+
+## Automation acceptance checklist
+
+- [ ] The schedule runs once at the intended local-business time (GitHub cron is UTC).
+- [ ] The workflow exits visibly on HTTP 401, 402, 429, and 5xx rather than treating an error body as product data.
+- [ ] The workflow has a timeout and bounded retry policy; do not retry 401/402 or invalid requests.
+- [ ] Search outputs are retained only as long as needed and are not published publicly.
+- [ ] Price changes create review tasks, not automatic purchases.
+- [ ] A human can pause the schedule by disabling the workflow.
+- [ ] Credit usage is reviewed after the first manual run and before increasing frequency.
+- [ ] Results are compared with previous runs so the team can spot new candidates, not just re-read the same list.
+- [ ] Source prices and availability are rechecked before any purchase.
+- [ ] The automation owner and failure-notification channel are documented.

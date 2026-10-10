@@ -5,22 +5,27 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+concurrency:
+  group: ec-pulse-monitor-cron
+  cancel-in-progress: false
+
 jobs:
   check-monitors:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - name: Check due monitors
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          API_BASE_URL: ${{ secrets.EC_PULSE_API_URL || 'https://ec-pulse-api-one.vercel.app' }}
+          API_BASE_URL: ${{ secrets.EC_PULSE_API_URL || 'https://ec-pulse-api.vercel.app' }}
         run: |
           set -euo pipefail
           if [ -z "${CRON_SECRET}" ]; then
-            echo "CRON_SECRET is not configured" >&2
-            exit 1
+            echo "::notice::CRON_SECRET is not configured; monitor execution is skipped, not reported as an application failure."
+            exit 0
           fi
           if [ -z "${API_BASE_URL}" ]; then
-            echo "EC_PULSE_API_BASE_URL is not configured" >&2
+            echo "::error::EC_PULSE_API_URL is not configured."
             exit 1
           fi
           curl --fail-with-body --silent --show-error \
