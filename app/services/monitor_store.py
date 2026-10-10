@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS monitors (
     url TEXT NOT NULL,
     interval_minutes INTEGER NOT NULL,
     webhook_url TEXT NOT NULL,
+    target_price DOUBLE PRECISION,
     last_price DOUBLE PRECISION,
     last_checked_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL
@@ -157,6 +158,7 @@ def _init(conn):
         conn.execute(SCHEMA)
         # Safe migration for the existing monitor table.
         conn.execute("ALTER TABLE monitors ADD COLUMN IF NOT EXISTS owner_key_hash TEXT")
+        conn.execute("ALTER TABLE monitors ADD COLUMN IF NOT EXISTS target_price DOUBLE PRECISION")
         conn.execute("ALTER TABLE api_accounts ADD COLUMN IF NOT EXISTS customer_user_id TEXT")
         conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_api_accounts_customer_user ON api_accounts (customer_user_id) WHERE customer_user_id IS NOT NULL")
         master_key = os.getenv("EC_PULSE_API_KEY")
@@ -534,14 +536,14 @@ def get_customer_usage_alert(user_id: str) -> dict:
     }
 
 
-def create_monitor(api_key: str, url: str, interval_minutes: int, webhook_url: str) -> dict:
+def create_monitor(api_key: str, url: str, interval_minutes: int, webhook_url: str, target_price: float | None = None) -> dict:
     now = datetime.now(timezone.utc); monitor_id = str(uuid.uuid4()); owner = _account_hash(api_key)
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
-        conn.execute("INSERT INTO monitors (id, owner_key_hash, url, interval_minutes, webhook_url, created_at) VALUES (%s, %s, %s, %s, %s, %s)", (monitor_id, owner, url, interval_minutes, webhook_url, now)); conn.commit()
-    return {"id": monitor_id, "url": url, "interval_minutes": interval_minutes, "webhook_url": webhook_url, "status": "active", "created_at": now.isoformat()}
+        conn.execute("INSERT INTO monitors (id, owner_key_hash, url, interval_minutes, webhook_url, target_price, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s)", (monitor_id, owner, url, interval_minutes, webhook_url, target_price, now)); conn.commit()
+    return {"id": monitor_id, "url": url, "interval_minutes": interval_minutes, "webhook_url": webhook_url, "target_price": target_price, "status": "active", "created_at": now.isoformat()}
 
-def create_monitor_with_credit(api_key: str, url: str, interval_minutes: int, webhook_url: str, endpoint: str) -> tuple[dict, dict]:
+def create_monitor_with_credit(api_key: str, url: str, interval_minutes: int, webhook_url: str, endpoint: str, target_price: float | None = None) -> tuple[dict, dict]:
     """Create a monitor and consume its creation credit in one DB transaction."""
     now = datetime.now(timezone.utc)
     monitor_id = str(uuid.uuid4())
@@ -575,12 +577,12 @@ def create_monitor_with_credit(api_key: str, url: str, interval_minutes: int, we
             (key_hash, endpoint, 1, now),
         )
         conn.execute(
-            "INSERT INTO monitors (id, owner_key_hash, url, interval_minutes, webhook_url, created_at) VALUES (%s, %s, %s, %s, %s, %s)",
-            (monitor_id, account_hash, url, interval_minutes, webhook_url, now),
+            "INSERT INTO monitors (id, owner_key_hash, url, interval_minutes, webhook_url, target_price, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+            (monitor_id, account_hash, url, interval_minutes, webhook_url, target_price, now),
         )
         conn.commit()
     return (
-        {"id": monitor_id, "url": url, "interval_minutes": interval_minutes, "webhook_url": webhook_url, "status": "active", "created_at": now.isoformat()},
+        {"id": monitor_id, "url": url, "interval_minutes": interval_minutes, "webhook_url": webhook_url, "target_price": target_price, "status": "active", "created_at": now.isoformat()},
         {"credits_used": 1, "credits_remaining": remaining},
     )
 
@@ -589,14 +591,14 @@ def list_monitors(api_key: str) -> list[dict]:
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
         rows = conn.execute(
-            """SELECT m.id, m.url, m.interval_minutes, m.webhook_url, m.last_price, m.last_checked_at, m.created_at
+            """SELECT m.id, m.url, m.interval_minutes, m.webhook_url, m.target_price, m.last_price, m.last_checked_at, m.created_at
                FROM monitors m
                JOIN api_keys k ON k.account_key_hash = m.owner_key_hash
                WHERE k.api_key_hash = %s AND k.active = TRUE
                ORDER BY m.created_at DESC""",
             (key_hash,),
         ).fetchall()
-    return [{"id": r[0], "url": r[1], "interval_minutes": r[2], "webhook_url": r[3], "last_price": r[4], "last_checked_at": r[5].isoformat() if r[5] else None, "created_at": r[6].isoformat()} for r in rows]
+    return [{"id": r[0], "url": r[1], "interval_minutes": r[2], "webhook_url": r[3], "target_price": r[4], "last_price": r[5], "last_checked_at": r[6].isoformat() if r[6] else None, "created_at": r[7].isoformat()} for r in rows]
 
 def _owned_monitor(conn, api_key: str, monitor_id: str):
     row = conn.execute(
@@ -1025,14 +1027,14 @@ async def run_due_monitors() -> dict:
     with psycopg.connect(_db_url()) as conn:
         _init(conn)
         rows = conn.execute(
-            """SELECT id, url, interval_minutes, webhook_url, last_price, last_checked_at
+            """SELECT id, url, interval_minutes, webhook_url, target_price, last_price, last_checked_at
             FROM monitors
             WHERE last_checked_at IS NULL
                OR last_checked_at <= %s - (interval_minutes * INTERVAL '1 minute')""",
             (now,),
         ).fetchall()
     checked = changed = failed = 0
-    for monitor_id, url, interval, webhook_url, old_price, last_checked_at in rows:
+    for monitor_id, url, interval, webhook_url, target_price, old_price, last_checked_at in rows:
         lease_token = str(uuid.uuid4())
         try:
             with psycopg.connect(_db_url()) as lease_conn:
@@ -1055,7 +1057,7 @@ async def run_due_monitors() -> dict:
             # so re-read it now that this worker holds the lease.
             with psycopg.connect(_db_url()) as conn:
                 current = conn.execute(
-                    """SELECT url, webhook_url, last_price, last_checked_at
+                    """SELECT url, webhook_url, target_price, last_price, last_checked_at
                     FROM monitors
                     WHERE id = %s
                       AND (last_checked_at IS NULL
@@ -1064,7 +1066,7 @@ async def run_due_monitors() -> dict:
                 ).fetchone()
             if not current:
                 continue
-            url, webhook_url, old_price, last_checked_at = current
+            url, webhook_url, target_price, old_price, last_checked_at = current
 
             await validate_public_url(webhook_url)
             data = await fetch_product(url)
@@ -1126,6 +1128,11 @@ async def run_due_monitors() -> dict:
                     }
                     await _enqueue_webhook(conn, monitor_id, event_id, event, now)
                     price_changed = True
+                # Alert once when a later observation crosses the target from above.
+                if target_price is not None and old_price is not None and new_price is not None and old_price > target_price >= new_price:
+                    target_event_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"ec-pulse:monitor:{monitor_id}:target:{target_price}:{last_checked_at.isoformat() if last_checked_at else 'initial'}:{new_price}"))
+                    target_event = {"event": "target_price_reached", "event_id": target_event_id, "monitor_id": monitor_id, "target_price": target_price, "old_price": old_price, "new_price": new_price, "currency": currency, "url": url, "source": {"site": source.get("site"), "url": source_url}, "captured_at": data["captured_at"]}
+                    await _enqueue_webhook(conn, monitor_id, target_event_id, target_event, now)
                 conn.commit()
             checked += 1
             changed += int(price_changed)

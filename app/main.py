@@ -150,6 +150,7 @@ class MonitorRequest(BaseModel):
     url: HttpUrl
     interval_minutes: int = Field(default=60, ge=5, le=10080)
     webhook_url: HttpUrl
+    target_price: float | None = Field(default=None, gt=0, description="Optional threshold in the product's listed currency")
 
 class CustomerKeyRequest(BaseModel):
     rotate: bool = False
@@ -803,6 +804,7 @@ async def monitor(request_http:Request,response:Response,request:MonitorRequest,
             interval_minutes=request.interval_minutes,
             webhook_url=str(request.webhook_url),
             endpoint="POST /v1/monitors",
+            target_price=request.target_price,
         )
         for k,v in _usage_headers(request_http,api_key,charge).items(): response.headers[k]=v
         result["credits"] = charge

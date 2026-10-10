@@ -79,8 +79,8 @@ Plan limits, Stripe checkout, subscription synchronization, credit accounting, u
 - `POST /v1/products`
 - `POST /v1/products/search`
 - `POST /v1/products/compare`
-- `POST /v1/monitors`
-- `GET /v1/monitors`
+- `POST /v1/monitors` (optional `target_price` triggers a one-time threshold-crossing webhook)
+- `GET /v1/monitors` (includes target price and latest observation)
 - `GET /v1/monitors/{id}/history`
 - `GET /v1/monitors/{id}/opportunity`
 - `GET /v1/account`

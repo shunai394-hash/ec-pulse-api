@@ -25,9 +25,12 @@ curl -X POST "$EC_PULSE_BASE_URL/v1/monitors" \
   -d '{
     "url": "https://example.com/product",
     "interval_minutes": 60,
+    "target_price": 9500,
     "webhook_url": "https://your-service.example.com/ec-pulse/events"
   }'
 ```
+
+target_price is optional and uses the product's listed currency. When a later observation crosses from above the threshold to at or below it, EC Pulse sends one target_price_reached event in addition to the ordinary price_changed event. A monitor created while already below the target does not immediately alert; the price must cross the threshold on a later check. The target is not a profit calculation and excludes shipping, taxes, and marketplace fees unless your own system accounts for them.
 
 Replace both example URLs with endpoints you control. Do not put API keys, session tokens, or private data in webhook URLs.
 

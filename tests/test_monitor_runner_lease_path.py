@@ -58,8 +58,8 @@ def use_fetcher(monkeypatch, fetcher):
     monkeypatch.setattr("app.services.product_parser.fetch_product", fetcher)
 
 
-def make_monitor(store, webhook_url=HOOK, interval=60):
-    return store.create_monitor("ecp_live_runner_test", PRODUCT, interval, webhook_url)["id"]
+def make_monitor(store, webhook_url=HOOK, interval=60, target_price=None):
+    return store.create_monitor("ecp_live_runner_test", PRODUCT, interval, webhook_url, target_price=target_price)["id"]
 
 
 def monitor_state(monitor_id):
@@ -311,3 +311,30 @@ def test_interval_boundary(store, monkeypatch):
     run(store)
     assert fetcher.calls == 2
     assert len(history(monitor_id)) == 2
+
+
+def test_target_price_crossing_enqueues_threshold_event(store, monkeypatch):
+    import json
+    monitor_id = make_monitor(store, target_price=950.0)
+    use_fetcher(monkeypatch, Fetcher(price=1000.0))
+    run(store)
+    pg_exec("UPDATE monitors SET last_checked_at = last_checked_at - INTERVAL '61 minutes' WHERE id = %s", (monitor_id,))
+    use_fetcher(monkeypatch, Fetcher(price=900.0))
+    result = run(store)
+    assert result["checked"] == 1
+    events = [json.loads(request.content) for request in store.webhook_posts]
+    alerts = [event for event in events if event["event"] == "target_price_reached"]
+    assert len(alerts) == 1
+    assert (alerts[0]["target_price"], alerts[0]["old_price"], alerts[0]["new_price"]) == (950.0, 1000.0, 900.0)
+
+
+def test_target_price_alert_does_not_repeat_below_threshold(store, monkeypatch):
+    import json
+    monitor_id = make_monitor(store, target_price=950.0)
+    use_fetcher(monkeypatch, Fetcher(price=900.0))
+    run(store)
+    pg_exec("UPDATE monitors SET last_checked_at = last_checked_at - INTERVAL '61 minutes' WHERE id = %s", (monitor_id,))
+    use_fetcher(monkeypatch, Fetcher(price=850.0))
+    run(store)
+    events = [json.loads(request.content) for request in store.webhook_posts]
+    assert not any(event["event"] == "target_price_reached" for event in events)
