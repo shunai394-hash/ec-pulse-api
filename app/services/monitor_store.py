@@ -135,9 +135,13 @@ CREATE INDEX IF NOT EXISTS idx_research_pains_run_count ON research_pain_points 
 """
 
 def _db_url() -> str:
-    url = os.getenv("DATABASE_URL")
+    # Fail early on pasted whitespace or placeholder text rather than exposing
+    # a confusing psycopg conninfo parser error on every request.
+    url = (os.getenv("DATABASE_URL") or "").strip()
     if not url:
         raise RuntimeError("DATABASE_URL is not configured")
+    if not url.startswith(("postgresql://", "postgres://")):
+        raise RuntimeError("DATABASE_URL must be a PostgreSQL URI; verify the Vercel environment value")
     return url
 
 def _account_hash(api_key: str) -> str:

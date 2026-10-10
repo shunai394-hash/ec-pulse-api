@@ -30,3 +30,18 @@ def test_health_database_failure_is_correlated_but_does_not_leak_details(monkeyp
     assert "health-regression-test" in caplog.text
     assert "ProgrammingError" in caplog.text
     assert "simulated database protocol failure" not in response.text
+
+
+def test_database_url_strips_whitespace_and_rejects_placeholder(monkeypatch):
+    from app.services import monitor_store
+
+    monkeypatch.setenv("DATABASE_URL", "  postgresql://user:pass@example.test/db  \\n")
+    assert monitor_store._db_url() == "postgresql://user:pass@example.test/db"
+
+    monkeypatch.setenv("DATABASE_URL", "*********************")
+    try:
+        monitor_store._db_url()
+    except RuntimeError as exc:
+        assert "must be a PostgreSQL URI" in str(exc)
+    else:
+        raise AssertionError("Invalid DATABASE_URL must fail with a clear configuration error")

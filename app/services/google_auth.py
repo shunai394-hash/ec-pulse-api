@@ -11,15 +11,15 @@ from fastapi.responses import RedirectResponse
 
 
 def _config() -> tuple[str, str]:
-    url = os.getenv("SUPABASE_URL", "").rstrip("/")
-    key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "")
+    url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
+    key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
     if not url or not key:
         raise HTTPException(status_code=503, detail="Google login is not configured")
     return url, key
 
 
 def _callback_url() -> str:
-    base = os.getenv("APP_BASE_URL", "").rstrip("/")
+    base = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
     if not base:
         raise HTTPException(status_code=503, detail="APP_BASE_URL is not configured")
     return f"{base}/auth/callback"
