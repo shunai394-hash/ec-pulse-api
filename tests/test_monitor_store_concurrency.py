@@ -146,6 +146,7 @@ def test_monitor_reads_are_account_scoped_across_api_keys(monkeypatch):
         "https://example.com/product",
         60,
         "https://example.com/webhook",
+        120.0,
         99.0,
         None,
         __import__("datetime").datetime(2026, 9, 29),
@@ -180,7 +181,7 @@ def test_monitor_reads_are_account_scoped_across_api_keys(monkeypatch):
                 assert "JOIN api_keys k ON k.account_key_hash = m.owner_key_hash" in normalized
                 assert "k.api_key_hash = %s AND k.active = TRUE" in normalized
                 assert params[1] in {_account_hash(key1), _account_hash(key2)}
-                return Cursor(row=monitor_row[:4])
+                return Cursor(row=(monitor_row[0], monitor_row[1], monitor_row[5], monitor_row[6]))
             raise AssertionError(normalized)
 
     conn = Conn()
