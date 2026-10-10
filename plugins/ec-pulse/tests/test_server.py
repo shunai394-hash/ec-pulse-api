@@ -103,7 +103,7 @@ class ManifestTests(unittest.TestCase):
     def test_mcp_env_defaults_are_declared(self):
         config = json.loads((SERVER.parent / ".mcp.json").read_text())
         env = config["mcpServers"]["ec-pulse"]["env"]
-        self.assertEqual(env["EC_PULSE_API_BASE_URL"], "${EC_PULSE_API_BASE_URL:-https://ec-pulse-api.vercel.app}")
+        self.assertEqual(env["EC_PULSE_API_BASE_URL"], "${EC_PULSE_API_BASE_URL:-https://ec-pulse-api-one.vercel.app}")
         self.assertEqual(env["EC_PULSE_API_KEY"], "${EC_PULSE_API_KEY}")
     def test_command_tool_references_exist(self):
         import re
