@@ -202,3 +202,20 @@ def test_demo_pain_labels_are_ones_the_analyzer_can_return():
     shown = re.findall(r'<span class="lbl">(\S+) <span class="muted">', pain_panel)
     assert shown and set(shown) <= labels
     assert re.search(r"<strong>38%</strong> (\S+?)<", page).group(1) in labels
+
+
+def test_canonical_and_social_url_metadata_are_present():
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert '<link rel="canonical" href="https://ec-pulse-api.vercel.app">' in response.text
+    assert '<meta property="og:url" content="https://ec-pulse-api.vercel.app">' in response.text
+
+
+def test_short_public_paths_and_sitemap():
+    for path, target in [("/terms", "/legal/terms"), ("/privacy", "/legal/privacy"), ("/pricing", "/#pricing")]:
+        response = client.get(path, follow_redirects=False)
+        assert response.status_code == 308
+        assert response.headers["location"] == target
+    sitemap = client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert sitemap.headers["content-type"].startswith("application/xml")
+    assert "https://ec-pulse-api.vercel.app/legal/terms" in sitemap.text

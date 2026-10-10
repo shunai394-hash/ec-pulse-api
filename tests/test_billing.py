@@ -41,6 +41,7 @@ def _subscription(status="active", event_id="evt_123"):
 
 def test_active_subscription_applies_plan(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     assert _apply_subscription(conn, _subscription("active"), 100) is True
     assert conn.updates == 1
@@ -49,6 +50,7 @@ def test_active_subscription_applies_plan(monkeypatch):
 
 def test_past_due_subscription_keeps_plan_during_retry(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     assert _apply_subscription(conn, _subscription("past_due"), 100) is True
     assert conn.updates == 1
@@ -57,6 +59,7 @@ def test_past_due_subscription_keeps_plan_during_retry(monkeypatch):
 
 def test_canceled_subscription_clears_cancel_at_period_end(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     assert _apply_subscription(conn, _subscription("canceled"), 100) is True
     assert conn.updates == 1
@@ -65,6 +68,7 @@ def test_canceled_subscription_clears_cancel_at_period_end(monkeypatch):
 
 def test_canceled_subscription_downgrades_to_free(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     assert _apply_subscription(conn, _subscription("canceled"), 100) is True
     assert conn.updates == 1
@@ -73,6 +77,7 @@ def test_canceled_subscription_downgrades_to_free(monkeypatch):
 
 def test_event_id_does_not_act_as_fake_ordering(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     subscription = _subscription("active")
     subscription["_ec_pulse_event_id"] = "evt_001"
@@ -84,6 +89,7 @@ def test_event_id_does_not_act_as_fake_ordering(monkeypatch):
 
 def test_older_event_created_is_ignored(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_123", "active", 200, "evt_002", 150))
     assert _apply_subscription(conn, _subscription("active"), 100) is False
     assert conn.updates == 0
@@ -91,6 +97,7 @@ def test_older_event_created_is_ignored(monkeypatch):
 
 def test_same_timestamp_does_not_compare_ids(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_123", "active", 100, "evt_002", 50))
     assert _apply_subscription(conn, _subscription("active", "evt_001"), 100) is True
     assert conn.updates == 1
@@ -98,6 +105,7 @@ def test_same_timestamp_does_not_compare_ids(monkeypatch):
 
 def test_subscription_state_row_is_locked_during_update(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     assert _apply_subscription(conn, _subscription("active"), 100) is True
     assert "FOR UPDATE" in conn.state_sql
@@ -196,6 +204,7 @@ def test_checkout_rejects_existing_active_subscription(monkeypatch):
             pass
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: Conn())
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -245,6 +254,7 @@ def test_checkout_sets_pending_before_stripe_call(monkeypatch):
         checkout = type("CheckoutContainer", (), {"Session": Checkout})
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: conn)
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -287,6 +297,7 @@ def test_checkout_uses_owning_account_hash_in_metadata(monkeypatch):
         checkout = type("CheckoutContainer", (), {"Session": Checkout})
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: Conn())
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -313,6 +324,7 @@ def test_checkout_rejects_existing_pending_checkout(monkeypatch):
         def __exit__(self, *args): pass
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: Conn())
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -492,6 +504,7 @@ def test_expired_checkout_completion_still_links_customer_and_subscription(monke
     conn = Conn()
     monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test")
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setattr(billing, "_stripe", lambda: FakeStripe())
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: conn)
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -506,6 +519,7 @@ def test_expired_checkout_completion_still_links_customer_and_subscription(monke
 def test_invoice_payment_failed_reconciles_latest_subscription(monkeypatch):
     import app.services.billing as billing
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
 
     class Event:
         def to_dict(self):
@@ -570,6 +584,7 @@ def test_invoice_payment_failed_reconciles_latest_subscription(monkeypatch):
 def test_invoice_paid_reconciles_latest_subscription(monkeypatch):
     import app.services.billing as billing
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
 
     class Event:
         def to_dict(self):
@@ -632,6 +647,7 @@ def test_invoice_paid_reconciles_latest_subscription(monkeypatch):
 
 def test_stale_terminal_event_from_old_subscription_cannot_replace_new_active_subscription(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_new", "active", 300, "evt_new", 300))
     old_subscription = _subscription("canceled", "evt_old")
     old_subscription["id"] = "sub_old"
@@ -641,6 +657,7 @@ def test_stale_terminal_event_from_old_subscription_cannot_replace_new_active_su
 
 def test_equal_timestamp_old_subscription_cannot_replace_new_active_subscription(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_new", "active", 300, "evt_new", 300))
     old_subscription = _subscription("canceled", "evt_old")
     old_subscription["id"] = "sub_old"
@@ -651,6 +668,7 @@ def test_equal_timestamp_old_subscription_cannot_replace_new_active_subscription
 
 def test_older_subscription_cannot_replace_newer_active_subscription_even_with_later_event_timestamp(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_new", "active", 300, "evt_new", 500))
     old_subscription = _subscription("active", "evt_old")
     old_subscription["id"] = "sub_old"
@@ -661,6 +679,7 @@ def test_older_subscription_cannot_replace_newer_active_subscription_even_with_l
 
 def test_new_subscription_can_replace_terminal_previous_subscription_even_if_its_event_is_older(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_old", "canceled", 500, "evt_old_terminal", 200))
     new_subscription = _subscription("active", "evt_new")
     new_subscription["id"] = "sub_new"
@@ -671,6 +690,7 @@ def test_new_subscription_can_replace_terminal_previous_subscription_even_if_its
 
 def test_new_subscription_can_replace_terminal_previous_subscription(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn(("sub_old", "canceled", 300, "evt_old", 200))
     new_subscription = _subscription("active", "evt_new")
     new_subscription["id"] = "sub_new"
@@ -725,6 +745,7 @@ def test_expired_checkout_is_expired_in_stripe_before_new_checkout(monkeypatch):
         checkout = type("CheckoutContainer", (), {"Session": Sessions})
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: conn)
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -766,6 +787,7 @@ def test_expired_pending_completed_checkout_waits_for_webhook(monkeypatch):
         checkout = type("CheckoutContainer", (), {"Session": Sessions})
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: Conn())
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -817,6 +839,7 @@ def test_checkout_reuses_linked_stripe_customer(monkeypatch):
     })
 
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     monkeypatch.setenv("APP_BASE_URL", "https://example.com")
     monkeypatch.setattr(billing.psycopg, "connect", lambda *args, **kwargs: Conn())
     monkeypatch.setattr(billing, "_init_billing", lambda conn: None)
@@ -829,6 +852,7 @@ def test_checkout_reuses_linked_stripe_customer(monkeypatch):
 
 def test_unknown_active_stripe_price_does_not_downgrade_to_free(monkeypatch):
     monkeypatch.setenv("STRIPE_PRICE_PRO", "price_pro")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1000")
     conn = FakeConn()
     subscription = _subscription("active")
     subscription["items"]["data"][0]["price"]["id"] = "price_unconfigured"

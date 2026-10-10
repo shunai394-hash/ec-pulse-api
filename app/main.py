@@ -359,11 +359,6 @@ def privacy_alias():
     return RedirectResponse("/legal/privacy", status_code=308)
 
 
-@app.get("/billing", include_in_schema=False)
-def billing_alias():
-    return RedirectResponse("/legal/billing", status_code=308)
-
-
 @app.get("/account", include_in_schema=False)
 def account_page():
     return HTMLResponse(ACCOUNT_PAGE)
