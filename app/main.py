@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import html
 import logging
 import os
 import re
@@ -55,7 +56,27 @@ def _request_id(value: str | None) -> str:
 async def security_headers(request: Request, call_next):
     request_id = _request_id(request.headers.get("X-Request-ID"))
     request.state.request_id = request_id
-    response = await call_next(request)
+    origin = request.headers.get("Origin")
+    allowed_origins = {item.strip().rstrip("/") for item in os.getenv("EC_PULSE_CORS_ORIGINS", "").split(",") if item.strip()}
+    requested_method = request.headers.get("Access-Control-Request-Method", "").upper()
+    if request.method == "OPTIONS" and origin and origin.rstrip("/") in allowed_origins and requested_method in {"GET", "POST", "DELETE", "OPTIONS"}:
+        requested_headers = {item.strip().lower() for item in request.headers.get("Access-Control-Request-Headers", "").split(",") if item.strip()}
+        allowed_headers = {"content-type", "x-api-key", "x-ec-timestamp", "x-ec-signature", "x-request-id"}
+        if requested_headers.issubset(allowed_headers):
+            response = Response(status_code=204)
+            response.headers["Access-Control-Allow-Origin"] = origin.rstrip("/")
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-API-Key, X-EC-Timestamp, X-EC-Signature, X-Request-ID"
+            response.headers["Access-Control-Max-Age"] = "600"
+            response.headers["Vary"] = "Origin"
+        else:
+            response = await call_next(request)
+    else:
+        response = await call_next(request)
+    if origin and origin.rstrip("/") in allowed_origins and "Access-Control-Allow-Origin" not in response.headers:
+        response.headers["Access-Control-Allow-Origin"] = origin.rstrip("/")
+        response.headers["Access-Control-Expose-Headers"] = "X-EC-Credits-Used, X-EC-Credits-Remaining, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After, X-Request-ID"
+        response.headers["Vary"] = "Origin"
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -188,7 +209,8 @@ async def get_api_key(request: Request, api_key: str | None = Depends(api_key_he
     except HTTPException:
         raise
     except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        logger.error("API key validation dependency unavailable request_id=%s error_type=%s", getattr(request.state, "request_id", None), type(exc).__name__)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable", headers={"Retry-After": "5"}) from exc
     return api_key
 
 def _signed_request_target(request: Request) -> str:
@@ -202,10 +224,13 @@ def _signed_request_target(request: Request) -> str:
 def _charge(api_key: str, endpoint: str, credits: int = 1):
     try: return consume_credit(api_key, endpoint, credits)
     except RuntimeError as exc:
-        message=str(exc)
-        if "Insufficient API credits" in message: raise HTTPException(status_code=402, detail=message) from exc
-        if "Invalid or revoked API key" in message: raise HTTPException(status_code=401, detail=message) from exc
-        raise HTTPException(status_code=503, detail=message) from exc
+        message = str(exc)
+        if "Insufficient API credits" in message:
+            raise HTTPException(status_code=402, detail="Insufficient API credits") from exc
+        if "Invalid or revoked API key" in message:
+            raise HTTPException(status_code=401, detail="Invalid or revoked API key") from exc
+        logger.error("credit charge unavailable endpoint=%s error_type=%s", endpoint, type(exc).__name__)
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable", headers={"Retry-After": "5"}) from exc
 
 def _refund(api_key: str, endpoint: str, credits: int, charge):
     """Best-effort refund for work that failed upstream; returns the updated charge."""
@@ -385,8 +410,11 @@ def robots():
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api.vercel.app").strip().rstrip("/")
+    if not public_site_url.startswith("https://"):
+        public_site_url = "https://ec-pulse-api.vercel.app"
     urls = ("/", "/pricing", "/docs", "/redoc", "/legal/terms", "/legal/privacy", "/legal/billing", "/legal/commercial-transactions", "/legal/acceptable-use")
-    items = "".join(f"<url><loc>https://ec-pulse-api.vercel.app{path}</loc></url>" for path in urls)
+    items = "".join(f"<url><loc>{html.escape(public_site_url + path)}</loc></url>" for path in urls)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
     return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
 
@@ -412,7 +440,7 @@ def health(request: Request):
         )
         raise HTTPException(
             status_code=503,
-            detail={"status": "degraded", "database": "unavailable", "error": type(exc).__name__},
+            detail={"status": "degraded", "database": "unavailable"},
         ) from exc
 
 def _billing_return(request: Request, outcome: str) -> RedirectResponse | None:
@@ -577,14 +605,17 @@ async def customer_account(http_request: Request):
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-@app.post("/v1/billing/checkout")
+@app.post("/v1/billing/checkout", tags=["billing"])
 def billing_checkout(plan: str = Query(..., pattern="^(pro|business)$"), api_key: str = Depends(get_api_key)):
+    if os.getenv("EC_PULSE_LEGAL_READY", "").strip().lower() not in {"1", "true", "yes"}:
+        raise HTTPException(status_code=503, detail="Paid checkout is temporarily unavailable while launch requirements are being finalized", headers={"Retry-After": "3600"})
     try:
         return {"url": create_checkout(api_key, plan), "plan": plan}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        logger.error("billing checkout unavailable error_type=%s", type(exc).__name__)
+        raise HTTPException(status_code=503, detail="Paid checkout is temporarily unavailable", headers={"Retry-After": "60"}) from exc
 
 @app.post("/v1/billing/cancel", tags=["billing"])
 def billing_cancel(at_period_end: bool = Query(default=True), api_key: str = Depends(get_api_key)):
@@ -595,7 +626,7 @@ def billing_cancel(at_period_end: bool = Query(default=True), api_key: str = Dep
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-@app.post("/v1/billing/portal")
+@app.post("/v1/billing/portal", tags=["billing"])
 def billing_portal(api_key: str = Depends(get_api_key)):
     try:
         return {"url": create_customer_portal(api_key)}
@@ -631,13 +662,14 @@ def pricing():
     from app.services.billing import _plan_credit_quota, _price_id
     pro_quota = _plan_credit_quota("pro")
     business_quota = _plan_credit_quota("business")
+    commercial_ready = os.getenv("EC_PULSE_LEGAL_READY", "").strip().lower() in {"1", "true", "yes"}
     return {
         "billing": "credit_based",
         "pricing_source": "stripe",
         "plans": {
             "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True},
-            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(pro_quota and _price_id("pro"))},
-            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(business_quota and _price_id("business"))},
+            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(commercial_ready and pro_quota and _price_id("pro"))},
+            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(commercial_ready and business_quota and _price_id("business"))},
         },
         "checkout": {
             "pro": "/v1/billing/checkout?plan=pro",
@@ -816,7 +848,7 @@ async def product_compare(request_http:Request,response:Response,request:Product
     ranked=sorted(successful,key=lambda x:(x.get("pricing",{}).get("price") is None,x.get("pricing",{}).get("price") or float("inf")))
     return {"count":len(products),"successful":len(successful),"credits":charge,"results":products,"price_ranking":[{"rank":i,"url":x.get("source",{}).get("url"),"title":x.get("product",{}).get("title"),"price":x.get("pricing",{}).get("price"),"currency":x.get("pricing",{}).get("currency"),"marketplace":x.get("source",{}).get("marketplace"),"product_id":x.get("source",{}).get("product_id")} for i,x in enumerate(ranked,1)]}
 
-@app.post("/v1/monitors")
+@app.post("/v1/monitors", tags=["monitors"])
 async def monitor(request_http:Request,response:Response,request:MonitorRequest,api_key:str=Depends(get_api_key)):
     try:
         await validate_public_url(str(request.url))
@@ -843,7 +875,7 @@ async def monitor(request_http:Request,response:Response,request:MonitorRequest,
             raise HTTPException(status_code=401, detail=message) from exc
         raise HTTPException(status_code=503, detail=message) from exc
 
-@app.get("/v1/monitors")
+@app.get("/v1/monitors", tags=["monitors"])
 def monitors(api_key:str=Depends(get_api_key)):
     try: return {"monitors":list_monitors(api_key)}
     except RuntimeError as exc: raise HTTPException(status_code=503,detail=str(exc)) from exc

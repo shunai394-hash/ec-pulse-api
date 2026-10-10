@@ -25,7 +25,6 @@ def test_health_database_failure_is_correlated_but_does_not_leak_details(monkeyp
     assert response.json()["detail"] == {
         "status": "degraded",
         "database": "unavailable",
-        "error": "ProgrammingError",
     }
     assert "health-regression-test" in caplog.text
     assert "ProgrammingError" in caplog.text

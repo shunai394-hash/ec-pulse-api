@@ -219,3 +219,40 @@ def test_short_public_paths_and_sitemap():
     assert sitemap.status_code == 200
     assert sitemap.headers["content-type"].startswith("application/xml")
     assert "https://ec-pulse-api.vercel.app/legal/terms" in sitemap.text
+
+
+
+def test_sitemap_uses_configured_public_site_url(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test/")
+    response = client.get("/sitemap.xml")
+    assert response.status_code == 200
+    assert "https://shop.example.test/" in response.text
+    assert "https://ec-pulse-api.vercel.app/" not in response.text
+
+
+def test_cors_preflight_requires_explicit_origin_allowlist(monkeypatch):
+    monkeypatch.setenv("EC_PULSE_CORS_ORIGINS", "https://store.example.test")
+    response = client.options(
+        "/v1/products",
+        headers={
+            "Origin": "https://store.example.test",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-api-key",
+        },
+    )
+    assert response.status_code == 204
+    assert response.headers["Access-Control-Allow-Origin"] == "https://store.example.test"
+    assert "X-API-Key" in response.headers["Access-Control-Allow-Headers"]
+
+
+def test_cors_rejects_unlisted_origin(monkeypatch):
+    monkeypatch.setenv("EC_PULSE_CORS_ORIGINS", "https://store.example.test")
+    response = client.options(
+        "/v1/products",
+        headers={
+            "Origin": "https://attacker.example",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,x-api-key",
+        },
+    )
+    assert "Access-Control-Allow-Origin" not in response.headers
