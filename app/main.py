@@ -368,7 +368,7 @@ def robots():
 
 
 @app.get("/health")
-def health():
+def health(request: Request):
     # Verify the database dependency so a broken deployment is not reported as healthy.
     try:
         from app.services.monitor_store import _db_url
@@ -376,6 +376,16 @@ def health():
             conn.execute("SELECT 1")
         return {"status": "ok", "database": "ok"}
     except Exception as exc:
+        # Keep the public response deliberately generic, but preserve a request-
+        # correlated stack trace and SQLSTATE for operators. Previously a real
+        # ProgrammingError was reduced to its class name with no diagnostic trail.
+        logger.error(
+            "[health] database check failed request_id=%s exception_type=%s sqlstate=%s",
+            getattr(request.state, "request_id", None),
+            type(exc).__name__,
+            getattr(exc, "sqlstate", None),
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=503,
             detail={"status": "degraded", "database": "unavailable", "error": type(exc).__name__},
