@@ -54,7 +54,8 @@ TOOLS = [
     _tool("ec_monitor_create", "Create a price monitor. This changes persistent account state and requires explicit user intent.", {
         "url": {"type": "string", "format": "uri"},
         "interval_minutes": {"type": "integer", "minimum": 5, "maximum": 10080},
-        "webhook_url": {"type": "string", "format": "uri"}
+        "webhook_url": {"type": "string", "format": "uri"},
+        "target_price": {"type": "number", "exclusiveMinimum": 0, "description": "Optional alert threshold in listed currency"}
     }, ["url", "webhook_url"], read_only=False, destructive=False),
     _tool("ec_monitor_list", "List price monitors owned by the authenticated EC Pulse account.", {}),
     _tool("ec_monitor_history", "Read price history for one monitor owned by the authenticated EC Pulse account.", {
@@ -150,6 +151,9 @@ def _validate_args(name: str, args: Any) -> dict[str, Any]:
         interval = args.get("interval_minutes", 60)
         if isinstance(interval, bool) or not isinstance(interval, int) or not 5 <= interval <= 10080:
             raise ValueError("interval_minutes must be between 5 and 10080")
+        target = args.get("target_price")
+        if target is not None and (isinstance(target, bool) or not isinstance(target, (int, float)) or target <= 0):
+            raise ValueError("target_price must be a positive number")
     elif name in {"ec_monitor_history", "ec_monitor_opportunity"}:
         monitor_id = args.get("monitor_id")
         if not isinstance(monitor_id, str) or not 1 <= len(monitor_id) <= 200:
@@ -220,7 +224,7 @@ def _call_tool(name: str, args: Any) -> Any:
     if name == "ec_consumer_insights":
         return _api_request("POST", "/v1/consumer-insights/analyze", body={"comments": args["comments"], "source": args.get("source")})
     if name == "ec_monitor_create":
-        return _api_request("POST", "/v1/monitors", body={"url": args["url"], "interval_minutes": args.get("interval_minutes", 60), "webhook_url": args["webhook_url"]})
+        return _api_request("POST", "/v1/monitors", body={"url": args["url"], "interval_minutes": args.get("interval_minutes", 60), "webhook_url": args["webhook_url"], "target_price": args.get("target_price")})
     if name == "ec_monitor_list":
         return _api_request("GET", "/v1/monitors")
     if name == "ec_monitor_history":
