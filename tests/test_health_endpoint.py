@@ -35,7 +35,7 @@ def test_health_database_failure_is_correlated_but_does_not_leak_details(monkeyp
 def test_database_url_strips_whitespace_and_rejects_placeholder(monkeypatch):
     from app.services import monitor_store
 
-    monkeypatch.setenv("DATABASE_URL", "  postgresql://user:pass@example.test/db  \\n")
+    monkeypatch.setenv("DATABASE_URL", "  postgresql://user:pass@example.test/db  \n")
     assert monitor_store._db_url() == "postgresql://user:pass@example.test/db"
 
     monkeypatch.setenv("DATABASE_URL", "*********************")

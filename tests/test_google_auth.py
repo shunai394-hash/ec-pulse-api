@@ -86,9 +86,9 @@ def test_browser_callback_survives_auth_provider_outage(monkeypatch):
 def test_google_login_strips_environment_newlines(monkeypatch):
     from urllib.parse import parse_qs, urlparse
 
-    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co\\n")
-    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test\\n")
-    monkeypatch.setenv("APP_BASE_URL", "https://ec-pulse-api-one.vercel.app\\n")
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co\n")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test\n")
+    monkeypatch.setenv("APP_BASE_URL", "https://ec-pulse-api-one.vercel.app\n")
     response = TestClient(app).get("/auth/google", follow_redirects=False)
 
     assert response.status_code == 302
@@ -96,4 +96,4 @@ def test_google_login_strips_environment_newlines(monkeypatch):
     assert urlparse(location).hostname == "example.supabase.co"
     redirect_to = parse_qs(urlparse(location).query)["redirect_to"][0]
     assert redirect_to == "https://ec-pulse-api-one.vercel.app/auth/callback"
-    assert "\\n" not in location
+    assert "\n" not in location
