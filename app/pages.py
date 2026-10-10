@@ -407,7 +407,8 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))close(fal
 """
 
 
-def _page(title: str, description: str, body: str, script: str = "") -> str:
+def _page(title: str, description: str, body: str, script: str = "", canonical_path: str = "/") -> str:
+    canonical_url = "https://ec-pulse-api.vercel.app" + (canonical_path if canonical_path.startswith("/") else "/")
     script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
@@ -415,6 +416,8 @@ def _page(title: str, description: str, body: str, script: str = "") -> str:
         '<meta name="theme-color" content="#f3f0e8">\n'
         '<meta name="color-scheme" content="light">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
+        f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">\n'
+        f'<meta property="og:url" content="{html.escape(canonical_url, quote=True)}">\n'
         f'<meta property="og:title" content="{html.escape(title)}">\n'
         f'<meta property="og:description" content="{html.escape(description)}">\n'
         '<meta property="og:type" content="website">\n'
@@ -1030,6 +1033,7 @@ ACCOUNT_PAGE = _page(
     "EC Pulse API のAPIキー発行、残りクレジット、利用状況、プラン管理。",
     _ACCOUNT_BODY,
     _ACCOUNT_SCRIPT,
+    canonical_path="/account",
 )
 
 
@@ -1121,7 +1125,7 @@ def legal_page(slug: str) -> str | None:
         f'<article class="doc-content" aria-label="{html.escape(title)}本文">{_markdown_to_html(source)}</article>'
         f'<div class="doc-actions"><a class="btn" href="/">トップへ戻る</a><a class="btn primary" href="/account">アカウントを開く</a></div></main>'
     )
-    return _page(f"{title} — EC Pulse API", f"EC Pulse API {title}", body)
+    return _page(f"{title} — EC Pulse API", f"EC Pulse API {title}", body, canonical_path=f"/legal/{slug}")
 
 
 FAVICON_SVG = (
@@ -1132,7 +1136,7 @@ FAVICON_SVG = (
     "</svg>"
 )
 
-ROBOTS_TXT = "User-agent: *\nAllow: /\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
+ROBOTS_TXT = "User-agent: *\nAllow: /\nSitemap: https://ec-pulse-api.vercel.app/sitemap.xml\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
 
 PAGE_CSP = {
     "/": csp_for(LANDING_PAGE),

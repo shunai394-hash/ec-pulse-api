@@ -344,6 +344,26 @@ def _release() -> dict:
         "environment": os.getenv("VERCEL_ENV") or None,
     }
 
+@app.get("/pricing", include_in_schema=False)
+def pricing_page_alias():
+    return RedirectResponse("/#pricing", status_code=308)
+
+
+@app.get("/terms", include_in_schema=False)
+def terms_alias():
+    return RedirectResponse("/legal/terms", status_code=308)
+
+
+@app.get("/privacy", include_in_schema=False)
+def privacy_alias():
+    return RedirectResponse("/legal/privacy", status_code=308)
+
+
+@app.get("/billing", include_in_schema=False)
+def billing_alias():
+    return RedirectResponse("/legal/billing", status_code=308)
+
+
 @app.get("/account", include_in_schema=False)
 def account_page():
     return HTMLResponse(ACCOUNT_PAGE)
@@ -366,6 +386,14 @@ def favicon():
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
     return PlainTextResponse(ROBOTS_TXT)
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap():
+    urls = ("/", "/pricing", "/docs", "/redoc", "/legal/terms", "/legal/privacy", "/legal/billing", "/legal/commercial-transactions", "/legal/acceptable-use")
+    items = "".join(f"<url><loc>https://ec-pulse-api.vercel.app{path}</loc></url>" for path in urls)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get("/health")
@@ -605,13 +633,16 @@ async def stripe_webhook(request: Request, stripe_signature: str | None = Header
 
 @app.get("/v1/pricing", tags=["billing"])
 def pricing():
+    from app.services.billing import _plan_credit_quota, _price_id
+    pro_quota = _plan_credit_quota("pro")
+    business_quota = _plan_credit_quota("business")
     return {
         "billing": "credit_based",
         "pricing_source": "stripe",
         "plans": {
-            "free": {"credits": 100, "rate_limit_per_minute": 30},
-            "pro": {"credits": "configurable", "rate_limit_per_minute": 300},
-            "business": {"credits": "configurable", "rate_limit_per_minute": 3000},
+            "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True},
+            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(pro_quota and _price_id("pro"))},
+            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(business_quota and _price_id("business"))},
         },
         "checkout": {
             "pro": "/v1/billing/checkout?plan=pro",

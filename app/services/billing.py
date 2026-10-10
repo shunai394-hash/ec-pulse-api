@@ -509,8 +509,11 @@ def create_checkout(api_key: str, plan: str) -> str:
         raise ValueError("plan must be pro or business")
     price_id = _price_id(plan)
     base_url = os.getenv("APP_BASE_URL")
+    quota = _plan_credit_quota(plan)
     if not price_id or not base_url:
         raise RuntimeError("Stripe price and APP_BASE_URL are not configured")
+    if quota is None:
+        raise RuntimeError("Monthly credit quota is not configured for this plan; checkout is disabled")
     from app.services.monitor_store import _account_hash
     with psycopg.connect(_db_url()) as conn:
         _init_billing(conn)
