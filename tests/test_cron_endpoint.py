@@ -54,3 +54,19 @@ def test_cron_monitor_endpoint_rejects_wrong_secret(monkeypatch):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Unauthorized"
+
+def test_automation_workflows_target_documented_production_domain():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    monitor_workflow = (root / ".github/workflows/monitor-cron.yml").read_text(encoding="utf-8")
+    smoke_workflow = (root / ".github/workflows/production-smoke.yml").read_text(encoding="utf-8")
+
+    production_url = "https://ec-pulse-api-two.vercel.app"
+    assert production_url in readme
+    assert production_url in monitor_workflow
+    assert production_url in smoke_workflow
+    assert "https://ec-pulse-api.vercel.app" not in monitor_workflow
+    assert "https://ec-pulse-api.vercel.app" not in smoke_workflow
+
