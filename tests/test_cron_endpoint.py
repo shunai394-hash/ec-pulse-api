@@ -77,3 +77,25 @@ def test_automation_workflows_target_documented_production_domain():
     )
     for source in (readme, monitor_workflow, smoke_workflow, patrol_workflow, smoke_script):
         assert all(stale not in source for stale in stale_urls)
+
+
+def test_customer_discovery_workflow_is_safe_and_reproducible():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    workflow = (root / "examples/github-actions/daily-discovery.yml").read_text(encoding="utf-8")
+    guide = (root / "docs/customer-automation-playbook.md").read_text(encoding="utf-8")
+    monitor = (root / ".github/workflows/monitor-cron.yml").read_text(encoding="utf-8")
+
+    assert "workflow_dispatch:" in workflow
+    assert "timeout-minutes: 5" in workflow
+    assert "secrets.EC_PULSE_API_KEY" in workflow
+    assert "secrets.EC_PULSE_BASE_URL" in workflow
+    assert "retention-days: 7" in workflow
+    assert "/v1/products/search" in workflow
+    assert "/v1/orders" not in workflow
+    assert "checkout" not in workflow.lower()
+    assert "examples/github-actions/daily-discovery.yml" in guide
+    assert "must not trigger a purchase or listing publication" in guide
+    assert "CRON_SECRET is not configured" in monitor
+    assert "exit 0" in monitor

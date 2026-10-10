@@ -82,7 +82,7 @@ The canonical contract is `/docs` and `/openapi.json`. See the [README](../READM
 
 ## Copy-ready starter: daily discovery without accidental purchases
 
-The following workflow runs discovery once per day and stores the result as a GitHub Actions artifact. It **does not publish listings, place orders, or make buying decisions**. Create the file as `.github/workflows/ec-pulse-discovery.yml` in your own integration repository and configure the two repository secrets first.
+The ready-to-use file is [`examples/github-actions/daily-discovery.yml`](../examples/github-actions/daily-discovery.yml). It runs discovery once per day and stores the result as a GitHub Actions artifact. It **does not publish listings, place orders, or make buying decisions**. Create the file as `.github/workflows/ec-pulse-discovery.yml` in your own integration repository and configure the two repository secrets first.
 
 ```yaml
 name: EC Pulse daily discovery

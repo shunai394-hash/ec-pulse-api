@@ -1,0 +1,46 @@
+name: EC Pulse daily discovery
+
+on:
+  schedule:
+    - cron: "23 0 * * *" # 09:23 JST; GitHub Actions schedules use UTC.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ec-pulse-daily-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Search candidate products
+        env:
+          EC_PULSE_BASE_URL: ${{ secrets.EC_PULSE_BASE_URL }}
+          EC_PULSE_API_KEY: ${{ secrets.EC_PULSE_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EC_PULSE_BASE_URL}" ] || [ -z "${EC_PULSE_API_KEY}" ]; then
+            echo "::error::Configure EC_PULSE_BASE_URL and EC_PULSE_API_KEY in repository secrets."
+            exit 1
+          fi
+          mkdir -p output
+          code=$(curl --silent --show-error --max-time 45 \
+            -o output/discovery.json -w '%{http_code}' \
+            -X POST "${EC_PULSE_BASE_URL%/}/v1/products/search" \
+            -H "X-API-Key: ${EC_PULSE_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{"query":"replace with your product category","marketplaces":["amazon","rakuten","yahoo"],"limit":5}')
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "::error::EC Pulse discovery failed with HTTP $code. Check credentials, credits and API Docs."
+            exit 1
+          fi
+      - name: Save discovery result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ec-pulse-discovery-${{ github.run_id }}
+          path: output/discovery.json
+          retention-days: 7
