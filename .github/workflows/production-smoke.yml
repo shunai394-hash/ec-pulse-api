@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EC_PULSE_BASE_URL: ${{ github.event.deployment_status.environment_url || inputs.base_url || 'https://ec-pulse-api-one.vercel.app' }}
+  EC_PULSE_BASE_URL: ${{ inputs.base_url || 'https://ec-pulse-api-one.vercel.app' }}
 
 jobs:
   vercel-deployments:
