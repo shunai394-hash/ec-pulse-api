@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Run autonomous patrol
         env:
-          BACKEND_URL: ${{ secrets.EC_PULSE_API_URL || 'https://ec-pulse-api-two.vercel.app' }}
+          BACKEND_URL: ${{ secrets.EC_PULSE_API_URL || 'https://ec-pulse-api-one.vercel.app' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           set -euo pipefail

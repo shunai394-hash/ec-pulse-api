@@ -1,7 +1,7 @@
 """HTTP smoke test against a live EC Pulse API deployment.
 
 Usage:
-    EC_PULSE_BASE_URL=https://ec-pulse-api.vercel.app \
+    EC_PULSE_BASE_URL=https://ec-pulse-api-one.vercel.app \
     EC_PULSE_SMOKE_API_KEY=... \
     EXPECTED_COMMIT=ddb1dfd \
     python scripts/production_smoke.py
@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api.vercel.app").rstrip("/")
+BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api-one.vercel.app").rstrip("/")
 KEY = os.getenv("EC_PULSE_SMOKE_API_KEY", "").strip()
 EXPECTED_COMMIT = os.getenv("EXPECTED_COMMIT", "").strip()[:7]
 UA = "EC-Pulse-Production-Smoke/1.0"
@@ -172,7 +172,7 @@ def authenticated_checks():
     ssrf_targets = [
         "http://127.0.0.1/", "http://localhost/", "http://[::1]/", "http://10.0.0.1/", "http://192.168.1.1/",
         "http://172.16.0.1/", "http://169.254.169.254/latest/meta-data/", "http://2130706433/",
-        "http://localtest.me/", "http://metadata.google.internal/", "https://ec-pulse-api.vercel.app:8443/",
+        "http://localtest.me/", "http://metadata.google.internal/", "https://ec-pulse-api-one.vercel.app:8443/",
     ]
     for target in ssrf_targets:
         status, _, text, parsed = request("POST", "/v1/products", body={"url": target}, headers=auth)
