@@ -181,7 +181,7 @@ p{margin:0 0 14px}
 .step p{color:var(--ink-2);margin:0}
 .step .api{display:grid;gap:6px;font-family:var(--mono);font-size:12px}
 .step .api code{background:var(--paper-2);border-radius:6px;padding:3px 8px;width:fit-content;max-width:100%;white-space:nowrap;font-size:11.5px;overflow:hidden;text-overflow:ellipsis}
-.step .api span{color:var(--ink-3)}.usecases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:28px}.usecase{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--card);transition:transform .2s,box-shadow .2s,border-color .2s}.usecase:hover{transform:translateY(-3px);border-color:var(--line-2);box-shadow:0 18px 38px -30px rgba(18,18,17,.55)}.usecase b{font-family:var(--mono);font-size:10px;color:var(--signal-ink);letter-spacing:.06em}.usecase h3{font-size:16px;margin-top:7px}.usecase p{font-size:13px;color:var(--ink-2);margin:6px 0 0}.usecase a{display:inline-flex;gap:5px;margin-top:11px;font-family:var(--mono);font-size:10px;color:var(--signal-ink);text-decoration:none}.usecase a:hover{text-decoration:underline}
+.step .api span{color:var(--ink-3)}.automation-recipe{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:20px;margin:24px 0 8px;padding:clamp(16px,3vw,26px);border:1px solid var(--line);border-radius:18px;background:var(--card)}.automation-recipe-head .eyebrow{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--signal-ink)}.automation-recipe-head strong{display:block;margin-top:7px;font-size:19px;line-height:1.4}.automation-recipe-head p,.monitor-example p{font-size:12px;color:var(--ink-2);margin:8px 0 0}.automation-recipe ol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0}.automation-recipe li{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:12px}.automation-recipe li b{font-family:var(--mono);font-size:10px;color:var(--signal-ink)}.usecases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:28px}.usecase{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--card);transition:transform .2s,box-shadow .2s,border-color .2s}.usecase:hover{transform:translateY(-3px);border-color:var(--line-2);box-shadow:0 18px 38px -30px rgba(18,18,17,.55)}.usecase b{font-family:var(--mono);font-size:10px;color:var(--signal-ink);letter-spacing:.06em}.usecase h3{font-size:16px;margin-top:7px}.usecase p{font-size:13px;color:var(--ink-2);margin:6px 0 0}.usecase a{display:inline-flex;gap:5px;margin-top:11px;font-family:var(--mono);font-size:10px;color:var(--signal-ink);text-decoration:none}.usecase a:hover{text-decoration:underline}
 
 /* output card */
 .output{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,56px);align-items:start}
@@ -268,7 +268,7 @@ code{background:var(--paper-2);border-radius:5px;padding:1px 6px}
 pre code,.night code{background:none;padding:0}
 .night code{color:var(--night-ink)}
 pre .c{color:#8d8a80}pre .k{color:#ff9d80}.code-shell{position:relative}.code-copy{position:absolute;right:10px;top:10px;z-index:1;border:1px solid var(--night-line);background:var(--night);color:var(--night-ink);border-radius:999px;padding:6px 10px;font:inherit;font-family:var(--mono);font-size:10px;cursor:pointer}.code-copy:hover{border-color:var(--night-mute)}
-.response-preview{display:grid;gap:6px;margin-top:12px;padding:12px 14px;border:1px solid var(--night-line);border-radius:12px;background:var(--night-2)}.response-preview span{font-family:var(--mono);font-size:9px;letter-spacing:.07em;color:var(--night-mute)}.response-preview code{font-size:12px;color:var(--night-ink);overflow-wrap:anywhere}.response-preview small{font-size:10px;color:var(--night-mute)}.errs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--night-line);border:1px solid var(--night-line);border-radius:14px;overflow:hidden;margin-top:16px}
+.monitor-example{margin-top:12px;padding:14px;border:1px solid var(--night-line);border-radius:12px;background:var(--night-2)}.monitor-example .code-label{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--night-mute)}.monitor-example pre{margin:10px 0 0;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--night-ink);font-size:11px}.monitor-example p{color:var(--night-mute)}.response-preview{display:grid;gap:6px;margin-top:12px;padding:12px 14px;border:1px solid var(--night-line);border-radius:12px;background:var(--night-2)}.response-preview span{font-family:var(--mono);font-size:9px;letter-spacing:.07em;color:var(--night-mute)}.response-preview code{font-size:12px;color:var(--night-ink);overflow-wrap:anywhere}.response-preview small{font-size:10px;color:var(--night-mute)}.errs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--night-line);border:1px solid var(--night-line);border-radius:14px;overflow:hidden;margin-top:16px}
 .errs div{background:var(--night);padding:14px 16px;font-size:13px;color:var(--night-mute)}.dev-next{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:12px;padding:12px 14px;border:1px solid var(--night-line);border-radius:12px;background:var(--night-2);font-size:12px;color:var(--night-mute)}.dev-next b{color:var(--night-ink);font-family:var(--mono);font-size:10px;letter-spacing:.05em}
 .errs b{display:block;font-family:var(--mono);font-size:15px;color:var(--night-ink);font-weight:600}
 
@@ -375,7 +375,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 .js .hero-title{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .05s forwards}.js .hero-copy{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .18s forwards}.js .console{animation:heroIn .9s cubic-bezier(.2,.7,.2,1) .3s forwards}
 @keyframes heroIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){body:before{display:none}.console{transform:none}.card,.plan{transition:none}.js .hero-title,.js .hero-copy,.js .console{animation:none;opacity:1;transform:none}}
-@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}.hero-signal-tape,.fit-guide,.signal-grid,.decision-path,.usecases,.final-path{grid-template-columns:1fr}.lineage{grid-template-columns:1fr auto 1fr}.friction-note{display:grid}.console-hint{display:none}.signal-chip{padding-top:8px}.provenance-head{display:grid;gap:3px}}
+@media (max-width:760px){.hero:before{background-size:42px 42px;opacity:.28}.console:hover{transform:none}.card:hover,.plan:hover{transform:none;box-shadow:none}.hero-signal-tape,.fit-guide,.signal-grid,.decision-path,.usecases,.final-path{grid-template-columns:1fr}.automation-recipe{grid-template-columns:1fr}.automation-recipe ol{grid-template-columns:1fr 1fr}.lineage{grid-template-columns:1fr auto 1fr}.friction-note{display:grid}.console-hint{display:none}.signal-chip{padding-top:8px}.provenance-head{display:grid;gap:3px}}
 
 """
 
@@ -584,15 +584,15 @@ _LANDING_BODY = r"""<main id="main">
 <div class="wrap">
 <div class="sec-head">
 <div><span class="sec-no">03 — HOW IT WORKS</span><h2 id="features-title"><span class="ln">5つのシグナルを、</span><br><span class="ln">1つの判断に。</span></h2></div>
-<p class="lead">各段階は独立したAPIです。全部つなげても、必要なところだけ使っても構いません。クレジットは成功した処理だけに使われ、取得先の障害で失敗した分は自動で戻ります。</p>
+<p class="lead">各段階は独立したAPIです。必要なところだけでも、順につないでも使えます。検索・監視登録などのクレジット消費条件を確認してから運用を開始し、取得先の障害で失敗した処理は自動返却されます。</p>
 </div>
 <ol class="steps">
 <li class="step"><span class="no">01</span><h3>市場を集める</h3><p>Amazon・楽天市場・Yahoo!ショッピングを横断検索し、商品名・価格・在庫・URLを同じ形式で返します。</p><div class="api"><code>POST /v1/products/search</code><span>件数 × モール数 クレジット</span></div></li>
 <li class="step"><span class="no">02</span><h3>痛点を見つける</h3><p>レビューやコメントから不満を分類し、件数・割合・実際のコメント例を返します。URLを渡せば本文の取得から行います。</p><div class="api"><code>POST /v1/consumer-insights/analyze</code><span>コメント50件ごとに1</span><code>POST /v1/research/ingest</code><span>URL数</span></div></li>
 <li class="step"><span class="no">03</span><h3>候補を絞る</h3><p>上位の痛点ごとに3モールを再検索し、痛点に対する商品の方向性と候補商品、広告で試す訴求案を返します。</p><div class="api"><code>GET /v1/research/runs/{id}/opportunity</code><span>検索件数に応じて</span></div></li>
 <li class="step"><span class="no">04</span><h3>価格を確かめる</h3><p>商品ページから価格を取得し、複数商品を並べて比較します。監視中の商品は履歴の最安・最高・平均と比べた水準を返します。</p><div class="api"><code>POST /v1/products</code><span>1</span><code>POST /v1/products/compare</code><span>URL数</span><code>GET /v1/monitors/{id}/opportunity</code><span>2</span></div></li>
-<li class="step"><span class="no">05</span><h3>見張り続ける</h3><p>気になる商品を5分〜1週間の間隔で監視。価格が変わるとあなたのシステムへWebhookで通知します。</p><div class="api"><code>POST /v1/monitors</code><span>登録時に1</span><code>GET /v1/monitors/{id}/history</code><span>1</span></div></li>
-</ol><div class="usecases" aria-label="代表的な使い方"><article class="usecase"><b>USE CASE 01</b><h3>新商品を探す</h3><p>3モールの候補を集め、レビューの痛点と価格を同じ判断面に置く。</p><a href="#features">検索フローを見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 02</b><h3>勝ち筋を監視する</h3><p>候補商品の価格履歴を追い、変化をWebhookで自社システムへ渡す。</p><a href="#pricing">利用量を見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 03</b><h3>AIから調査する</h3><p>ClaudeなどからMCPツール経由で検索・比較・分析・監視を実行する。</p><a href="#quickstart">開発者フローへ <span aria-hidden="true">→</span></a></article></div>
+<li class="step"><span class="no">05</span><h3>見張り続ける</h3><p>商品ページURL・監視間隔（5分〜1週間）・通知先Webhook URLを登録。定期チェックで価格が変わると、あなたのシステムへ通知します。毎回ページを開いて価格を見比べる手間を減らせます。</p><div class="api"><code>POST /v1/monitors</code><span>登録時に1</span><code>GET /v1/monitors/{id}/history</code><span>1</span></div></li>
+</ol><div class="automation-recipe" aria-label="価格監視の自動化フロー"><div class="automation-recipe-head"><span class="eyebrow">AUTOMATION RECIPE</span><strong>一度設定すれば、価格の変化を待てる。</strong><p>常時画面を見張る代わりに、チェックと通知をシステムに任せます。通知を受けた後の仕入れ・価格変更は、ルールと承認を設けてから自動化してください。</p></div><ol><li><b>01</b><span>商品URLを登録</span></li><li><b>02</b><span>チェック間隔を設定</span></li><li><b>03</b><span>Webhookで変化を受信</span></li><li><b>04</b><span>担当者または自社ルールで判断</span></li></ol></div><div class="usecases" aria-label="代表的な使い方"><article class="usecase"><b>USE CASE 01</b><h3>新商品を探す</h3><p>3モールの候補を集め、レビューの痛点と価格を同じ判断面に。手作業の候補集めを減らし、比較から始められます。</p><a href="#features">検索フローを見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 02</b><h3>勝ち筋を監視する</h3><p>価格履歴を自動で積み上げ、変化をWebhookで社内ダッシュボードや通知フローへ渡します。</p><a href="#pricing">利用量を見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 03</b><h3>AIから調査する</h3><p>Claudeなどに自然言語で依頼し、MCPツール経由で検索・比較・分析・監視。定型操作を会話から始められます。</p><a href="#quickstart">開発者フローへ <span aria-hidden="true">→</span></a></article></div>
 </div>
 </section>
 
@@ -691,7 +691,7 @@ _LANDING_BODY = r"""<main id="main">
 <div class="wrap">
 <div class="sec-head">
 <div><span class="sec-no">07 — FOR DEVELOPERS</span><h2 id="qs-title"><span class="ln">仕入れ調査を、</span><br><span class="ln">APIで自動化する。</span></h2></div>
-<p class="lead">EC PulseはAPIが本体。スプレッドシート、社内ツール、ClaudeなどのAIエージェントから、同じ認証・クレジット体系で呼び出せます。<br><strong>まず1回呼ぶ → 判断材料を見る → 自動化する。</strong></p>
+<p class="lead">EC PulseはAPIが本体。スプレッドシート、社内ツール、ClaudeなどのAIエージェントから同じ認証・クレジット体系で呼び出せます。繰り返しの検索や価格チェックを仕組みに任せ、担当者は候補の評価と仕入れ判断に集中できます。<br><strong>一度つなぐ → 定期的に取得 → 変化を受け取る。</strong></p>
 </div>
 <div class="dev">
 <ol>
@@ -709,6 +709,12 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
   -d '{"query":"ワイヤレスイヤホン",
        "marketplaces":["amazon","rakuten","yahoo"],
        "limit":5}'</code></pre></div>
+<div class="code-shell monitor-example"><div class="code-label">PRICE MONITOR — one-time setup</div><pre tabindex="0" aria-label="価格監視を登録するcurl例"><code>curl -X POST https://ec-pulse-api-two.vercel.app/v1/monitors \
+  -H "X-API-Key: $EC_PULSE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://shop.example.jp/item/123",
+       "interval_minutes":60,
+       "webhook_url":"https://your-service.example/webhooks/ec-pulse"}'</code></pre><p>URLは公開HTTPSエンドポイントを指定してください。Webhook先は自社で管理する受信先に限り、購入・価格変更の自動実行には別途ルールと承認を設けます。</p></div>
 <div class="errs">
 <div><b>401</b>APIキーがない・無効</div>
 <div><b>402</b>クレジット不足（消費なし）</div>
@@ -750,6 +756,7 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 <details><summary>AIが勝手に「売れる」と判断するサービスですか？</summary><div class="answer"><p>いいえ。EC Pulseは市場データ、レビューの痛点、価格シグナルをAPIで返し、判断材料を作ります。売上や利益を保証しません。痛点分類は現在ルールベースです。</p></div></details>
 <details><summary>失敗した取得にもクレジットがかかりますか？</summary><div class="answer"><p>入力エラーやクレジット不足では消費しません。取得先の障害で失敗した処理は返却する設計です。</p></div></details>
 <details><summary>有料プランの価格はどこで確認できますか？</summary><div class="answer"><p>Pro / Businessの最終的な月額と付与クレジットは、Stripeの決済画面で確認してから確定します。公開前に料金・法務情報も最終確定する必要があります。</p></div></details>
+<details><summary>どこまで自動化できますか？</summary><div class="answer"><p>商品検索、コメント分析、価格監視、価格変化のWebhook通知までをAPIで組み合わせられます。仕入れ・注文・価格変更の実行は自動で保証されません。実行する場合は、自社の条件チェック、上限、監査ログ、人の承認を設けてください。</p></div></details>
 <details><summary>EC Pulseは利益を保証しますか？</summary><div class="answer"><p>いいえ。市場データ、顧客の痛点、価格シグナルを整理して判断を速くするサービスです。市場環境・仕入れ条件・販売条件によって結果は変わるため、最終判断は利用者が行います。</p></div></details>
 </div>
 </div>
