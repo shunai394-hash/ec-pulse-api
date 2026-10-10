@@ -57,6 +57,16 @@ class ValidationTests(unittest.TestCase):
     def test_unknown_argument(self):
         with self.assertRaises(ValueError): server._validate_args("ec_account",{"api_key":"secret"})
 
+    def test_monitor_target_price_must_be_positive(self):
+        with self.assertRaises(ValueError): server._validate_args("ec_monitor_create", {"url":"https://example.com/p", "webhook_url":"https://hooks.example.com/x", "target_price":0})
+
+    def test_monitor_target_price_rejects_boolean(self):
+        with self.assertRaises(ValueError): server._validate_args("ec_monitor_create", {"url":"https://example.com/p", "webhook_url":"https://hooks.example.com/x", "target_price":True})
+
+    def test_monitor_target_price_is_optional(self):
+        args = server._validate_args("ec_monitor_create", {"url":"https://example.com/p", "webhook_url":"https://hooks.example.com/x"})
+        self.assertNotIn("target_price", args)
+
 class SecurityTests(unittest.TestCase):
     def test_key_missing(self):
         with patch.dict(os.environ,{},clear=True):
