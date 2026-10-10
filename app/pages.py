@@ -755,7 +755,7 @@ curl -X POST https://ec-pulse-api-two.vercel.app/v1/products/search \
 <details><summary>本当に無料で試せますか？</summary><div class="answer"><p>Freeプランは毎月100クレジット、30リクエスト/分、カード登録なしで利用できます。メータード処理の成功時だけクレジットを消費します。</p></div></details>
 <details><summary>AIが勝手に「売れる」と判断するサービスですか？</summary><div class="answer"><p>いいえ。EC Pulseは市場データ、レビューの痛点、価格シグナルをAPIで返し、判断材料を作ります。売上や利益を保証しません。痛点分類は現在ルールベースです。</p></div></details>
 <details><summary>失敗した取得にもクレジットがかかりますか？</summary><div class="answer"><p>入力エラーやクレジット不足では消費しません。取得先の障害で失敗した処理は返却する設計です。</p></div></details>
-<details><summary>有料プランの価格はどこで確認できますか？</summary><div class="answer"><p>Pro / Businessの最終的な月額と付与クレジットは、Stripeの決済画面で確認してから確定します。公開前に料金・法務情報も最終確定する必要があります。</p></div></details>
+<details><summary>有料プランの価格はどこで確認できますか？</summary><div class="answer"><p>Pro / Businessの月額料金と付与クレジットは、申込画面で内容を確認してから確定してください。購入確定前に表示される金額・利用条件が適用されます。</p></div></details>
 <details><summary>どこまで自動化できますか？</summary><div class="answer"><p>商品検索、コメント分析、価格監視、価格変化のWebhook通知までをAPIで組み合わせられます。仕入れ・注文・価格変更の実行は自動で保証されません。実行する場合は、自社の条件チェック、上限、監査ログ、人の承認を設けてください。</p></div></details>
 <details><summary>EC Pulseは利益を保証しますか？</summary><div class="answer"><p>いいえ。市場データ、顧客の痛点、価格シグナルを整理して判断を速くするサービスです。市場環境・仕入れ条件・販売条件によって結果は変わるため、最終判断は利用者が行います。</p></div></details>
 </div>

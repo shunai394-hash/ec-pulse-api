@@ -8,7 +8,7 @@ on:
     inputs:
       base_url:
         description: "Deployment to test"
-        default: "https://ec-pulse-api-one.vercel.app"
+        default: "https://ec-pulse-api.vercel.app"
       expected_commit:
         description: "Commit the deployment must serve (default: main HEAD)"
         default: ""
@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EC_PULSE_BASE_URL: ${{ inputs.base_url || 'https://ec-pulse-api-one.vercel.app' }}
+  EC_PULSE_BASE_URL: ${{ inputs.base_url || 'https://ec-pulse-api.vercel.app' }}
 
 jobs:
   vercel-deployments:
