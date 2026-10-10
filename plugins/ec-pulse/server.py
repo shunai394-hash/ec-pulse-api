@@ -224,7 +224,7 @@ def _call_tool(name: str, args: Any) -> Any:
     if name == "ec_consumer_insights":
         return _api_request("POST", "/v1/consumer-insights/analyze", body={"comments": args["comments"], "source": args.get("source")})
     if name == "ec_monitor_create":
-        return _api_request("POST", "/v1/monitors", body={"url": args["url"], "interval_minutes": args.get("interval_minutes", 60), "webhook_url": args["webhook_url"], "target_price": args.get("target_price")})
+        return _api_request("POST", "/v1/monitors", body={"url": args["url"], "interval_minutes": args.get("interval_minutes", 60), "webhook_url": args["webhook_url"], **({"target_price": args["target_price"]} if "target_price" in args else {})})
     if name == "ec_monitor_list":
         return _api_request("GET", "/v1/monitors")
     if name == "ec_monitor_history":
