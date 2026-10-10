@@ -72,8 +72,8 @@ def test_automation_workflows_target_documented_production_domain():
     assert production_url in patrol_workflow
     assert production_url in smoke_script
     stale_urls = (
+        "https://ec-pulse-api-one.vercel.app",
         "https://ec-pulse-api-two.vercel.app",
-        "https://ec-pulse-api.vercel.app",
     )
     for source in (readme, monitor_workflow, smoke_workflow, patrol_workflow, smoke_script):
         assert all(stale not in source for stale in stale_urls)

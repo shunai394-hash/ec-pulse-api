@@ -412,7 +412,10 @@ def _page(title: str, description: str, body: str, script: str = "", canonical_p
     public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api.vercel.app").strip().rstrip("/")
     if not public_site_url.startswith("https://"):
         public_site_url = "https://ec-pulse-api.vercel.app"
-    canonical_url = public_site_url + (canonical_path if canonical_path.startswith("/") else "/")
+    canonical_path = canonical_path if canonical_path.startswith("/") else "/"
+    if canonical_path == "/":
+        canonical_path = ""
+    canonical_url = public_site_url + canonical_path
     script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
