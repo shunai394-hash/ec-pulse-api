@@ -206,8 +206,8 @@ def test_demo_pain_labels_are_ones_the_analyzer_can_return():
 
 def test_canonical_and_social_url_metadata_are_present():
     response = client.get("/", headers={"Accept": "text/html"})
-    assert '<link rel="canonical" href="https://ec-pulse-api.vercel.app">' in response.text
-    assert '<meta property="og:url" content="https://ec-pulse-api.vercel.app">' in response.text
+    assert '<link rel="canonical" href="https://ec-pulse-api-one.vercel.app">' in response.text
+    assert '<meta property="og:url" content="https://ec-pulse-api-one.vercel.app">' in response.text
 
 
 def test_short_public_paths_and_sitemap():
@@ -218,7 +218,7 @@ def test_short_public_paths_and_sitemap():
     sitemap = client.get("/sitemap.xml")
     assert sitemap.status_code == 200
     assert sitemap.headers["content-type"].startswith("application/xml")
-    assert "https://ec-pulse-api.vercel.app/legal/terms" in sitemap.text
+    assert "https://ec-pulse-api-one.vercel.app/legal/terms" in sitemap.text
 
 
 
@@ -227,7 +227,7 @@ def test_sitemap_uses_configured_public_site_url(monkeypatch):
     response = client.get("/sitemap.xml")
     assert response.status_code == 200
     assert "https://shop.example.test/" in response.text
-    assert "https://ec-pulse-api.vercel.app/" not in response.text
+    assert "https://ec-pulse-api-one.vercel.app/" not in response.text
 
 
 def test_cors_preflight_requires_explicit_origin_allowlist(monkeypatch):

@@ -9,7 +9,7 @@ import os
 import subprocess
 import sys
 
-BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api.vercel.app").rstrip("/")
+BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api-one.vercel.app").rstrip("/")
 KEY = os.getenv("EC_PULSE_SMOKE_API_KEY", "").strip()
 SERVER = os.path.join(os.path.dirname(__file__), "..", "plugins", "ec-pulse", "server.py")
 EXPECTED_TOOLS = {

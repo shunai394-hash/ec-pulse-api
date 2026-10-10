@@ -410,9 +410,9 @@ def robots():
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api.vercel.app").strip().rstrip("/")
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api-one.vercel.app").strip().rstrip("/")
     if not public_site_url.startswith("https://"):
-        public_site_url = "https://ec-pulse-api.vercel.app"
+        public_site_url = "https://ec-pulse-api-one.vercel.app"
     urls = ("/", "/pricing", "/docs", "/redoc", "/legal/terms", "/legal/privacy", "/legal/billing", "/legal/commercial-transactions", "/legal/acceptable-use")
     items = "".join(f"<url><loc>{html.escape(public_site_url + path)}</loc></url>" for path in urls)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'

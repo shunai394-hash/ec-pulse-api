@@ -65,14 +65,14 @@ def test_automation_workflows_target_documented_production_domain():
     patrol_workflow = (root / ".github/workflows/patrol.yml").read_text(encoding="utf-8")
     smoke_script = (root / "scripts/production_smoke.py").read_text(encoding="utf-8")
 
-    production_url = "https://ec-pulse-api.vercel.app"
+    production_url = "https://ec-pulse-api-one.vercel.app"
     assert production_url in readme
     assert production_url in monitor_workflow
     assert production_url in smoke_workflow
     assert production_url in patrol_workflow
     assert production_url in smoke_script
     stale_urls = (
-        "https://ec-pulse-api-one.vercel.app",
+        "https://ec-pulse-api.vercel.app",
         "https://ec-pulse-api-two.vercel.app",
     )
     for source in (readme, monitor_workflow, smoke_workflow, patrol_workflow, smoke_script):

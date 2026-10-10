@@ -11,7 +11,7 @@ import sys
 
 from playwright.async_api import async_playwright
 
-BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api.vercel.app").rstrip("/")
+BASE = os.getenv("EC_PULSE_BASE_URL", "https://ec-pulse-api-one.vercel.app").rstrip("/")
 OUT = os.getenv("SCREENSHOT_DIR", "browser-smoke")
 PAGES = ["/", "/account", "/docs", "/legal/terms", "/legal/commercial-transactions"]
 VIEWPORTS = {"mobile": (390, 844), "tablet": (820, 1180), "desktop": (1366, 900)}
