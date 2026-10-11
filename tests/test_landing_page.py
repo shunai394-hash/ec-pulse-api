@@ -204,30 +204,47 @@ def test_demo_pain_labels_are_ones_the_analyzer_can_return():
     assert re.search(r"<strong>38%</strong> (\S+?)<", page).group(1) in labels
 
 
-def test_canonical_and_social_url_metadata_are_present():
+def test_canonical_and_social_url_metadata_are_omitted_until_public_url_is_verified(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
     response = client.get("/", headers={"Accept": "text/html"})
-    assert '<link rel="canonical" href="https://ec-pulse-api-one.vercel.app">' in response.text
-    assert '<meta property="og:url" content="https://ec-pulse-api-one.vercel.app">' in response.text
+    assert response.status_code == 200
+    assert 'rel="canonical"' not in response.text
+    assert 'property="og:url"' not in response.text
 
 
-def test_short_public_paths_and_sitemap():
+def test_canonical_and_social_url_metadata_use_configured_public_url(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test/")
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert '<link rel="canonical" href="https://shop.example.test">' in response.text
+    assert '<meta property="og:url" content="https://shop.example.test">' in response.text
+
+
+def test_short_public_paths_and_sitemap(monkeypatch):
     for path, target in [("/terms", "/legal/terms"), ("/privacy", "/legal/privacy"), ("/pricing", "/#pricing")]:
         response = client.get(path, follow_redirects=False)
         assert response.status_code == 308
         assert response.headers["location"] == target
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
     sitemap = client.get("/sitemap.xml")
     assert sitemap.status_code == 200
     assert sitemap.headers["content-type"].startswith("application/xml")
-    assert "https://ec-pulse-api-one.vercel.app/legal/terms" in sitemap.text
+    assert "https://shop.example.test/legal/terms" in sitemap.text
+    assert "ec-pulse-api-one.vercel.app" not in sitemap.text
 
 
 
-def test_sitemap_uses_configured_public_site_url(monkeypatch):
-    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test/")
+def test_sitemap_is_not_published_without_verified_public_url(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
     response = client.get("/sitemap.xml")
-    assert response.status_code == 200
-    assert "https://shop.example.test/" in response.text
-    assert "https://ec-pulse-api-one.vercel.app/" not in response.text
+    assert response.status_code == 503
+    assert "configure PUBLIC_SITE_URL" in response.text
+
+
+def test_robots_only_advertises_configured_sitemap(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
+    assert "Sitemap:" not in client.get("/robots.txt").text
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    assert "Sitemap: https://shop.example.test/sitemap.xml" in client.get("/robots.txt").text
 
 
 def test_cors_preflight_requires_explicit_origin_allowlist(monkeypatch):
