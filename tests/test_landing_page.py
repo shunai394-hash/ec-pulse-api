@@ -367,3 +367,20 @@ def test_research_history_csv_export_is_authenticated_utf8_and_formula_safe(monk
     assert rows[0]["top_pain"] == "使いにくい"
     assert rows[0]["title"].startswith("'=HYPERLINK(")
     assert "Δ件数 2" in rows[0]["emerging_pains"]
+
+
+def test_robots_is_one_directive_per_line(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    lines = client.get("/robots.txt").text.splitlines()
+    assert "User-agent: *" in lines
+    assert "Disallow: /v1/" in lines
+    assert "Sitemap: https://shop.example.test/sitemap.xml" in lines
+    assert "\\n" not in client.get("/robots.txt").text
+
+
+def test_legal_page_canonical_uses_its_own_path(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    response = client.get("/legal/terms", headers={"Accept": "text/html"})
+    assert '<link rel="canonical" href="https://shop.example.test/legal/terms">' in response.text
+    monkeypatch.delenv("PUBLIC_SITE_URL")
+    assert 'rel="canonical"' not in client.get("/legal/terms", headers={"Accept": "text/html"}).text

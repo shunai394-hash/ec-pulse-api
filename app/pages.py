@@ -412,17 +412,7 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))close(fal
 
 
 def _page(title: str, description: str, body: str, script: str = "", canonical_path: str = "/") -> str:
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
-    if not public_site_url.startswith("https://"):
-        public_site_url = ""
     canonical_path = canonical_path if canonical_path.startswith("/") else "/"
-    if canonical_path == "/":
-        canonical_path = ""
-    canonical_url = public_site_url + canonical_path if public_site_url else ""
-    canonical_tags = (
-        canonical_tags
-        if canonical_url else ""
-    )
     script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
@@ -430,8 +420,7 @@ def _page(title: str, description: str, body: str, script: str = "", canonical_p
         '<meta name="theme-color" content="#f3f0e8">\n'
         '<meta name="color-scheme" content="light">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
-        f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">\n'
-        f'<meta property="og:url" content="{html.escape(canonical_url, quote=True)}">\n'
+        f"<!--canonical:{html.escape(canonical_path, quote=True)}-->\n"
         f'<meta property="og:title" content="{html.escape(title)}">\n'
         f'<meta property="og:description" content="{html.escape(description)}">\n'
         '<meta property="og:type" content="website">\n'
@@ -448,6 +437,26 @@ def _page(title: str, description: str, body: str, script: str = "", canonical_p
 
 def _hash(source: str) -> str:
     return "'sha256-" + base64.b64encode(hashlib.sha256(source.encode()).digest()).decode() + "'"
+
+
+_CANONICAL_MARKER = re.compile(r"<!--canonical:([^>]*?)-->\n")
+
+
+def render_page(page: str) -> str:
+    """Fill in canonical/og:url tags only when PUBLIC_SITE_URL is a verified HTTPS origin.
+
+    Pages are built once at import, so the URL is resolved per request rather than baked in.
+    """
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
+    if not public_site_url.startswith("https://"):
+        return _CANONICAL_MARKER.sub("", page)
+
+    def tags(match: re.Match) -> str:
+        path = html.unescape(match.group(1))
+        url = html.escape(public_site_url + ("" if path == "/" else path), quote=True)
+        return f'<link rel="canonical" href="{url}">\n<meta property="og:url" content="{url}">\n'
+
+    return _CANONICAL_MARKER.sub(tags, page)
 
 
 def csp_for(page: str) -> str:
@@ -1196,7 +1205,7 @@ FAVICON_SVG = (
     "</svg>"
 )
 
-ROBOTS_TXT = "User-agent: *\\nAllow: /\\nDisallow: /v1/\\nDisallow: /api/\\nDisallow: /auth/\\nDisallow: /billing\\nDisallow: /account\\n"
+ROBOTS_TXT = "User-agent: *\nAllow: /\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
 
 PAGE_CSP = {
     "/": csp_for(LANDING_PAGE),

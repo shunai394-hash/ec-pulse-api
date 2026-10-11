@@ -30,7 +30,7 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
-from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page
+from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page, render_page
 
 app = FastAPI(
     title="EC Pulse API",
@@ -106,7 +106,7 @@ async def security_headers(request: Request, call_next):
 @app.exception_handler(404)
 async def not_found(request: Request, exc: HTTPException):
     if "text/html" in request.headers.get("accept", ""):
-        return HTMLResponse(NOT_FOUND_PAGE, status_code=404)
+        return HTMLResponse(render_page(NOT_FOUND_PAGE), status_code=404)
     return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 
@@ -359,7 +359,7 @@ def root(request: Request):
     # Human visitors get the product experience; API clients keep the stable JSON root contract.
     accept = request.headers.get("accept", "")
     if "text/html" in accept:
-        return HTMLResponse(LANDING_PAGE)
+        return HTMLResponse(render_page(LANDING_PAGE))
     return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits",**_release()}
 
 
@@ -388,7 +388,7 @@ def privacy_alias():
 
 @app.get("/account", include_in_schema=False)
 def account_page():
-    return HTMLResponse(ACCOUNT_PAGE)
+    return HTMLResponse(render_page(ACCOUNT_PAGE))
 
 
 @app.get("/legal/{slug}", include_in_schema=False)
@@ -396,7 +396,7 @@ def legal(slug: str):
     page = legal_page(slug)
     if page is None:
         raise HTTPException(status_code=404, detail="Not Found")
-    return HTMLResponse(page)
+    return HTMLResponse(render_page(page))
 
 
 @app.get("/favicon.svg", include_in_schema=False)
@@ -410,7 +410,7 @@ def robots():
     public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
     body = ROBOTS_TXT
     if public_site_url.startswith("https://"):
-        body += f"Sitemap: {public_site_url}/sitemap.xml\\n"
+        body += f"Sitemap: {public_site_url}/sitemap.xml\n"
     return PlainTextResponse(body)
 
 
