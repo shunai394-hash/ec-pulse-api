@@ -928,3 +928,57 @@ def test_public_plan_price_returns_unavailable_on_stripe_error(monkeypatch):
 
     monkeypatch.setattr(billing, "_stripe", lambda: FakeStripe)
     assert billing.get_public_plan_price("pro") is None
+
+
+def test_public_plan_price_is_cached_so_page_views_do_not_hit_stripe(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_not_real")
+    monkeypatch.setenv("STRIPE_PRICE_PRO", "price_test_pro")
+    calls = []
+
+    class FakePrice:
+        @staticmethod
+        def retrieve(price_id):
+            calls.append(price_id)
+            return {
+                "active": True,
+                "unit_amount": 980000,
+                "currency": "jpy",
+                "recurring": {"interval": "month", "interval_count": 1},
+            }
+
+    class FakeStripe:
+        Price = FakePrice
+
+    monkeypatch.setattr(billing, "_stripe", lambda: FakeStripe)
+    for _ in range(5):
+        assert billing.get_public_plan_price("pro")["amount_minor"] == 980000
+    assert calls == ["price_test_pro"]
+
+
+def test_public_plan_price_failure_is_cached_briefly_then_retried(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_not_real")
+    monkeypatch.setenv("STRIPE_PRICE_PRO", "price_test_pro")
+    calls = []
+    clock = [1000.0]
+
+    class FakePrice:
+        @staticmethod
+        def retrieve(_price_id):
+            calls.append(1)
+            raise RuntimeError("simulated Stripe outage")
+
+    class FakeStripe:
+        Price = FakePrice
+
+    monkeypatch.setattr(billing, "_stripe", lambda: FakeStripe)
+    monkeypatch.setattr(billing.time, "monotonic", lambda: clock[0])
+    assert billing.get_public_plan_price("pro") is None
+    assert billing.get_public_plan_price("pro") is None
+    assert len(calls) == 1
+    clock[0] += billing._PRICE_ERROR_TTL_SECONDS + 1
+    assert billing.get_public_plan_price("pro") is None
+    assert len(calls) == 2
