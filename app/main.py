@@ -659,17 +659,19 @@ async def stripe_webhook(request: Request, stripe_signature: str | None = Header
 
 @app.get("/v1/pricing", tags=["billing"])
 def pricing():
-    from app.services.billing import _plan_credit_quota, _price_id
+    from app.services.billing import _plan_credit_quota, get_public_plan_price
     pro_quota = _plan_credit_quota("pro")
     business_quota = _plan_credit_quota("business")
     commercial_ready = os.getenv("EC_PULSE_LEGAL_READY", "").strip().lower() in {"1", "true", "yes"}
+    pro_price = get_public_plan_price("pro")
+    business_price = get_public_plan_price("business")
     return {
         "billing": "credit_based",
         "pricing_source": "stripe",
         "plans": {
-            "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True},
-            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(commercial_ready and pro_quota and _price_id("pro"))},
-            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(commercial_ready and business_quota and _price_id("business"))},
+            "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True, "price": {"amount_minor": 0, "currency": "JPY", "interval": "month", "interval_count": 1}},
+            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(commercial_ready and pro_quota and pro_price), "price": pro_price},
+            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(commercial_ready and business_quota and business_price), "price": business_price},
         },
         "checkout": {
             "pro": "/v1/billing/checkout?plan=pro",
