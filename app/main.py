@@ -1,5 +1,7 @@
 import asyncio
+import csv
 import hashlib
+import io
 import html
 import logging
 import os
@@ -751,6 +753,73 @@ def research_runs(
         return {"runs": list_research_runs(api_key, url, limit)}
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def _csv_cell(value):
+    """Neutralize spreadsheet formula prefixes in user/source-controlled text."""
+    if value is None:
+        return ""
+    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + value
+    return value
+
+
+@app.get("/v1/research/runs/export.csv", tags=["research"])
+def research_runs_export(
+    request_http: Request,
+    url: str | None = Query(default=None, max_length=2000),
+    limit: int = Query(default=100, ge=1, le=100),
+    api_key: str = Depends(get_api_key),
+):
+    """Export the caller's own research history and trend summaries as CSV."""
+    try:
+        runs = list_research_runs(api_key, url, limit)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="Research history is temporarily unavailable") from exc
+
+    output = io.StringIO(newline="")
+    columns = [
+        "run_id", "url", "source_type", "market", "locale", "title",
+        "comments_count", "captured_at", "previous_run_id", "previous_captured_at",
+        "top_pain", "top_pain_count", "top_pain_share_percent",
+        "trend_signal", "emerging_pains",
+    ]
+    writer = csv.DictWriter(output, fieldnames=columns, extrasaction="ignore")
+    writer.writeheader()
+    for run in runs:
+        top = run.get("top_pain") or {}
+        trend = run.get("trend") or {}
+        emerging = trend.get("emerging_pains") or []
+        writer.writerow({
+            "run_id": _csv_cell(run.get("run_id")),
+            "url": _csv_cell(run.get("url")),
+            "source_type": _csv_cell(run.get("source_type")),
+            "market": _csv_cell(run.get("market")),
+            "locale": _csv_cell(run.get("locale")),
+            "title": _csv_cell(run.get("title")),
+            "comments_count": run.get("comments_count"),
+            "captured_at": _csv_cell(run.get("captured_at")),
+            "previous_run_id": _csv_cell(trend.get("previous_run_id")),
+            "previous_captured_at": _csv_cell(trend.get("previous_captured_at")),
+            "top_pain": _csv_cell(top.get("pain")),
+            "top_pain_count": top.get("count"),
+            "top_pain_share_percent": top.get("share_percent"),
+            "trend_signal": _csv_cell(trend.get("signal")),
+            "emerging_pains": _csv_cell("; ".join(
+                f"{item.get('pain', '')} ({item.get('status', '')}; Δ件数 {item.get('count_delta', 0)}; Δ割合 {item.get('share_delta_percent', 0)}pt)"
+                for item in emerging
+            )),
+        })
+    content = "\ufeff" + output.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="ec-pulse-research-history.csv"',
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @app.get("/v1/research/runs/{run_id}/opportunity")
