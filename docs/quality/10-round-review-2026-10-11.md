@@ -84,7 +84,7 @@ Evidence-backed results only. Anything not listed as verified was not verified.
 ### Not verified (blocked)
 
 - Vercel: the connected Vercel account (`naito3087-3997`) gets `403 forbidden` on the `naito3087` scope and lists no projects. No project settings, domains, env vars, deployments or logs could be read. Migration completeness is **NOT VERIFIED**.
-- Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to any deployment URL was made. Which URL serves production is unconfirmed; note that scripts, the MCP plugin and tests in this repository currently point at `ec-pulse-api-one.vercel.app`, which must be reconciled once the production URL under `naito3087` is confirmed.
+- Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to any deployment URL was made. Which URL serves production is unconfirmed. The follow-up removes the unverified domain as a default: the app omits canonical metadata and sitemap entries until `PUBLIC_SITE_URL` is configured, while smoke tests and the MCP adapter require an explicit `EC_PULSE_API_BASE_URL`.
 - Stripe: no access to the Stripe account; price IDs, webhook endpoint, event registration and the reported production webhook 500 are **NOT VERIFIED**.
 
 ### Source-access mitigation added to this review branch
@@ -93,3 +93,10 @@ Evidence-backed results only. Anything not listed as verified was not verified.
 - When explicitly enabled, review ingestion accepts only the repository's configured source domains and re-checks the allow-list after every redirect.
 - Official marketplace API integrations remain available when their credentials are configured. Direct product-URL lookup remains a separate feature and still requires source-by-source terms and permission review.
 - This is a code-level guard, not a legal determination. The production environment was not changed; the flag must remain off until source permissions and data-retention rules are reviewed. CI for this change is pending.
+
+
+## Product value and revenue operating plan — 2026-10-12
+
+- Added `docs/strategy/revenue-and-product-quality-plan.md` with the ¥160M annual revenue target, illustrative account-count arithmetic, competitor comparison, prioritized product gaps, release gates, and a weekly quality dashboard.
+- Measure activation, time-to-first-useful-result, data coverage, repeat usage, paid conversion, retention, support burden, and gross margin—not visual polish alone.
+- Competitive research reviewed on 2026-10-12: [Nint EC Lite](https://ec-lite.nint.jp/), [Nint ECommerce](https://www.nint.jp/ec/), [Jungle Scout pricing](https://www.junglescout.com/pricing/), and [Helium 10 product research](https://www.helium10.com/tools/product-research/). Revalidate details before external investor materials.
