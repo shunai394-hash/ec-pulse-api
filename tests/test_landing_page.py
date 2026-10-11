@@ -5,7 +5,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import _redact, app
+from app.main import _redact, app, get_api_key
 
 client = TestClient(app)
 
@@ -307,3 +307,46 @@ def test_landing_page_never_invents_paid_prices_or_enables_unavailable_checkout(
     assert 'id="business-cta" aria-disabled="true"' in page
     assert "価格未設定" in page
     assert "現在、契約受付停止中" in page
+
+
+def test_research_history_csv_export_is_authenticated_utf8_and_formula_safe(monkeypatch):
+    import app.main as main_module
+
+    monkeypatch.setitem(app.dependency_overrides, get_api_key, lambda: "test-api-key")
+    monkeypatch.setattr(
+        main_module,
+        "list_research_runs",
+        lambda api_key, url, limit: [{
+            "run_id": "run-123",
+            "url": "https://example.com/item",
+            "source_type": "manual",
+            "market": "JP",
+            "locale": "ja-JP",
+            "title": "=HYPERLINK(\"https://bad.example\",\"click\")",
+            "comments_count": 12,
+            "captured_at": "2026-10-11T10:00:00+00:00",
+            "top_pain": {"pain": "使いにくい", "count": 4, "share_percent": 33.3},
+            "trend": {
+                "previous_run_id": "run-122",
+                "previous_captured_at": "2026-10-10T10:00:00+00:00",
+                "signal": "emerging_pain_detected",
+                "emerging_pains": [{"pain": "使いにくい", "status": "rising", "count_delta": 2, "share_delta_percent": 5.0}],
+            },
+        }],
+    )
+
+    response = client.get("/v1/research/runs/export.csv?limit=5")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert 'attachment; filename="ec-pulse-research-history.csv"' in response.headers["content-disposition"]
+    assert response.headers["cache-control"] == "no-store"
+    assert response.content.startswith(b"\\xef\\xbb\\xbf")
+    import csv
+    import io
+    rows = list(csv.DictReader(io.StringIO(response.content.decode("utf-8-sig"))))
+    assert len(rows) == 1
+    assert rows[0]["run_id"] == "run-123"
+    assert rows[0]["previous_run_id"] == "run-122"
+    assert rows[0]["top_pain"] == "使いにくい"
+    assert rows[0]["title"].startswith("'=HYPERLINK(")
+    assert "Δ件数 2" in rows[0]["emerging_pains"]
