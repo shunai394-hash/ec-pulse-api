@@ -21,6 +21,41 @@ def _price_id(plan: str) -> str | None:
             return value
     return None
 
+
+def get_public_plan_price(plan: str) -> dict | None:
+    """Return only public, non-sensitive facts about the configured recurring Stripe price.
+
+    A missing key, inactive price, one-time price, or Stripe/API failure is treated
+    as unavailable so the public pricing endpoint never guesses a price.
+    """
+    price_id = _price_id(plan)
+    if not price_id:
+        return None
+    try:
+        sdk = _stripe()
+        price = _as_dict(sdk.Price.retrieve(price_id))
+        recurring = price.get("recurring") or {}
+        amount = price.get("unit_amount")
+        currency = price.get("currency")
+        interval = recurring.get("interval")
+        if (
+            price.get("active") is not True
+            or not isinstance(amount, int)
+            or not currency
+            or interval not in {"day", "week", "month", "year"}
+        ):
+            return None
+        return {
+            "amount_minor": amount,
+            "currency": str(currency).upper(),
+            "interval": interval,
+            "interval_count": max(1, int(recurring.get("interval_count") or 1)),
+        }
+    except Exception:
+        # Pricing must remain available even if Stripe is temporarily unreachable;
+        # callers show an explicit unavailable state rather than inventing a price.
+        return None
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS billing_events (
     event_id TEXT PRIMARY KEY,
