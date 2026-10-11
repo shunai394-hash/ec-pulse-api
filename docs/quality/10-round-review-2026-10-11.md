@@ -32,9 +32,10 @@ The review uses the Webby website criteria (content, navigation, visual design, 
 
 ## Release gates — do not mark PASS without evidence
 
-- [ ] CI `pytest -q` passes on the pull request.
+- [x] CI `pytest -q` passed on commit `940e74fd7871dad913aa72ceb34f686dd24e629a` in both the `EC Pulse Python tests` and `tests` workflows. The latest change after that run was documentation-only.
 - [ ] Browser smoke: `/`, `/account`, `/docs`, `/redoc`, all legal pages, `/pricing`, `/health`, `/sitemap.xml`.
 - [ ] Check HTML and JSON root behavior with real browser and API-client Accept headers on the canonical production alias.
+- [ ] Resolve Vercel ownership/routing: PR status checks currently report successful deployments for both `ec-pulse-api` and `ec-pulse` under the older `shunai394-9704s-projects` scope, while the intended migration target was `naito3087`.
 - [ ] Test desktop, tablet and narrow mobile; keyboard-only navigation; reduced motion; screen reader labels.
 - [ ] Measure Core Web Vitals and verify no console errors or CSP violations.
 - [ ] Confirm actual Stripe plan amounts and monthly credit quotas are visible before checkout.
@@ -47,3 +48,9 @@ The review uses the Webby website criteria (content, navigation, visual design, 
 
 Round count for this source-level patrol: **10/10 review passes performed**.  
 Award-level readiness: **NOT VERIFIED**. The branch is a review candidate, not a production release. The outstanding gates above are real blockers, not assumed passes.
+
+
+### CI notes
+
+- `EC Pulse Python tests` and `tests` completed successfully on the code-bearing PR commit.
+- `EC Pulse Patrol AI` failed before running its review because the workflow has no `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, or configured workload identity. This is recorded as **NOT RUN / workflow auth missing**, not as a product-code test failure.
