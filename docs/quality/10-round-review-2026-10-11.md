@@ -62,6 +62,14 @@ Award-level readiness: **NOT VERIFIED**. The branch is a review candidate, not a
 
 Evidence-backed results only. Anything not listed as verified was not verified.
 
+### Reference URLs
+
+| Purpose | URL | Status |
+|---|---|---|
+| Vercel dashboard (designated migration target) | https://vercel.com/naito3087/ec-pulse-api | Access denied (403) from this session; settings not verified |
+| Previously observed deployment | https://ec-pulse-qo5r3c51i-naito3087.vercel.app/ | **Not confirmed as the production URL** |
+| GitHub repository | https://github.com/shunai394-hash/ec-pulse-api | Verified |
+
 ### Verified
 
 - PR #16 is still draft and unmerged; head was `f1ee7b2` before this session, base `main` at `9458508`.
@@ -76,7 +84,7 @@ Evidence-backed results only. Anything not listed as verified was not verified.
 ### Not verified (blocked)
 
 - Vercel: the connected Vercel account (`naito3087-3997`) gets `403 forbidden` on the `naito3087` scope and lists no projects. No project settings, domains, env vars, deployments or logs could be read. Migration completeness is **NOT VERIFIED**.
-- Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to the production or preview URLs was made. The code's canonical alias is `ec-pulse-api-one.vercel.app`, not `ec-pulse-api.vercel.app`.
+- Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to any deployment URL was made. Which URL serves production is unconfirmed; note that scripts, the MCP plugin and tests in this repository currently point at `ec-pulse-api-one.vercel.app`, which must be reconciled once the production URL under `naito3087` is confirmed.
 - Stripe: no access to the Stripe account; price IDs, webhook endpoint, event registration and the reported production webhook 500 are **NOT VERIFIED**.
 
 ### Open finding requiring an owner decision
