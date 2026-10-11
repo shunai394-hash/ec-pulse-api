@@ -62,3 +62,12 @@ def public_dns(monkeypatch):
         return real_resolve(host, port)
 
     monkeypatch.setattr(url_safety, "_resolve_public_addresses", resolve)
+
+
+@pytest.fixture(autouse=True)
+def _clear_stripe_price_cache():
+    from app.services import billing
+
+    billing._price_cache.clear()
+    yield
+    billing._price_cache.clear()

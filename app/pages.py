@@ -250,6 +250,9 @@ p{margin:0 0 14px}
 .plan .for{font-size:14px;color:var(--ink-2);margin:6px 0 22px;min-height:3.4em}
 .plan .price{font-family:var(--mono);font-size:clamp(28px,3vw,36px);font-weight:600;letter-spacing:-.02em;margin:0}
 .plan .price.tbd{font-family:var(--sans);font-size:15px;font-weight:700;letter-spacing:0;line-height:1.6;padding:6px 0 4px;color:var(--ink-2)}
+.plan .price .price-status{display:block;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:0;line-height:1.5;margin-top:4px;color:var(--ink-3)}
+.plan .btn[aria-disabled="true"],.plan .btn.disabled{opacity:.62;cursor:not-allowed;pointer-events:none;background:var(--paper-2);color:var(--ink-3);border-color:var(--line)}
+.plan .price-error{color:var(--signal-ink)}
 .plan .price small{font-size:13px;color:var(--ink-3);font-weight:400;letter-spacing:0;margin-left:4px}
 .plan ul{list-style:none;padding:0;margin:20px 0 26px;display:grid;gap:10px;font-size:14.5px}
 .plan li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px}
@@ -409,13 +412,7 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))close(fal
 
 
 def _page(title: str, description: str, body: str, script: str = "", canonical_path: str = "/") -> str:
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api-one.vercel.app").strip().rstrip("/")
-    if not public_site_url.startswith("https://"):
-        public_site_url = "https://ec-pulse-api-one.vercel.app"
     canonical_path = canonical_path if canonical_path.startswith("/") else "/"
-    if canonical_path == "/":
-        canonical_path = ""
-    canonical_url = public_site_url + canonical_path
     script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
@@ -423,8 +420,7 @@ def _page(title: str, description: str, body: str, script: str = "", canonical_p
         '<meta name="theme-color" content="#f3f0e8">\n'
         '<meta name="color-scheme" content="light">\n'
         f'<meta name="description" content="{html.escape(description)}">\n'
-        f'<link rel="canonical" href="{html.escape(canonical_url, quote=True)}">\n'
-        f'<meta property="og:url" content="{html.escape(canonical_url, quote=True)}">\n'
+        f"<!--canonical:{html.escape(canonical_path, quote=True)}-->\n"
         f'<meta property="og:title" content="{html.escape(title)}">\n'
         f'<meta property="og:description" content="{html.escape(description)}">\n'
         '<meta property="og:type" content="website">\n'
@@ -441,6 +437,26 @@ def _page(title: str, description: str, body: str, script: str = "", canonical_p
 
 def _hash(source: str) -> str:
     return "'sha256-" + base64.b64encode(hashlib.sha256(source.encode()).digest()).decode() + "'"
+
+
+_CANONICAL_MARKER = re.compile(r"<!--canonical:([^>]*?)-->\n")
+
+
+def render_page(page: str) -> str:
+    """Fill in canonical/og:url tags only when PUBLIC_SITE_URL is a verified HTTPS origin.
+
+    Pages are built once at import, so the URL is resolved per request rather than baked in.
+    """
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
+    if not public_site_url.startswith("https://"):
+        return _CANONICAL_MARKER.sub("", page)
+
+    def tags(match: re.Match) -> str:
+        path = html.unescape(match.group(1))
+        url = html.escape(public_site_url + ("" if path == "/" else path), quote=True)
+        return f'<link rel="canonical" href="{url}">\n<meta property="og:url" content="{url}">\n'
+
+    return _CANONICAL_MARKER.sub(tags, page)
 
 
 def csp_for(page: str) -> str:
@@ -468,7 +484,7 @@ _LANDING_BODY = r"""<main id="main">
 <h1 id="hero-title" class="mt22"><span class="ln">売れる商品を、</span><br><span class="ln"><em>探す前に</em>絞り込む。</span></h1>
 </div>
 <div class="hero-copy">
-<p class="lead">Amazon・楽天市場・Yahoo!ショッピングの商品、レビューの痛点、価格の変化をAPIでまとめ、仕入れ判断に必要な材料を返します。手作業の比較を減らし、あなたは「利益が残るか」を判断できます。</p>
+<p class="lead">Amazon・楽天市場・Yahoo!ショッピングの商品データと、利用条件を確認したレビュー・コメントの痛点、価格の変化をAPIでまとめます。手作業の比較を減らし、あなたは「利益が残るか」を判断できます。</p>
 <div class="actions">
 <a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a>
 <a class="btn" href="#calc">仕入れ上限を計算する</a>
@@ -598,11 +614,11 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <ol class="steps">
 <li class="step"><span class="no">01</span><h3>市場を集める</h3><p>Amazon・楽天市場・Yahoo!ショッピングを横断検索し、商品名・価格・在庫・URLを同じ形式で返します。</p><div class="api"><code>POST /v1/products/search</code><span>件数 × モール数 クレジット</span></div></li>
-<li class="step"><span class="no">02</span><h3>痛点を見つける</h3><p>レビューやコメントから不満を分類し、件数・割合・実際のコメント例を返します。URLを渡せば本文の取得から行います。</p><div class="api"><code>POST /v1/consumer-insights/analyze</code><span>コメント50件ごとに1</span><code>POST /v1/research/ingest</code><span>URL数</span></div></li>
+<li class="step"><span class="no">02</span><h3>痛点を見つける</h3><p>提供元の利用条件に従って扱えるレビューやコメントから、不満の件数・割合・コメント例を返します。対応する公開ページでは取得を試みますが、本文の取得可否は提供元のルールと公開範囲に依存します。</p><div class="api"><code>POST /v1/consumer-insights/analyze</code><span>コメント50件ごとに1</span><code>POST /v1/research/ingest</code><span>URL数</span></div></li>
 <li class="step"><span class="no">03</span><h3>候補を絞る</h3><p>上位の痛点ごとに3モールを再検索し、痛点に対する商品の方向性と候補商品、広告で試す訴求案を返します。</p><div class="api"><code>GET /v1/research/runs/{id}/opportunity</code><span>検索件数に応じて</span></div></li>
 <li class="step"><span class="no">04</span><h3>価格を確かめる</h3><p>商品ページから価格を取得し、複数商品を並べて比較します。監視中の商品は履歴の最安・最高・平均と比べた水準を返します。</p><div class="api"><code>POST /v1/products</code><span>1</span><code>POST /v1/products/compare</code><span>URL数</span><code>GET /v1/monitors/{id}/opportunity</code><span>2</span></div></li>
 <li class="step"><span class="no">05</span><h3>見張り続ける</h3><p>商品ページURL・監視間隔（5分〜1週間）・通知先Webhook URLを登録。定期チェックで価格が変わると、あなたのシステムへ通知します。毎回ページを開いて価格を見比べる手間を減らせます。</p><div class="api"><code>POST /v1/monitors</code><span>登録時に1</span><code>GET /v1/monitors/{id}/history</code><span>1</span></div></li>
-</ol><div class="automation-recipe" aria-label="価格監視の自動化フロー"><div class="automation-recipe-head"><span class="eyebrow">AUTOMATION RECIPE</span><strong>一度設定すれば、価格の変化を待てる。</strong><p>常時画面を見張る代わりに、チェックと通知をシステムに任せます。通知を受けた後の仕入れ・価格変更は、ルールと承認を設けてから自動化してください。</p></div><ol><li><b>01</b><span>商品URLを登録</span></li><li><b>02</b><span>チェック間隔を設定</span></li><li><b>03</b><span>Webhookで変化を受信</span></li><li><b>04</b><span>担当者または自社ルールで判断</span></li></ol></div><div class="usecases" aria-label="代表的な使い方"><article class="usecase"><b>USE CASE 01</b><h3>新商品を探す</h3><p>3モールの候補を集め、レビューの痛点と価格を同じ判断面に。手作業の候補集めを減らし、比較から始められます。</p><a href="#features">検索フローを見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 02</b><h3>勝ち筋を監視する</h3><p>価格履歴を自動で積み上げ、変化をWebhookで社内ダッシュボードや通知フローへ渡します。</p><a href="#pricing">利用量を見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 03</b><h3>AIから調査する</h3><p>Claudeなどに自然言語で依頼し、MCPツール経由で検索・比較・分析・監視。定型操作を会話から始められます。</p><a href="#quickstart">開発者フローへ <span aria-hidden="true">→</span></a></article></div>
+</ol><div class="automation-recipe" aria-label="価格監視の自動化フロー"><div class="automation-recipe-head"><span class="eyebrow">AUTOMATION RECIPE</span><strong>一度設定すれば、価格の変化を待てる。</strong><p>常時画面を見張る代わりに、チェックと通知をシステムに任せます。通知を受けた後の仕入れ・価格変更は、ルールと承認を設けてから自動化してください。</p></div><ol><li><b>01</b><span>商品URLを登録</span></li><li><b>02</b><span>チェック間隔を設定</span></li><li><b>03</b><span>Webhookで変化を受信</span></li><li><b>04</b><span>担当者または自社ルールで判断</span></li></ol></div><div class="usecases" aria-label="代表的な使い方"><article class="usecase"><b>USE CASE 01</b><h3>新商品を探す</h3><p>3モールの候補を集め、レビューの痛点と価格を同じ判断面に。手作業の候補集めを減らし、比較から始められます。</p><a href="#features">検索フローを見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 02</b><h3>変化を比較して、持ち出す</h3><p>価格履歴を監視し、調査結果は前回との差分まで蓄積。<code>GET /v1/research/runs</code> で履歴・痛点の変化を確認し、<code>GET /v1/research/runs/export.csv</code> で表計算に書き出せます。</p><a href="/docs">履歴・CSV APIを見る <span aria-hidden="true">→</span></a></article><article class="usecase"><b>USE CASE 03</b><h3>AIから調査する</h3><p>Claudeなどに自然言語で依頼し、MCPツール経由で検索・比較・分析・監視。定型操作を会話から始められます。</p><a href="#quickstart">開発者フローへ <span aria-hidden="true">→</span></a></article></div>
 </div>
 </section>
 
@@ -686,14 +702,14 @@ _LANDING_BODY = r"""<main id="main">
 <div class="plan"><span class="tagline">まず試す</span><h3 class="mt10">Free</h3><p class="for">1つの商品ジャンルで、市場と痛点を調べてみたい人に。</p><p class="price">¥0<small>/ 月</small></p>
 <ul><li>毎月100クレジット</li><li>30リクエスト / 分</li><li>すべてのAPIを利用可能</li><li>カード登録不要</li></ul>
 <a class="btn" href="/account">無料でAPIキーを取得</a></div>
-<div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">複数ジャンルの候補探しと価格監視を、日々の業務に組み込む人に。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
-<ul><li>請求ごとに月間クレジットを付与</li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn primary" href="/account#billing">Proで仕入れ調査を始める</a><p class="plan-note">最終的な月額と付与クレジットは、決済確定前にStripe画面で確認できます。</p></div>
-<div class="plan"><span class="tagline">規模を広げる</span><h3 class="mt10">Business</h3><p class="for">大量の商品リサーチや監視を、自社システムで自動化するチームに。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
-<ul><li>請求ごとに月間クレジットを付与</li><li>3,000リクエスト / 分</li><li>大量のリサーチと監視向け</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn" href="/account#billing">Businessで自動化する</a><p class="plan-note">大規模利用を想定。実際の料金・付与クレジットはStripe画面で確定前に確認してください。</p></div>
+<div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">月商100万〜1,000万円規模のEC担当者が、日々の候補比較と価格監視を自分で回すためのプラン。</p><p class="price" id="pro-price" aria-live="polite">料金を確認中…<span class="price-status">Stripeの登録価格を確認しています</span></p>
+<ul><li><strong id="pro-credits">月間クレジットを確認中</strong></li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約（受付開始後）</li></ul>
+<span class="btn primary disabled" id="pro-cta" aria-disabled="true">販売状況を確認中</span><p class="plan-note" id="pro-note">料金・クレジット・契約受付状況をサーバーの設定から表示します。未設定の値は推測しません。</p></div>
+<div class="plan"><span class="tagline">規模を広げる</span><h3 class="mt10">Business</h3><p class="for">大量の商品リサーチや監視を、自社システムで自動化するチーム向け。</p><p class="price" id="business-price" aria-live="polite">料金を確認中…<span class="price-status">Stripeの登録価格を確認しています</span></p>
+<ul><li><strong id="business-credits">月間クレジットを確認中</strong></li><li>3,000リクエスト / 分</li><li>大量のリサーチと監視向け</li><li>Stripeでいつでも解約（受付開始後）</li></ul>
+<span class="btn disabled" id="business-cta" aria-disabled="true">販売状況を確認中</span><p class="plan-note" id="business-note">料金・クレジット・契約受付状況をサーバーの設定から表示します。未設定の値は推測しません。</p></div>
 </div><div class="fit-guide" aria-label="プランの選び方"><span><b>TRY</b>まずAPIを触る → Free</span><span><b>OPERATE</b>日々の調査 → Pro</span><span><b>AUTOMATE</b>大量処理 → Business</span></div>
-<p class="small muted mt20">有料プランの金額と付与クレジット数は、Stripeの決済画面で確定前に表示されます。<a href="/legal/billing">料金・解約ポリシー</a></p>
+<p class="small muted mt20">表示価格はStripeに登録された有効な定期価格を読み込みます。受付停止中は有料契約へ進めません。<a href="/legal/billing">料金・解約ポリシー</a></p>
 </div>
 </section>
 
@@ -713,13 +729,13 @@ _LANDING_BODY = r"""<main id="main">
 </ol>
 <div>
 <div class="code-shell"><button type="button" class="code-copy" id="copy-curl">curlをコピー</button><pre tabindex="0" aria-label="curlでの呼び出し例" id="curl-example"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
-curl -X POST https://ec-pulse-api-one.vercel.app/v1/products/search \
+curl -X POST ${EC_PULSE_API_BASE_URL%/}/v1/products/search \
   -H <span class="k">"X-API-Key: $EC_PULSE_API_KEY"</span> \
   -H "Content-Type: application/json" \
   -d '{"query":"ワイヤレスイヤホン",
        "marketplaces":["amazon","rakuten","yahoo"],
        "limit":5}'</code></pre></div>
-<div class="code-shell monitor-example"><div class="code-label">PRICE MONITOR — one-time setup</div><pre tabindex="0" aria-label="価格監視を登録するcurl例"><code>curl -X POST https://ec-pulse-api-one.vercel.app/v1/monitors \
+<div class="code-shell monitor-example"><div class="code-label">PRICE MONITOR — one-time setup</div><pre tabindex="0" aria-label="価格監視を登録するcurl例"><code>curl -X POST ${EC_PULSE_API_BASE_URL%/}/v1/monitors \
   -H "X-API-Key: $EC_PULSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://shop.example.jp/item/123",
@@ -766,6 +782,8 @@ curl -X POST https://ec-pulse-api-one.vercel.app/v1/products/search \
 <details><summary>AIが勝手に「売れる」と判断するサービスですか？</summary><div class="answer"><p>いいえ。EC Pulseは市場データ、レビューの痛点、価格シグナルをAPIで返し、判断材料を作ります。売上や利益を保証しません。痛点分類は現在ルールベースです。</p></div></details>
 <details><summary>失敗した取得にもクレジットがかかりますか？</summary><div class="answer"><p>入力エラーやクレジット不足では消費しません。取得先の障害で失敗した処理は返却する設計です。</p></div></details>
 <details><summary>有料プランの価格はどこで確認できますか？</summary><div class="answer"><p>Pro / Businessの月額料金と付与クレジットは、申込画面で内容を確認してから確定してください。購入確定前に表示される金額・利用条件が適用されます。</p></div></details>
+<details><summary>商品・レビューのデータは必ず取得できますか？</summary><div class="answer"><p>いいえ。取得可否・件数・鮮度は、提供元の公式APIの利用権限、契約、公開範囲、利用規約、アクセス制限によって変わります。すべての商品やレビューを取得できるとは保証しません。提供元のルールを回避して取得することも前提にしていません。レビュー本文を分析したい場合は、取得・利用する権限を確認したうえで、<code>POST /v1/consumer-insights/analyze</code> に分析対象のコメントを渡してください。</p></div></details>
+<details><summary>取得データを仕入れ判断にそのまま使えますか？</summary><div class="answer"><p>APIの結果は判断材料です。価格・在庫・レビューは変化し、取得先の表示や更新タイミングとも差が出ることがあります。発注前に提供元の最新情報と利用条件を確認してください。EC Pulseはデータの完全性、売上、利益を保証しません。</p></div></details>
 <details><summary>どこまで自動化できますか？</summary><div class="answer"><p>商品検索、コメント分析、価格監視、価格変化のWebhook通知までをAPIで組み合わせられます。仕入れ・注文・価格変更の実行は自動で保証されません。実行する場合は、自社の条件チェック、上限、監査ログ、人の承認を設けてください。</p></div></details>
 <details><summary>EC Pulseは利益を保証しますか？</summary><div class="answer"><p>いいえ。市場データ、顧客の痛点、価格シグナルを整理して判断を速くするサービスです。市場環境・仕入れ条件・販売条件によって結果は変わるため、最終判断は利用者が行います。</p></div></details>
 </div>
@@ -784,6 +802,50 @@ _LANDING_SCRIPT = r"""
 (function(){
 var d=document,root=d.documentElement;root.classList.add('js');
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Show actual Stripe prices and fail closed when paid checkout is not ready. */
+(function(){
+  var formatPrice=function(price){
+    if(!price||typeof price.amount_minor!=='number'||!price.currency)return null;
+    var zeroDecimal={BIF:1,CLP:1,DJF:1,GNF:1,JPY:1,KMF:1,KRW:1,MGA:1,PYG:1,RWF:1,UGX:1,VND:1,VUV:1,XAF:1,XOF:1,XPF:1};
+    var amount=price.amount_minor/(zeroDecimal[price.currency]?1:100);
+    var interval=price.interval==='year'?'年':price.interval==='month'?'月':price.interval==='week'?'週':price.interval==='day'?'日':null;
+    if(!interval)return null;
+    var count=price.interval_count||1;
+    var unit=count===1?interval:count+interval;
+    try{return new Intl.NumberFormat('ja-JP',{style:'currency',currency:price.currency,maximumFractionDigits:zeroDecimal[price.currency]?0:2}).format(amount)+' / '+unit}
+    catch(e){return price.currency+' '+amount+' / '+unit}
+  };
+  var setPlan=function(name,plan){
+    var priceEl=d.getElementById(name+'-price'),creditsEl=d.getElementById(name+'-credits'),ctaEl=d.getElementById(name+'-cta'),noteEl=d.getElementById(name+'-note');
+    if(!priceEl||!creditsEl||!ctaEl||!noteEl)return;
+    var price=formatPrice(plan&&plan.price);
+    priceEl.textContent=price||'価格未設定';
+    var status=d.createElement('span');status.className='price-status';
+    if(price){status.textContent=plan.available?'Stripe登録価格':'価格は確認済み・契約受付停止中';}
+    else{status.textContent='有効な定期価格を確認できません';status.classList.add('price-error');}
+    priceEl.appendChild(status);
+    creditsEl.textContent=Number.isInteger(plan&&plan.credits)&&plan.credits>0?plan.credits.toLocaleString('ja-JP')+' クレジット / 月':'月間クレジット未設定';
+    if(plan&&plan.available&&price){
+      var link=d.createElement('a');link.className=ctaEl.className.replace(/\bdisabled\b/g,'').trim();link.href='/account#billing';link.textContent=name==='pro'?'Proで仕入れ調査を始める':'Businessで自動化する';link.removeAttribute('aria-disabled');ctaEl.replaceWith(link);
+      noteEl.textContent='Stripeの登録価格と月間クレジットを表示しています。契約前に決済画面でも条件をご確認ください。';
+    }else{
+      ctaEl.textContent='現在、契約受付停止中';ctaEl.setAttribute('aria-disabled','true');
+      noteEl.textContent=price?'価格は登録されていますが、契約設定・法務準備などの条件が整うまで申込できません。':'価格または月間クレジットが未設定のため、申込を停止しています。';
+    }
+  };
+  fetch('/v1/pricing',{headers:{'Accept':'application/json'},credentials:'same-origin',cache:'no-store'})
+    .then(function(response){if(!response.ok)throw new Error('pricing unavailable');return response.json()})
+    .then(function(data){setPlan('pro',data.plans&&data.plans.pro);setPlan('business',data.plans&&data.plans.business)})
+    .catch(function(){
+      ['pro','business'].forEach(function(name){
+        var p=d.getElementById(name+'-price'),c=d.getElementById(name+'-cta'),n=d.getElementById(name+'-note');
+        if(p){p.textContent='価格を取得できません';var st=d.createElement('span');st.className='price-status price-error';st.textContent='再読み込みしても解消しない場合は管理者にお問い合わせください';p.appendChild(st)}
+        if(c){c.textContent='申込できません';c.setAttribute('aria-disabled','true')}
+        if(n)n.textContent='価格情報を取得できないため、有料契約を安全側で停止しています。';
+      });
+    });
+})();
 
 /* Global polish: reveal sections and keep a quiet scroll-progress signal. */
 var revealTargets=[].slice.call(d.querySelectorAll('.section .sec-head,.section .pains,.section .compare,.section .steps,.section .output,.section .calc,.section .plans,.section .dev,.section .trust,.section .cta-card'));
@@ -881,7 +943,7 @@ var copyCurl=d.getElementById('copy-curl'),curl=d.getElementById('curl-example')
 
 LANDING_PAGE = _page(
     "EC Pulse — 売れる商品を、探す前に絞り込む。",
-    "EC Pulse は Amazon・楽天市場・Yahoo!ショッピングの商品データ、レビューの痛点、価格の動きを集め、利益が残る仕入れ判断を速くする市場シグナルAPIです。",
+    "EC Pulse は Amazon・楽天市場・Yahoo!ショッピングの商品データと、利用条件を確認したレビュー・コメント、価格の動きを整理し、仕入れ判断を速くする市場シグナルAPIです。",
     _LANDING_BODY,
     _LANDING_SCRIPT,
 )
@@ -1143,7 +1205,7 @@ FAVICON_SVG = (
     "</svg>"
 )
 
-ROBOTS_TXT = "User-agent: *\nAllow: /\nSitemap: https://ec-pulse-api-one.vercel.app/sitemap.xml\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
+ROBOTS_TXT = "User-agent: *\nAllow: /\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
 
 PAGE_CSP = {
     "/": csp_for(LANDING_PAGE),

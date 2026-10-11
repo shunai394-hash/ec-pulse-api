@@ -1,5 +1,7 @@
 import asyncio
+import csv
 import hashlib
+import io
 import html
 import logging
 import os
@@ -28,7 +30,7 @@ from app.services.rate_limit import check_rate_limit
 from app.services.request_signature import verify_request_signature
 from app.services.url_safety import validate_public_url
 from app.services.google_auth import current_user, exchange_callback, google_login, logout
-from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page
+from app.pages import ACCOUNT_PAGE, FAVICON_SVG, LANDING_PAGE, LEGAL_CSP, NOT_FOUND_CSP, NOT_FOUND_PAGE, PAGE_CSP, ROBOTS_TXT, legal_page, render_page
 
 app = FastAPI(
     title="EC Pulse API",
@@ -104,7 +106,7 @@ async def security_headers(request: Request, call_next):
 @app.exception_handler(404)
 async def not_found(request: Request, exc: HTTPException):
     if "text/html" in request.headers.get("accept", ""):
-        return HTMLResponse(NOT_FOUND_PAGE, status_code=404)
+        return HTMLResponse(render_page(NOT_FOUND_PAGE), status_code=404)
     return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 
@@ -357,7 +359,7 @@ def root(request: Request):
     # Human visitors get the product experience; API clients keep the stable JSON root contract.
     accept = request.headers.get("accept", "")
     if "text/html" in accept:
-        return HTMLResponse(LANDING_PAGE)
+        return HTMLResponse(render_page(LANDING_PAGE))
     return {"name":"EC Pulse API","version":"0.12.0","status":"ok","docs":"/docs","health":"/health","pricing_model":"credit-based API with per-plan rate limits",**_release()}
 
 
@@ -386,7 +388,7 @@ def privacy_alias():
 
 @app.get("/account", include_in_schema=False)
 def account_page():
-    return HTMLResponse(ACCOUNT_PAGE)
+    return HTMLResponse(render_page(ACCOUNT_PAGE))
 
 
 @app.get("/legal/{slug}", include_in_schema=False)
@@ -394,7 +396,7 @@ def legal(slug: str):
     page = legal_page(slug)
     if page is None:
         raise HTTPException(status_code=404, detail="Not Found")
-    return HTMLResponse(page)
+    return HTMLResponse(render_page(page))
 
 
 @app.get("/favicon.svg", include_in_schema=False)
@@ -405,14 +407,21 @@ def favicon():
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
-    return PlainTextResponse(ROBOTS_TXT)
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
+    body = ROBOTS_TXT
+    if public_site_url.startswith("https://"):
+        body += f"Sitemap: {public_site_url}/sitemap.xml\n"
+    return PlainTextResponse(body)
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api-one.vercel.app").strip().rstrip("/")
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
     if not public_site_url.startswith("https://"):
-        public_site_url = "https://ec-pulse-api-one.vercel.app"
+        return PlainTextResponse(
+            "Sitemap unavailable: configure PUBLIC_SITE_URL to the verified HTTPS production domain.",
+            status_code=503,
+        )
     urls = ("/", "/pricing", "/docs", "/redoc", "/legal/terms", "/legal/privacy", "/legal/billing", "/legal/commercial-transactions", "/legal/acceptable-use")
     items = "".join(f"<url><loc>{html.escape(public_site_url + path)}</loc></url>" for path in urls)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
@@ -659,17 +668,19 @@ async def stripe_webhook(request: Request, stripe_signature: str | None = Header
 
 @app.get("/v1/pricing", tags=["billing"])
 def pricing():
-    from app.services.billing import _plan_credit_quota, _price_id
+    from app.services.billing import _plan_credit_quota, get_public_plan_price
     pro_quota = _plan_credit_quota("pro")
     business_quota = _plan_credit_quota("business")
     commercial_ready = os.getenv("EC_PULSE_LEGAL_READY", "").strip().lower() in {"1", "true", "yes"}
+    pro_price = get_public_plan_price("pro")
+    business_price = get_public_plan_price("business")
     return {
         "billing": "credit_based",
         "pricing_source": "stripe",
         "plans": {
-            "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True},
-            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(commercial_ready and pro_quota and _price_id("pro"))},
-            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(commercial_ready and business_quota and _price_id("business"))},
+            "free": {"credits": 100, "rate_limit_per_minute": 30, "available": True, "price": {"amount_minor": 0, "currency": "JPY", "interval": "month", "interval_count": 1}},
+            "pro": {"credits": pro_quota, "rate_limit_per_minute": 300, "available": bool(commercial_ready and pro_quota and pro_price), "price": pro_price},
+            "business": {"credits": business_quota, "rate_limit_per_minute": 3000, "available": bool(commercial_ready and business_quota and business_price), "price": business_price},
         },
         "checkout": {
             "pro": "/v1/billing/checkout?plan=pro",
@@ -749,6 +760,73 @@ def research_runs(
         return {"runs": list_research_runs(api_key, url, limit)}
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+def _csv_cell(value):
+    """Neutralize spreadsheet formula prefixes in user/source-controlled text."""
+    if value is None:
+        return ""
+    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + value
+    return value
+
+
+@app.get("/v1/research/runs/export.csv", tags=["research"])
+def research_runs_export(
+    request_http: Request,
+    url: str | None = Query(default=None, max_length=2000),
+    limit: int = Query(default=100, ge=1, le=100),
+    api_key: str = Depends(get_api_key),
+):
+    """Export the caller's own research history and trend summaries as CSV."""
+    try:
+        runs = list_research_runs(api_key, url, limit)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail="Research history is temporarily unavailable") from exc
+
+    output = io.StringIO(newline="")
+    columns = [
+        "run_id", "url", "source_type", "market", "locale", "title",
+        "comments_count", "captured_at", "previous_run_id", "previous_captured_at",
+        "top_pain", "top_pain_count", "top_pain_share_percent",
+        "trend_signal", "emerging_pains",
+    ]
+    writer = csv.DictWriter(output, fieldnames=columns, extrasaction="ignore")
+    writer.writeheader()
+    for run in runs:
+        top = run.get("top_pain") or {}
+        trend = run.get("trend") or {}
+        emerging = trend.get("emerging_pains") or []
+        writer.writerow({
+            "run_id": _csv_cell(run.get("run_id")),
+            "url": _csv_cell(run.get("url")),
+            "source_type": _csv_cell(run.get("source_type")),
+            "market": _csv_cell(run.get("market")),
+            "locale": _csv_cell(run.get("locale")),
+            "title": _csv_cell(run.get("title")),
+            "comments_count": run.get("comments_count"),
+            "captured_at": _csv_cell(run.get("captured_at")),
+            "previous_run_id": _csv_cell(trend.get("previous_run_id")),
+            "previous_captured_at": _csv_cell(trend.get("previous_captured_at")),
+            "top_pain": _csv_cell(top.get("pain")),
+            "top_pain_count": top.get("count"),
+            "top_pain_share_percent": top.get("share_percent"),
+            "trend_signal": _csv_cell(trend.get("signal")),
+            "emerging_pains": _csv_cell("; ".join(
+                f"{item.get('pain', '')} ({item.get('status', '')}; Δ件数 {item.get('count_delta', 0)}; Δ割合 {item.get('share_delta_percent', 0)}pt)"
+                for item in emerging
+            )),
+        })
+    content = "\ufeff" + output.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="ec-pulse-research-history.csv"',
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @app.get("/v1/research/runs/{run_id}/opportunity")

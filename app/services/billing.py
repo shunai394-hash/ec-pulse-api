@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -20,6 +21,64 @@ def _price_id(plan: str) -> str | None:
         if value:
             return value
     return None
+
+
+# /v1/pricing is public and fetched on every landing-page view. Cache Stripe price
+# lookups so anonymous traffic cannot amplify into Stripe API calls (which share the
+# account's rate limit with checkout and webhooks). Failures are cached briefly so a
+# Stripe outage does not turn every page view into a slow retry.
+_PRICE_CACHE_TTL_SECONDS = 600
+_PRICE_ERROR_TTL_SECONDS = 60
+_price_cache: dict[str, tuple[float, dict | None]] = {}
+_price_cache_lock = threading.Lock()
+
+
+def get_public_plan_price(plan: str) -> dict | None:
+    """Return only public, non-sensitive facts about the configured recurring Stripe price.
+
+    A missing key, inactive price, one-time price, or Stripe/API failure is treated
+    as unavailable so the public pricing endpoint never guesses a price.
+    """
+    price_id = _price_id(plan)
+    if not price_id:
+        return None
+    now = time.monotonic()
+    with _price_cache_lock:
+        cached = _price_cache.get(price_id)
+        if cached and cached[0] > now:
+            return cached[1]
+    result = _fetch_public_price(price_id)
+    ttl = _PRICE_CACHE_TTL_SECONDS if result else _PRICE_ERROR_TTL_SECONDS
+    with _price_cache_lock:
+        _price_cache[price_id] = (now + ttl, result)
+    return result
+
+
+def _fetch_public_price(price_id: str) -> dict | None:
+    try:
+        sdk = _stripe()
+        price = _as_dict(sdk.Price.retrieve(price_id))
+        recurring = price.get("recurring") or {}
+        amount = price.get("unit_amount")
+        currency = price.get("currency")
+        interval = recurring.get("interval")
+        if (
+            price.get("active") is not True
+            or not isinstance(amount, int)
+            or not currency
+            or interval not in {"day", "week", "month", "year"}
+        ):
+            return None
+        return {
+            "amount_minor": amount,
+            "currency": str(currency).upper(),
+            "interval": interval,
+            "interval_count": max(1, int(recurring.get("interval_count") or 1)),
+        }
+    except Exception:
+        # Pricing must remain available even if Stripe is temporarily unreachable;
+        # callers show an explicit unavailable state rather than inventing a price.
+        return None
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS billing_events (

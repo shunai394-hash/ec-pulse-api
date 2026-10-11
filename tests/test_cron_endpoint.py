@@ -66,11 +66,15 @@ def test_automation_workflows_target_documented_production_domain():
     smoke_script = (root / "scripts/production_smoke.py").read_text(encoding="utf-8")
 
     production_url = "https://ec-pulse-api-one.vercel.app"
-    assert production_url in readme
     assert production_url in monitor_workflow
     assert production_url in smoke_workflow
     assert production_url in patrol_workflow
-    assert production_url in smoke_script
+    # The production domain is not verified yet, so user-facing docs and the
+    # smoke script must require it to be configured rather than hard-code one.
+    assert production_url not in readme
+    assert "EC_PULSE_API_BASE_URL" in readme
+    assert production_url not in smoke_script
+    assert 'os.getenv("EC_PULSE_BASE_URL", "")' in smoke_script
     stale_urls = (
         "https://ec-pulse-api.vercel.app",
         "https://ec-pulse-api-two.vercel.app",

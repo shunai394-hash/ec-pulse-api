@@ -5,7 +5,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import _redact, app
+from app.main import _redact, app, get_api_key
 
 client = TestClient(app)
 
@@ -204,30 +204,47 @@ def test_demo_pain_labels_are_ones_the_analyzer_can_return():
     assert re.search(r"<strong>38%</strong> (\S+?)<", page).group(1) in labels
 
 
-def test_canonical_and_social_url_metadata_are_present():
+def test_canonical_and_social_url_metadata_are_omitted_until_public_url_is_verified(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
     response = client.get("/", headers={"Accept": "text/html"})
-    assert '<link rel="canonical" href="https://ec-pulse-api-one.vercel.app">' in response.text
-    assert '<meta property="og:url" content="https://ec-pulse-api-one.vercel.app">' in response.text
+    assert response.status_code == 200
+    assert 'rel="canonical"' not in response.text
+    assert 'property="og:url"' not in response.text
 
 
-def test_short_public_paths_and_sitemap():
+def test_canonical_and_social_url_metadata_use_configured_public_url(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test/")
+    response = client.get("/", headers={"Accept": "text/html"})
+    assert '<link rel="canonical" href="https://shop.example.test">' in response.text
+    assert '<meta property="og:url" content="https://shop.example.test">' in response.text
+
+
+def test_short_public_paths_and_sitemap(monkeypatch):
     for path, target in [("/terms", "/legal/terms"), ("/privacy", "/legal/privacy"), ("/pricing", "/#pricing")]:
         response = client.get(path, follow_redirects=False)
         assert response.status_code == 308
         assert response.headers["location"] == target
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
     sitemap = client.get("/sitemap.xml")
     assert sitemap.status_code == 200
     assert sitemap.headers["content-type"].startswith("application/xml")
-    assert "https://ec-pulse-api-one.vercel.app/legal/terms" in sitemap.text
+    assert "https://shop.example.test/legal/terms" in sitemap.text
+    assert "ec-pulse-api-one.vercel.app" not in sitemap.text
 
 
 
-def test_sitemap_uses_configured_public_site_url(monkeypatch):
-    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test/")
+def test_sitemap_is_not_published_without_verified_public_url(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
     response = client.get("/sitemap.xml")
-    assert response.status_code == 200
-    assert "https://shop.example.test/" in response.text
-    assert "https://ec-pulse-api-one.vercel.app/" not in response.text
+    assert response.status_code == 503
+    assert "configure PUBLIC_SITE_URL" in response.text
+
+
+def test_robots_only_advertises_configured_sitemap(monkeypatch):
+    monkeypatch.delenv("PUBLIC_SITE_URL", raising=False)
+    assert "Sitemap:" not in client.get("/robots.txt").text
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    assert "Sitemap: https://shop.example.test/sitemap.xml" in client.get("/robots.txt").text
 
 
 def test_cors_preflight_requires_explicit_origin_allowlist(monkeypatch):
@@ -256,3 +273,114 @@ def test_cors_rejects_unlisted_origin(monkeypatch):
         },
     )
     assert "Access-Control-Allow-Origin" not in response.headers
+
+
+def test_public_pricing_exposes_verified_stripe_price_and_paid_plan_readiness(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("EC_PULSE_LEGAL_READY", "true")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1200")
+    monkeypatch.setenv("EC_PULSE_BUSINESS_MONTHLY_CREDITS", "8000")
+    monkeypatch.setattr(
+        billing,
+        "get_public_plan_price",
+        lambda plan: {"amount_minor": 980000, "currency": "JPY", "interval": "month", "interval_count": 1}
+        if plan == "pro" else None,
+    )
+
+    response = client.get("/v1/pricing")
+    assert response.status_code == 200
+    payload = response.json()["plans"]
+    assert payload["free"]["price"] == {"amount_minor": 0, "currency": "JPY", "interval": "month", "interval_count": 1}
+    assert payload["pro"]["price"]["amount_minor"] == 980000
+    assert payload["pro"]["credits"] == 1200
+    assert payload["pro"]["available"] is True
+    assert payload["business"]["price"] is None
+    assert payload["business"]["available"] is False
+
+
+def test_paid_pricing_stays_unavailable_when_launch_gate_is_closed(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("EC_PULSE_LEGAL_READY", "false")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1200")
+    monkeypatch.setattr(
+        billing,
+        "get_public_plan_price",
+        lambda plan: {"amount_minor": 980000, "currency": "JPY", "interval": "month", "interval_count": 1},
+    )
+
+    payload = client.get("/v1/pricing").json()["plans"]["pro"]
+    assert payload["price"]["amount_minor"] == 980000
+    assert payload["credits"] == 1200
+    assert payload["available"] is False
+
+
+def test_landing_page_never_invents_paid_prices_or_enables_unavailable_checkout():
+    page = _landing()
+    assert "fetch('/v1/pricing'" in page
+    assert 'id="pro-price"' in page and 'id="business-price"' in page
+    assert 'id="pro-cta" aria-disabled="true"' in page
+    assert 'id="business-cta" aria-disabled="true"' in page
+    assert "価格未設定" in page
+    assert "現在、契約受付停止中" in page
+
+
+def test_research_history_csv_export_is_authenticated_utf8_and_formula_safe(monkeypatch):
+    import app.main as main_module
+
+    monkeypatch.setitem(app.dependency_overrides, get_api_key, lambda: "test-api-key")
+    monkeypatch.setattr(
+        main_module,
+        "list_research_runs",
+        lambda api_key, url, limit: [{
+            "run_id": "run-123",
+            "url": "https://example.com/item",
+            "source_type": "manual",
+            "market": "JP",
+            "locale": "ja-JP",
+            "title": "=HYPERLINK(\"https://bad.example\",\"click\")",
+            "comments_count": 12,
+            "captured_at": "2026-10-11T10:00:00+00:00",
+            "top_pain": {"pain": "使いにくい", "count": 4, "share_percent": 33.3},
+            "trend": {
+                "previous_run_id": "run-122",
+                "previous_captured_at": "2026-10-10T10:00:00+00:00",
+                "signal": "emerging_pain_detected",
+                "emerging_pains": [{"pain": "使いにくい", "status": "rising", "count_delta": 2, "share_delta_percent": 5.0}],
+            },
+        }],
+    )
+
+    response = client.get("/v1/research/runs/export.csv?limit=5")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert 'attachment; filename="ec-pulse-research-history.csv"' in response.headers["content-disposition"]
+    assert response.headers["cache-control"] == "no-store"
+    assert response.content.startswith(b"\xef\xbb\xbf")
+    import csv
+    import io
+    rows = list(csv.DictReader(io.StringIO(response.content.decode("utf-8-sig"))))
+    assert len(rows) == 1
+    assert rows[0]["run_id"] == "run-123"
+    assert rows[0]["previous_run_id"] == "run-122"
+    assert rows[0]["top_pain"] == "使いにくい"
+    assert rows[0]["title"].startswith("'=HYPERLINK(")
+    assert "Δ件数 2" in rows[0]["emerging_pains"]
+
+
+def test_robots_is_one_directive_per_line(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    lines = client.get("/robots.txt").text.splitlines()
+    assert "User-agent: *" in lines
+    assert "Disallow: /v1/" in lines
+    assert "Sitemap: https://shop.example.test/sitemap.xml" in lines
+    assert "\\n" not in client.get("/robots.txt").text
+
+
+def test_legal_page_canonical_uses_its_own_path(monkeypatch):
+    monkeypatch.setenv("PUBLIC_SITE_URL", "https://shop.example.test")
+    response = client.get("/legal/terms", headers={"Accept": "text/html"})
+    assert '<link rel="canonical" href="https://shop.example.test/legal/terms">' in response.text
+    monkeypatch.delenv("PUBLIC_SITE_URL")
+    assert 'rel="canonical"' not in client.get("/legal/terms", headers={"Accept": "text/html"}).text

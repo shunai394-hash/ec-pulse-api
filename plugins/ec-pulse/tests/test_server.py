@@ -89,12 +89,17 @@ class SecurityTests(unittest.TestCase):
 
 
 class BaseUrlTests(unittest.TestCase):
-    def test_empty_base_url_falls_back_to_default(self):
+    def test_empty_base_url_requires_explicit_configuration(self):
         with patch.dict(os.environ, {"EC_PULSE_API_BASE_URL": ""}):
-            self.assertEqual(server._base_url(), server.DEFAULT_BASE_URL)
-    def test_unset_base_url_falls_back_to_default(self):
+            with self.assertRaisesRegex(RuntimeError, "verified production API base URL"):
+                server._base_url()
+    def test_unset_base_url_requires_explicit_configuration(self):
         with patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(server._base_url(), server.DEFAULT_BASE_URL)
+            with self.assertRaisesRegex(RuntimeError, "verified production API base URL"):
+                server._base_url()
+    def test_configured_https_base_url_is_accepted(self):
+        with patch.dict(os.environ, {"EC_PULSE_API_BASE_URL": "https://api.example.test/"}):
+            self.assertEqual(server._base_url(), "https://api.example.test")
     def test_remote_http_base_url_is_rejected(self):
         with patch.dict(os.environ, {"EC_PULSE_API_BASE_URL": "http://example.com"}):
             with self.assertRaises(RuntimeError): server._base_url()
@@ -103,7 +108,7 @@ class ManifestTests(unittest.TestCase):
     def test_mcp_env_defaults_are_declared(self):
         config = json.loads((SERVER.parent / ".mcp.json").read_text())
         env = config["mcpServers"]["ec-pulse"]["env"]
-        self.assertEqual(env["EC_PULSE_API_BASE_URL"], "${EC_PULSE_API_BASE_URL:-https://ec-pulse-api-one.vercel.app}")
+        self.assertEqual(env["EC_PULSE_API_BASE_URL"], "${EC_PULSE_API_BASE_URL}")
         self.assertEqual(env["EC_PULSE_API_KEY"], "${EC_PULSE_API_KEY}")
     def test_command_tool_references_exist(self):
         import re

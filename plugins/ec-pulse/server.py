@@ -19,7 +19,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urlparse
 from urllib.request import Request, urlopen
 
-DEFAULT_BASE_URL = "https://ec-pulse-api-one.vercel.app"
+DEFAULT_BASE_URL = ""
 TIMEOUT_SECONDS = 20
 MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 
@@ -78,8 +78,9 @@ def _api_key() -> str:
     return value
 
 def _base_url() -> str:
-    # An unset variable can reach the process as an empty string via .mcp.json.
     value = (os.getenv("EC_PULSE_API_BASE_URL") or "").strip().rstrip("/") or DEFAULT_BASE_URL
+    if not value:
+        raise RuntimeError("EC_PULSE_API_BASE_URL is required; set it to the verified production API base URL")
     parsed = urlparse(value)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise RuntimeError("EC_PULSE_API_BASE_URL must be a valid http(s) URL")

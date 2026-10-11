@@ -184,10 +184,11 @@ def test_research_ingest_and_marketplace_scrape_handle_plain_responses(net, monk
     from app.services import product_search, research_ingest
 
     server, _, _ = net
+    monkeypatch.setenv("EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING", "true")
     server.routes["/review"] = (302, {"Location": "/review2"}, b"")
     server.routes["/review2"] = (200, {"Content-Type": "text/html"},
                                  "<html><body><p>蓋がすぐ壊れる。値段の割に品質が悪いです。</p></body></html>".encode())
-    item = asyncio.run(research_ingest.fetch_public_comments("http://reviews.example.com/review", 10))
+    item = asyncio.run(research_ingest.fetch_public_comments("http://review.rakuten.co.jp/review", 10))
     assert item["url"]
 
     # The test server speaks plain HTTP only.

@@ -265,6 +265,7 @@ def test_search_with_one_marketplace_up_keeps_the_charge(api, monkeypatch):
     async def fetch(url):
         return product(url), False
 
+    monkeypatch.setenv("EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING", "true")
     monkeypatch.setattr(product_search, "_search_marketplace", lambda m, q, l: down() if m == "amazon" else links(m, q, l))
     monkeypatch.setattr(product_search, "fetch_product_cached", fetch)
     for name in ["AMAZON_CLIENT_ID", "YAHOO_SHOPPING_APP_ID", "RAKUTEN_APPLICATION_ID"]:
