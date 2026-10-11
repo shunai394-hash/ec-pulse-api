@@ -8,7 +8,7 @@ EC Pulse turns Japanese marketplace product pages and search results into normal
 
 ## Base URL and website
 
-- API base URL / website: `https://ec-pulse-api-one.vercel.app` (the Vercel production domain; preview deployment URLs are not stable and must not be used in integrations)
+- **Production API base URL: not yet verified.** Set `EC_PULSE_API_BASE_URL` to the confirmed HTTPS Production domain before using the examples or MCP plugin. The intended Vercel project is [naito3087/ec-pulse-api](https://vercel.com/naito3087/ec-pulse-api), but its domain and Production deployment remain unverified.
 - `/` — product site (browsers); API clients that do not send `Accept: text/html` get the JSON root document
 - `/account` — Google login, API key issue/rotation, credits, 30-day usage, Stripe checkout and billing portal
 - `/docs` (Swagger UI), `/redoc` — API reference
@@ -17,8 +17,13 @@ EC Pulse turns Japanese marketplace product pages and search results into normal
 
 ## Quick start
 
+Set the base URL only after confirming the Vercel Production domain, then export the API key issued in `/account`:
+
 ```bash
-curl -X POST https://ec-pulse-api-one.vercel.app/v1/products \
+export EC_PULSE_API_BASE_URL="https://YOUR_VERIFIED_PRODUCTION_DOMAIN"
+export EC_PULSE_API_KEY="YOUR_API_KEY"
+
+curl -X POST ${EC_PULSE_API_BASE_URL%/}/v1/products \
   -H "X-API-Key: $EC_PULSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://shop.example.jp/item/123"}'
