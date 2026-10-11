@@ -256,3 +256,54 @@ def test_cors_rejects_unlisted_origin(monkeypatch):
         },
     )
     assert "Access-Control-Allow-Origin" not in response.headers
+
+
+def test_public_pricing_exposes_verified_stripe_price_and_paid_plan_readiness(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("EC_PULSE_LEGAL_READY", "true")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1200")
+    monkeypatch.setenv("EC_PULSE_BUSINESS_MONTHLY_CREDITS", "8000")
+    monkeypatch.setattr(
+        billing,
+        "get_public_plan_price",
+        lambda plan: {"amount_minor": 980000, "currency": "JPY", "interval": "month", "interval_count": 1}
+        if plan == "pro" else None,
+    )
+
+    response = client.get("/v1/pricing")
+    assert response.status_code == 200
+    payload = response.json()["plans"]
+    assert payload["free"]["price"] == {"amount_minor": 0, "currency": "JPY", "interval": "month", "interval_count": 1}
+    assert payload["pro"]["price"]["amount_minor"] == 980000
+    assert payload["pro"]["credits"] == 1200
+    assert payload["pro"]["available"] is True
+    assert payload["business"]["price"] is None
+    assert payload["business"]["available"] is False
+
+
+def test_paid_pricing_stays_unavailable_when_launch_gate_is_closed(monkeypatch):
+    from app.services import billing
+
+    monkeypatch.setenv("EC_PULSE_LEGAL_READY", "false")
+    monkeypatch.setenv("EC_PULSE_PRO_MONTHLY_CREDITS", "1200")
+    monkeypatch.setattr(
+        billing,
+        "get_public_plan_price",
+        lambda plan: {"amount_minor": 980000, "currency": "JPY", "interval": "month", "interval_count": 1},
+    )
+
+    payload = client.get("/v1/pricing").json()["plans"]["pro"]
+    assert payload["price"]["amount_minor"] == 980000
+    assert payload["credits"] == 1200
+    assert payload["available"] is False
+
+
+def test_landing_page_never_invents_paid_prices_or_enables_unavailable_checkout():
+    page = _landing()
+    assert "fetch('/v1/pricing'" in page
+    assert 'id="pro-price"' in page and 'id="business-price"' in page
+    assert 'id="pro-cta" aria-disabled="true"' in page
+    assert 'id="business-cta" aria-disabled="true"' in page
+    assert "価格未設定" in page
+    assert "現在、契約受付停止中" in page
