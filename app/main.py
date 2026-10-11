@@ -407,14 +407,21 @@ def favicon():
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
-    return PlainTextResponse(ROBOTS_TXT)
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
+    body = ROBOTS_TXT
+    if public_site_url.startswith("https://"):
+        body += f"Sitemap: {public_site_url}/sitemap.xml\\n"
+    return PlainTextResponse(body)
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap():
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api-one.vercel.app").strip().rstrip("/")
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
     if not public_site_url.startswith("https://"):
-        public_site_url = "https://ec-pulse-api-one.vercel.app"
+        return PlainTextResponse(
+            "Sitemap unavailable: configure PUBLIC_SITE_URL to the verified HTTPS production domain.",
+            status_code=503,
+        )
     urls = ("/", "/pricing", "/docs", "/redoc", "/legal/terms", "/legal/privacy", "/legal/billing", "/legal/commercial-transactions", "/legal/acceptable-use")
     items = "".join(f"<url><loc>{html.escape(public_site_url + path)}</loc></url>" for path in urls)
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
