@@ -57,3 +57,28 @@ Award-level readiness: **NOT VERIFIED**. The branch is a review candidate, not a
 
 - `EC Pulse Python tests` and `tests` completed successfully on code-bearing commit `2bf3a0e61544842c70e4c718e96640c4a9c55075`.
 - `EC Pulse Patrol AI` failed before running its review because the workflow has no `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN`, or configured workload identity. This is recorded as **NOT RUN / workflow auth missing**, not as a product-code test failure.
+
+## Follow-up audit — 2026-10-11 (second session)
+
+Evidence-backed results only. Anything not listed as verified was not verified.
+
+### Verified
+
+- PR #16 is still draft and unmerged; head was `f1ee7b2` before this session, base `main` at `9458508`.
+- Local re-run on Python 3.13 (CI uses 3.12): **400 passed** with a disposable PostgreSQL 16; **303 passed, 97 skipped** without one. Counts include the two regression tests added below.
+- Browser check against a local server (Chromium, 1440×900 and 390×844): `/` returns HTML to browsers and JSON to `Accept: */*` clients; no horizontal overflow; no console errors; with no Stripe configuration the Pro/Business cards show "価格未設定" and "現在、契約受付停止中" (fail-closed).
+- `GET /v1/research/runs/export.csv` returns 401 without an API key; rows are scoped by `owner_key_hash`; rate limiting applies through `get_api_key`.
+
+### Fixed
+
+- `/v1/pricing` called Stripe `Price.retrieve` twice on every request, and the landing page requests it on every view. Anonymous traffic could consume the Stripe account rate limit shared with checkout, portal and webhooks. Prices are now cached for 10 minutes (failures for 60 seconds), keyed by Price ID.
+
+### Not verified (blocked)
+
+- Vercel: the connected Vercel account (`naito3087-3997`) gets `403 forbidden` on the `naito3087` scope and lists no projects. No project settings, domains, env vars, deployments or logs could be read. Migration completeness is **NOT VERIFIED**.
+- Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to the production or preview URLs was made. The code's canonical alias is `ec-pulse-api-one.vercel.app`, not `ec-pulse-api.vercel.app`.
+- Stripe: no access to the Stripe account; price IDs, webhook endpoint, event registration and the reported production webhook 500 are **NOT VERIFIED**.
+
+### Open finding requiring an owner decision
+
+- When official marketplace credentials are missing, `search_products` falls back to fetching Amazon/Rakuten/Yahoo! search HTML and Bing results, and `research_ingest` extracts review bodies from Amazon, Rakuten, Yahoo!, Reddit, YouTube and TikTok HTML. Those sources restrict automated collection in their terms. This was not changed because disabling it alters production behaviour; recommended: gate both paths behind an explicit allow-list flag that defaults to off before paid launch.
