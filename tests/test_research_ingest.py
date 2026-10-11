@@ -10,7 +10,7 @@ def test_detect_source_requires_real_domain_boundary():
     assert detect_source("evilshopping.yahoo.co.jp.example") == "generic"
 
 
-remove late imports@pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_research_comment_limit_is_bounded():
     with pytest.raises(ValueError, match="max_comments"):
         await fetch_public_comments("https://example.com", 501)
