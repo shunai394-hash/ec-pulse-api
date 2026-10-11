@@ -340,7 +340,7 @@ def test_research_history_csv_export_is_authenticated_utf8_and_formula_safe(monk
     assert response.headers["content-type"].startswith("text/csv")
     assert 'attachment; filename="ec-pulse-research-history.csv"' in response.headers["content-disposition"]
     assert response.headers["cache-control"] == "no-store"
-    assert response.content.startswith(b"\\xef\\xbb\\xbf")
+    assert response.content.startswith(b"\xef\xbb\xbf")
     import csv
     import io
     rows = list(csv.DictReader(io.StringIO(response.content.decode("utf-8-sig"))))
