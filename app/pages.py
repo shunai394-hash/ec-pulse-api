@@ -468,7 +468,7 @@ _LANDING_BODY = r"""<main id="main">
 <h1 id="hero-title" class="mt22"><span class="ln">売れる商品を、</span><br><span class="ln"><em>探す前に</em>絞り込む。</span></h1>
 </div>
 <div class="hero-copy">
-<p class="lead">Amazon・楽天市場・Yahoo!ショッピングの商品、レビューの痛点、価格の変化をAPIでまとめ、仕入れ判断に必要な材料を返します。手作業の比較を減らし、あなたは「利益が残るか」を判断できます。</p>
+<p class="lead">Amazon・楽天市場・Yahoo!ショッピングの商品データと、利用条件を確認したレビュー・コメントの痛点、価格の変化をAPIでまとめます。手作業の比較を減らし、あなたは「利益が残るか」を判断できます。</p>
 <div class="actions">
 <a class="btn primary" href="/account">無料でAPIキーを取得 <span class="arr" aria-hidden="true">→</span></a>
 <a class="btn" href="#calc">仕入れ上限を計算する</a>
@@ -598,7 +598,7 @@ _LANDING_BODY = r"""<main id="main">
 </div>
 <ol class="steps">
 <li class="step"><span class="no">01</span><h3>市場を集める</h3><p>Amazon・楽天市場・Yahoo!ショッピングを横断検索し、商品名・価格・在庫・URLを同じ形式で返します。</p><div class="api"><code>POST /v1/products/search</code><span>件数 × モール数 クレジット</span></div></li>
-<li class="step"><span class="no">02</span><h3>痛点を見つける</h3><p>レビューやコメントから不満を分類し、件数・割合・実際のコメント例を返します。URLを渡せば本文の取得から行います。</p><div class="api"><code>POST /v1/consumer-insights/analyze</code><span>コメント50件ごとに1</span><code>POST /v1/research/ingest</code><span>URL数</span></div></li>
+<li class="step"><span class="no">02</span><h3>痛点を見つける</h3><p>提供元の利用条件に従って扱えるレビューやコメントから、不満の件数・割合・コメント例を返します。対応する公開ページでは取得を試みますが、本文の取得可否は提供元のルールと公開範囲に依存します。</p><div class="api"><code>POST /v1/consumer-insights/analyze</code><span>コメント50件ごとに1</span><code>POST /v1/research/ingest</code><span>URL数</span></div></li>
 <li class="step"><span class="no">03</span><h3>候補を絞る</h3><p>上位の痛点ごとに3モールを再検索し、痛点に対する商品の方向性と候補商品、広告で試す訴求案を返します。</p><div class="api"><code>GET /v1/research/runs/{id}/opportunity</code><span>検索件数に応じて</span></div></li>
 <li class="step"><span class="no">04</span><h3>価格を確かめる</h3><p>商品ページから価格を取得し、複数商品を並べて比較します。監視中の商品は履歴の最安・最高・平均と比べた水準を返します。</p><div class="api"><code>POST /v1/products</code><span>1</span><code>POST /v1/products/compare</code><span>URL数</span><code>GET /v1/monitors/{id}/opportunity</code><span>2</span></div></li>
 <li class="step"><span class="no">05</span><h3>見張り続ける</h3><p>商品ページURL・監視間隔（5分〜1週間）・通知先Webhook URLを登録。定期チェックで価格が変わると、あなたのシステムへ通知します。毎回ページを開いて価格を見比べる手間を減らせます。</p><div class="api"><code>POST /v1/monitors</code><span>登録時に1</span><code>GET /v1/monitors/{id}/history</code><span>1</span></div></li>
@@ -883,7 +883,7 @@ var copyCurl=d.getElementById('copy-curl'),curl=d.getElementById('curl-example')
 
 LANDING_PAGE = _page(
     "EC Pulse — 売れる商品を、探す前に絞り込む。",
-    "EC Pulse は Amazon・楽天市場・Yahoo!ショッピングの商品データ、レビューの痛点、価格の動きを集め、利益が残る仕入れ判断を速くする市場シグナルAPIです。",
+    "EC Pulse は Amazon・楽天市場・Yahoo!ショッピングの商品データと、利用条件を確認したレビュー・コメント、価格の動きを整理し、仕入れ判断を速くする市場シグナルAPIです。",
     _LANDING_BODY,
     _LANDING_SCRIPT,
 )
