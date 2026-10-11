@@ -327,6 +327,17 @@ def _links(html: str, marketplace: str) -> list[str]:
     return found
 
 
+def _unofficial_html_scraping_enabled() -> bool:
+    return os.getenv("EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+async def _unofficial_html_scraping_disabled(marketplace: str) -> list[str]:
+    raise RuntimeError(
+        f"Unofficial HTML scraping is disabled for {marketplace}; configure the official API "
+        "or set EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING=true only after reviewing source terms and permissions"
+    )
+
+
 async def _search_marketplace(marketplace: str, query: str, limit: int) -> list[str]:
     url = SEARCH_URLS[marketplace].format(query=quote_plus(query))
     current_url = await validate_public_url(url)
@@ -411,7 +422,7 @@ async def _search_bing_marketplace(query: str, limit: int) -> list[dict]:
 
 async def search_products(query: str, marketplaces: list[str], limit: int) -> dict:
     results_by_marketplace = await asyncio.gather(
-        *(_search_amazon_official(query, limit) if marketplace == "amazon" and os.getenv("AMAZON_CLIENT_ID") and os.getenv("AMAZON_CLIENT_SECRET") and os.getenv("AMAZON_PARTNER_TAG") else _search_yahoo_official(query, limit) if marketplace == "yahoo" and os.getenv("YAHOO_SHOPPING_APP_ID") else _search_rakuten_official(query, limit) if marketplace == "rakuten" and os.getenv("RAKUTEN_APPLICATION_ID") and os.getenv("RAKUTEN_ACCESS_KEY") else _search_marketplace(marketplace, query, limit) for marketplace in marketplaces),
+        *(_search_amazon_official(query, limit) if marketplace == "amazon" and os.getenv("AMAZON_CLIENT_ID") and os.getenv("AMAZON_CLIENT_SECRET") and os.getenv("AMAZON_PARTNER_TAG") else _search_yahoo_official(query, limit) if marketplace == "yahoo" and os.getenv("YAHOO_SHOPPING_APP_ID") else _search_rakuten_official(query, limit) if marketplace == "rakuten" and os.getenv("RAKUTEN_APPLICATION_ID") and os.getenv("RAKUTEN_ACCESS_KEY") else _search_marketplace(marketplace, query, limit) if _unofficial_html_scraping_enabled() else _unofficial_html_scraping_disabled(marketplace) for marketplace in marketplaces),
         return_exceptions=True,
     )
 
@@ -465,7 +476,7 @@ async def search_products(query: str, marketplaces: list[str], limit: int) -> di
     # Do not return an empty catalog just because one or more marketplace
     # credentials/scrapers failed. Use public search as a last-resort
     # discovery path, then normalize the discovered product pages.
-    if not flat:
+    if not flat and _unofficial_html_scraping_enabled():
         discovered = await _search_bing_marketplace(query, max(limit * len(marketplaces), limit))
         if discovered:
             normalized = await asyncio.gather(

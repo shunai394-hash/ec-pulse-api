@@ -76,10 +76,29 @@ def _selectors_for(source: str) -> list[str]:
 def _clean_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
+
+def _unofficial_html_scraping_enabled() -> bool:
+    import os
+
+    return os.getenv("EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _assert_allowed_source(url: str) -> None:
+    host = (urlparse(url).hostname or "").lower()
+    if detect_source(host) == "generic":
+        raise ValueError("Public HTML research ingestion is restricted to allow-listed source domains")
+
+
 async def fetch_public_comments(url: str, max_comments: int = 500) -> dict:
     if not isinstance(max_comments, int) or isinstance(max_comments, bool) or not 1 <= max_comments <= 500:
         raise ValueError("max_comments must be between 1 and 500")
+    if not _unofficial_html_scraping_enabled():
+        raise RuntimeError(
+            "Public HTML research ingestion is disabled; set EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING=true "
+            "only after reviewing source terms and permissions"
+        )
     current_url = await validate_public_url(url)
+    _assert_allowed_source(current_url)
     parsed = urlparse(current_url)
     if parsed.scheme not in {"http", "https"}:
         raise ValueError("Only http/https URLs are supported")
@@ -100,6 +119,7 @@ async def fetch_public_comments(url: str, max_comments: int = 500) -> dict:
                     if not location:
                         raise ValueError("Redirect response did not include a location")
                     current_url = await validate_public_url(next_redirect(current_url, location))
+                    _assert_allowed_source(current_url)
                     continue
                 response.raise_for_status()
                 body = await read_response_bytes(response, MAX_RESPONSE_BYTES)

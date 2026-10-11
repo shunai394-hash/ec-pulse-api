@@ -1,3 +1,6 @@
+import pytest
+
+from app.services import product_search
 from app.services.product_search import _amazon_item, _rakuten_item, _yahoo_item
 
 
@@ -55,3 +58,30 @@ def test_rakuten_item_normalization():
     assert result["product"]["product"]["title"] == "Rakuten Product"
     assert result["product"]["pricing"]["price"] == 980
     assert result["product"]["source"]["product_id"] == "shop:123"
+
+
+
+@pytest.mark.asyncio
+async def test_unofficial_html_search_fallback_is_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING", raising=False)
+    for name in (
+        "AMAZON_CLIENT_ID",
+        "AMAZON_CLIENT_SECRET",
+        "AMAZON_PARTNER_TAG",
+        "YAHOO_SHOPPING_APP_ID",
+        "RAKUTEN_APPLICATION_ID",
+        "RAKUTEN_ACCESS_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    async def forbidden(*args, **kwargs):
+        raise AssertionError("unofficial HTML fallback must not be called")
+
+    monkeypatch.setattr(product_search, "_search_marketplace", forbidden)
+    monkeypatch.setattr(product_search, "_search_bing_marketplace", forbidden)
+    result = await product_search.search_products("test product", ["amazon"], 1)
+
+    assert result["count"] == 0
+    assert result["results"] == []
+    assert result["marketplace_errors"][0]["marketplace"] == "amazon"
+    assert result["marketplace_errors"][0]["error"] == "RuntimeError"

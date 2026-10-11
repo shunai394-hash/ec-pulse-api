@@ -87,6 +87,9 @@ Evidence-backed results only. Anything not listed as verified was not verified.
 - Production HTTP: this session's network policy denies `*.vercel.app`, so no live request to any deployment URL was made. Which URL serves production is unconfirmed; note that scripts, the MCP plugin and tests in this repository currently point at `ec-pulse-api-one.vercel.app`, which must be reconciled once the production URL under `naito3087` is confirmed.
 - Stripe: no access to the Stripe account; price IDs, webhook endpoint, event registration and the reported production webhook 500 are **NOT VERIFIED**.
 
-### Open finding requiring an owner decision
+### Source-access mitigation added to this review branch
 
-- When official marketplace credentials are missing, `search_products` falls back to fetching Amazon/Rakuten/Yahoo! search HTML and Bing results, and `research_ingest` extracts review bodies from Amazon, Rakuten, Yahoo!, Reddit, YouTube and TikTok HTML. Those sources restrict automated collection in their terms. This was not changed because disabling it alters production behaviour; recommended: gate both paths behind an explicit allow-list flag that defaults to off before paid launch.
+- Added `EC_PULSE_ENABLE_UNOFFICIAL_HTML_SCRAPING`, defaulting to off. When off, marketplace search does not fall back to Amazon/Rakuten/Yahoo! search-page HTML or Bing HTML, and review ingestion does not fetch public-page HTML.
+- When explicitly enabled, review ingestion accepts only the repository's configured source domains and re-checks the allow-list after every redirect.
+- Official marketplace API integrations remain available when their credentials are configured. Direct product-URL lookup remains a separate feature and still requires source-by-source terms and permission review.
+- This is a code-level guard, not a legal determination. The production environment was not changed; the flag must remain off until source permissions and data-retention rules are reviewed. CI for this change is pending.
