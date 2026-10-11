@@ -250,6 +250,9 @@ p{margin:0 0 14px}
 .plan .for{font-size:14px;color:var(--ink-2);margin:6px 0 22px;min-height:3.4em}
 .plan .price{font-family:var(--mono);font-size:clamp(28px,3vw,36px);font-weight:600;letter-spacing:-.02em;margin:0}
 .plan .price.tbd{font-family:var(--sans);font-size:15px;font-weight:700;letter-spacing:0;line-height:1.6;padding:6px 0 4px;color:var(--ink-2)}
+.plan .price .price-status{display:block;font-family:var(--sans);font-size:12px;font-weight:500;letter-spacing:0;line-height:1.5;margin-top:4px;color:var(--ink-3)}
+.plan .btn[aria-disabled="true"],.plan .btn.disabled{opacity:.62;cursor:not-allowed;pointer-events:none;background:var(--paper-2);color:var(--ink-3);border-color:var(--line)}
+.plan .price-error{color:var(--signal-ink)}
 .plan .price small{font-size:13px;color:var(--ink-3);font-weight:400;letter-spacing:0;margin-left:4px}
 .plan ul{list-style:none;padding:0;margin:20px 0 26px;display:grid;gap:10px;font-size:14.5px}
 .plan li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px}
@@ -686,14 +689,14 @@ _LANDING_BODY = r"""<main id="main">
 <div class="plan"><span class="tagline">まず試す</span><h3 class="mt10">Free</h3><p class="for">1つの商品ジャンルで、市場と痛点を調べてみたい人に。</p><p class="price">¥0<small>/ 月</small></p>
 <ul><li>毎月100クレジット</li><li>30リクエスト / 分</li><li>すべてのAPIを利用可能</li><li>カード登録不要</li></ul>
 <a class="btn" href="/account">無料でAPIキーを取得</a></div>
-<div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">複数ジャンルの候補探しと価格監視を、日々の業務に組み込む人に。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
-<ul><li>請求ごとに月間クレジットを付与</li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn primary" href="/account#billing">Proで仕入れ調査を始める</a><p class="plan-note">最終的な月額と付与クレジットは、決済確定前にStripe画面で確認できます。</p></div>
-<div class="plan"><span class="tagline">規模を広げる</span><h3 class="mt10">Business</h3><p class="for">大量の商品リサーチや監視を、自社システムで自動化するチームに。</p><p class="price tbd">月額と付与クレジットは<br>Stripeの決済画面で確認できます</p>
-<ul><li>請求ごとに月間クレジットを付与</li><li>3,000リクエスト / 分</li><li>大量のリサーチと監視向け</li><li>Stripeでいつでも解約</li></ul>
-<a class="btn" href="/account#billing">Businessで自動化する</a><p class="plan-note">大規模利用を想定。実際の料金・付与クレジットはStripe画面で確定前に確認してください。</p></div>
+<div class="plan featured"><span class="tagline">毎日の仕入れ調査に</span><h3 class="mt10">Pro</h3><p class="for">月商100万〜1,000万円規模のEC担当者が、日々の候補比較と価格監視を自分で回すためのプラン。</p><p class="price" id="pro-price" aria-live="polite">料金を確認中…<span class="price-status">Stripeの登録価格を確認しています</span></p>
+<ul><li><strong id="pro-credits">月間クレジットを確認中</strong></li><li>300リクエスト / 分</li><li>価格監視とWebhook通知</li><li>Stripeでいつでも解約（受付開始後）</li></ul>
+<span class="btn primary disabled" id="pro-cta" aria-disabled="true">販売状況を確認中</span><p class="plan-note" id="pro-note">料金・クレジット・契約受付状況をサーバーの設定から表示します。未設定の値は推測しません。</p></div>
+<div class="plan"><span class="tagline">規模を広げる</span><h3 class="mt10">Business</h3><p class="for">大量の商品リサーチや監視を、自社システムで自動化するチーム向け。</p><p class="price" id="business-price" aria-live="polite">料金を確認中…<span class="price-status">Stripeの登録価格を確認しています</span></p>
+<ul><li><strong id="business-credits">月間クレジットを確認中</strong></li><li>3,000リクエスト / 分</li><li>大量のリサーチと監視向け</li><li>Stripeでいつでも解約（受付開始後）</li></ul>
+<span class="btn disabled" id="business-cta" aria-disabled="true">販売状況を確認中</span><p class="plan-note" id="business-note">料金・クレジット・契約受付状況をサーバーの設定から表示します。未設定の値は推測しません。</p></div>
 </div><div class="fit-guide" aria-label="プランの選び方"><span><b>TRY</b>まずAPIを触る → Free</span><span><b>OPERATE</b>日々の調査 → Pro</span><span><b>AUTOMATE</b>大量処理 → Business</span></div>
-<p class="small muted mt20">有料プランの金額と付与クレジット数は、Stripeの決済画面で確定前に表示されます。<a href="/legal/billing">料金・解約ポリシー</a></p>
+<p class="small muted mt20">表示価格はStripeに登録された有効な定期価格を読み込みます。受付停止中は有料契約へ進めません。<a href="/legal/billing">料金・解約ポリシー</a></p>
 </div>
 </section>
 
@@ -786,6 +789,50 @@ _LANDING_SCRIPT = r"""
 (function(){
 var d=document,root=d.documentElement;root.classList.add('js');
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Show actual Stripe prices and fail closed when paid checkout is not ready. */
+(function(){
+  var formatPrice=function(price){
+    if(!price||typeof price.amount_minor!=='number'||!price.currency)return null;
+    var zeroDecimal={BIF:1,CLP:1,DJF:1,GNF:1,JPY:1,KMF:1,KRW:1,MGA:1,PYG:1,RWF:1,UGX:1,VND:1,VUV:1,XAF:1,XOF:1,XPF:1};
+    var amount=price.amount_minor/(zeroDecimal[price.currency]?1:100);
+    var interval=price.interval==='year'?'年':price.interval==='month'?'月':price.interval==='week'?'週':price.interval==='day'?'日':null;
+    if(!interval)return null;
+    var count=price.interval_count||1;
+    var unit=count===1?interval:count+interval;
+    try{return new Intl.NumberFormat('ja-JP',{style:'currency',currency:price.currency,maximumFractionDigits:zeroDecimal[price.currency]?0:2}).format(amount)+' / '+unit}
+    catch(e){return price.currency+' '+amount+' / '+unit}
+  };
+  var setPlan=function(name,plan){
+    var priceEl=d.getElementById(name+'-price'),creditsEl=d.getElementById(name+'-credits'),ctaEl=d.getElementById(name+'-cta'),noteEl=d.getElementById(name+'-note');
+    if(!priceEl||!creditsEl||!ctaEl||!noteEl)return;
+    var price=formatPrice(plan&&plan.price);
+    priceEl.textContent=price||'価格未設定';
+    var status=d.createElement('span');status.className='price-status';
+    if(price){status.textContent=plan.available?'Stripe登録価格':'価格は確認済み・契約受付停止中';}
+    else{status.textContent='有効な定期価格を確認できません';status.classList.add('price-error');}
+    priceEl.appendChild(status);
+    creditsEl.textContent=Number.isInteger(plan&&plan.credits)&&plan.credits>0?plan.credits.toLocaleString('ja-JP')+' クレジット / 月':'月間クレジット未設定';
+    if(plan&&plan.available&&price){
+      var link=d.createElement('a');link.className=ctaEl.className.replace(/\bdisabled\b/g,'').trim();link.href='/account#billing';link.textContent=name==='pro'?'Proで仕入れ調査を始める':'Businessで自動化する';link.removeAttribute('aria-disabled');ctaEl.replaceWith(link);
+      noteEl.textContent='Stripeの登録価格と月間クレジットを表示しています。契約前に決済画面でも条件をご確認ください。';
+    }else{
+      ctaEl.textContent='現在、契約受付停止中';ctaEl.setAttribute('aria-disabled','true');
+      noteEl.textContent=price?'価格は登録されていますが、契約設定・法務準備などの条件が整うまで申込できません。':'価格または月間クレジットが未設定のため、申込を停止しています。';
+    }
+  };
+  fetch('/v1/pricing',{headers:{'Accept':'application/json'},credentials:'same-origin',cache:'no-store'})
+    .then(function(response){if(!response.ok)throw new Error('pricing unavailable');return response.json()})
+    .then(function(data){setPlan('pro',data.plans&&data.plans.pro);setPlan('business',data.plans&&data.plans.business)})
+    .catch(function(){
+      ['pro','business'].forEach(function(name){
+        var p=d.getElementById(name+'-price'),c=d.getElementById(name+'-cta'),n=d.getElementById(name+'-note');
+        if(p){p.textContent='価格を取得できません';var st=d.createElement('span');st.className='price-status price-error';st.textContent='再読み込みしても解消しない場合は管理者にお問い合わせください';p.appendChild(st)}
+        if(c){c.textContent='申込できません';c.setAttribute('aria-disabled','true')}
+        if(n)n.textContent='価格情報を取得できないため、有料契約を安全側で停止しています。';
+      });
+    });
+})();
 
 /* Global polish: reveal sections and keep a quiet scroll-progress signal. */
 var revealTargets=[].slice.call(d.querySelectorAll('.section .sec-head,.section .pains,.section .compare,.section .steps,.section .output,.section .calc,.section .plans,.section .dev,.section .trust,.section .cta-card'));
