@@ -412,13 +412,17 @@ document.addEventListener('click',function(e){if(!m.contains(e.target))close(fal
 
 
 def _page(title: str, description: str, body: str, script: str = "", canonical_path: str = "/") -> str:
-    public_site_url = os.getenv("PUBLIC_SITE_URL", "https://ec-pulse-api-one.vercel.app").strip().rstrip("/")
+    public_site_url = os.getenv("PUBLIC_SITE_URL", "").strip().rstrip("/")
     if not public_site_url.startswith("https://"):
-        public_site_url = "https://ec-pulse-api-one.vercel.app"
+        public_site_url = ""
     canonical_path = canonical_path if canonical_path.startswith("/") else "/"
     if canonical_path == "/":
         canonical_path = ""
-    canonical_url = public_site_url + canonical_path
+    canonical_url = public_site_url + canonical_path if public_site_url else ""
+    canonical_tags = (
+        canonical_tags
+        if canonical_url else ""
+    )
     script_tag = f"<script>{_NAV_SCRIPT}</script>" + (f"<script>{script}</script>" if script else "")
     return (
         '<!doctype html>\n<html lang="ja">\n<head>\n<meta charset="utf-8">\n'
@@ -716,13 +720,13 @@ _LANDING_BODY = r"""<main id="main">
 </ol>
 <div>
 <div class="code-shell"><button type="button" class="code-copy" id="copy-curl">curlをコピー</button><pre tabindex="0" aria-label="curlでの呼び出し例" id="curl-example"><code><span class="c"># 3モールを横断して、仕入れ候補を集める</span>
-curl -X POST https://ec-pulse-api-one.vercel.app/v1/products/search \
+curl -X POST ${EC_PULSE_API_BASE_URL%/}/v1/products/search \
   -H <span class="k">"X-API-Key: $EC_PULSE_API_KEY"</span> \
   -H "Content-Type: application/json" \
   -d '{"query":"ワイヤレスイヤホン",
        "marketplaces":["amazon","rakuten","yahoo"],
        "limit":5}'</code></pre></div>
-<div class="code-shell monitor-example"><div class="code-label">PRICE MONITOR — one-time setup</div><pre tabindex="0" aria-label="価格監視を登録するcurl例"><code>curl -X POST https://ec-pulse-api-one.vercel.app/v1/monitors \
+<div class="code-shell monitor-example"><div class="code-label">PRICE MONITOR — one-time setup</div><pre tabindex="0" aria-label="価格監視を登録するcurl例"><code>curl -X POST ${EC_PULSE_API_BASE_URL%/}/v1/monitors \
   -H "X-API-Key: $EC_PULSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://shop.example.jp/item/123",
@@ -1192,7 +1196,7 @@ FAVICON_SVG = (
     "</svg>"
 )
 
-ROBOTS_TXT = "User-agent: *\nAllow: /\nSitemap: https://ec-pulse-api-one.vercel.app/sitemap.xml\nDisallow: /v1/\nDisallow: /api/\nDisallow: /auth/\nDisallow: /billing\nDisallow: /account\n"
+ROBOTS_TXT = "User-agent: *\\nAllow: /\\nDisallow: /v1/\\nDisallow: /api/\\nDisallow: /auth/\\nDisallow: /billing\\nDisallow: /account\\n"
 
 PAGE_CSP = {
     "/": csp_for(LANDING_PAGE),
