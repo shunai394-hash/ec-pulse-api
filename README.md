@@ -71,7 +71,7 @@ When Stripe reports a paid invoice (`invoice.paid` / `invoice.payment_succeeded`
 
 Credits charged for work that fails upstream (product fetch/search failure, failed URLs in compare/research) are refunded and recorded in the usage ledger as `<endpoint> (refund)`.
 
-Plan limits, Stripe checkout, subscription synchronization, credit accounting, usage tracking, Google login, and self-service customer API-key provisioning are implemented. A customer can authenticate, issue a free API key, use the API, and start a Pro/Business Stripe checkout without administrator intervention.
+Plan limits, Stripe checkout, subscription synchronization, credit accounting, usage tracking, Google login, and self-service customer API-key provisioning are implemented in code. Free API-key issuance can be used independently; paid checkout stays disabled until active Stripe recurring prices, monthly credit quotas, and the `EC_PULSE_LEGAL_READY` launch gate are configured.
 
 ## Core endpoints
 
@@ -85,14 +85,15 @@ Plan limits, Stripe checkout, subscription synchronization, credit accounting, u
 - `GET /v1/monitors/{id}/opportunity`
 - `GET /v1/account`
 - `POST /v1/research/ingest`
-- `GET /v1/research/runs`
-- `GET /v1/research/runs/{run_id}/opportunity`
+- `GET /v1/research/runs` (history with previous-run pain deltas)
+- `GET /v1/research/runs/export.csv` (authenticated UTF-8 CSV export; optional `url` and `limit` filters)
+- `GET /v1/research/runs/{run_id}/opportunity` (product directions, ad-test angles, next actions)
 - `POST /v1/consumer-insights/analyze`
 - `POST /v1/billing/checkout`
 - `POST /v1/billing/portal`
 - `POST /v1/billing/cancel`
 - `POST /v1/research/batch`
-- `GET /v1/pricing`
+- `GET /v1/pricing` (public price metadata from active recurring Stripe Prices; paid availability also requires monthly credits and `EC_PULSE_LEGAL_READY`)
 
 ## Customer (Google session cookie) endpoints
 
